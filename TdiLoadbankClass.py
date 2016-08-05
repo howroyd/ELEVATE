@@ -1,4 +1,4 @@
-import telnetlib, os
+import telnetlib, os, time
 import ElectricalDeviceClass
 
 class TdiLoadbank(ElectricalDeviceClass.ElectricalDevice):
@@ -24,9 +24,17 @@ class TdiLoadbank(ElectricalDeviceClass.ElectricalDevice):
         self._port     = kwargs['port'] if 'port' in kwargs else 23
         self._password = kwargs['password'] if 'password' in kwargs else ''
 
-        self._mode = TdiLoadbank.CONSTANT_CURRENT_COMMAND
-
+        self._mode = kwargs['mode'] if 'mode' in kwargs else 'CURRENT'
         self._tn   = None
+
+        self._v_set     = kwargs['v']     if 'v'     in kwargs else 10.0
+        self._v_set_min = kwargs['v_min'] if 'v_min' in kwargs else 0.0
+        self._v_set_max = kwargs['v_max'] if 'v_max' in kwargs else 10.0
+        self._i_set_max = kwargs['i_max'] if 'i_max' in kwargs else 10.0
+        self._p_set_max = kwargs['p_max'] if 'p_max' in kwargs else 10.0
+
+        self._dt = time.time()
+
         return super().__init__(**kwargs)
 
     # Method to connect over the network
@@ -47,32 +55,113 @@ class TdiLoadbank(ElectricalDeviceClass.ElectricalDevice):
             print("Failed, check password?\n")
             return 0
 
-        # Get safety limits
-        self.set_v(0.0) # TODO
-        self.set_i(0.0)
-        self.set_p(0.0)
+        # Set safety limits
+        self.set_v_min(self._v_set_min)
+        self.set_v_max(self._v_set_max)
+        self.set_i_max(self._i_set_max)
+        self.set_p_max(self._p_set_max)
 
-        # Get current mode
-        self.mode = self._get(self._tn, self.__MODE_COMMAND)
+        # Set mode
+        self.set_mode(self._mode)
 
         # Everything working, return 1
         return 1
 
+    # Method to connect over Telnet
+    @classmethod
+    def _connect(cls, HOST, PORT, password):
+        
+        # Initiate connection
+        tn = telnetlib.Telnet(HOST, PORT)
+        
+        # If we have a password...
+        if password:
+            
+            # Wait for the loadbank to ask us for a password
+            tn.read_until(b"Password ? ")
+            
+            # Write the password to the Loadbank
+            tn.write(password.encode('ascii') + b"\r\n")
+            
+        # Clear the buffer
+        cls._flush(tn)  # Flush read buffer (needed)
+        
+        # Return the Telnet handle
+        return tn
+
+    # Method to close down the connection
+    def shutdown(self):
+        time.sleep(0.4)
+        self.load = False
+        self.zero()
+        self._tn.close()
+        return 1
+
+    # Method to zero the Loadbank
+    def zero(self):
+        time.sleep(0.4)
+        if "VOLTAGE" in self.mode:
+            self.voltage_constant = '0.0'
+        elif "CURRENT" in self.mode:
+            self.current_constant = '0.0'
+        elif "POWER" in self.mode:
+            self.power_constant = '0.0'
+
+    # Method to clear the buffer
+    @staticmethod
+    def _flush(tn):
+        tn.read_very_eager()  # Flush read buffer
+
     def set_v(self, v):
         # Overloaded
-        pass
+        self._set(self._tn, self.CONSTANT_VOLTAGE_COMMAND, v)
+        self._v_set = v
+    def set_v_min(self, v):
+        self._set(self._tn, self.VOLTAGE_MINIMUM_COMMAND, v)
+        self._v_set_min = v
+    def set_v_max(self, v):
+        self._set(self._tn, self.VOLTAGE_LIMIT_COMMAND, v)
+        self._v_set_max = v
 
-    def set_p(self, i):
+    def set_i(self, i):
         # Overloaded
-        pass
+        self._set(self._tn, self.CONSTANT_CURRENT_COMMAND, i)
+        self._i_set = i
+    def set_i_max(self, i):
+        self._set(self._tn, self.CURRENT_LIMIT_COMMAND, i)
+        self._i_set_max = i
 
     def set_p(self, p):
         # Overloaded
-        pass
+        self._set(self._tn, self.CONSTANT_POWER_COMMAND, p)
+        self._p_set = p
+    def set_p_max(self, p):
+        self._set(self._tn, self.POWER_LIMIT_COMMAND , p)
+        self._p_set_max = p
 
     def set_mode(self, mode):
-        
-        pass
+        op_mode = op_mode.lower()  # Change any capitals to lower case
+        if "vo" in op_mode or "cv" in op_mode:
+            self._set(self._tn, self.MODE_COMMAND, self.CONSTANT_VOLTAGE_COMMAND)
+            self._mode =  "VOLTAGE"            
+        elif "cu" in op_mode or "ci" in op_mode:
+            self._set(self._tn, self.MODE_COMMAND, self.CONSTANT_CURRENT_COMMAND)
+            self._mode =  "CURRENT"
+        elif "po" in op_mode or "cp" in op_mode:
+            self._set(self._tn, self.MODE_COMMAND, self.CONSTANT_POWER_COMMAND)
+            self._mode =  "POWER"
+        return self._mode
+
+    # Update electrical data
+    def update(self):
+        self._v = self._get_float(self._tn, self.VOLTAGE_COMMAND)
+        self._i = self._get_float(self._tn, self.CURRENT_COMMAND)
+        self._p = self._get_float(self._tn, self.POWER_COMMAND)
+
+        self._dt = time.time() - self._dt
+
+        self._e_in += self._v * self._i * self._dt
+        self._e_total += self._e_in
 
     @classmethod
     def _set(cls, tn, command, value):
@@ -100,3 +189,68 @@ class TdiLoadbank(ElectricalDeviceClass.ElectricalDevice):
         
         # Send the query over the network
         return str(cls._send(tn, buf))
+
+    # Method to get a number **recursive**
+    @classmethod
+    def _get_float(cls, tn, command):
+        
+        # Get the raw data string
+        data = cls._get(tn, command)
+        
+        # Look for a valid reply
+        try:
+            return float(data.split()[0])
+            
+        # No valid reply so run the method again
+        except ValueError:
+            return cls._get_float(tn, command) # **recursivity**
+
+    # Method to handle data 2way telnet datastream
+    @classmethod
+    def _send(cls, tn, inbuf):
+        
+        # Flush the buffer
+        cls._flush(tn)
+        
+        # Create some memory
+        outbuf = ""
+
+        # Send the query or command to the Loadbank
+        tn.write(inbuf.encode('ascii'))
+
+        # Was it a query? If so what is the expected reply?
+        if '?' in inbuf:
+            if 'v' in inbuf:
+                expected = b'volts'
+            elif 'i' in inbuf:
+                expected = b'amps'
+            elif 'p' in inbuf:
+                expected = b'watts'
+            elif 'rng' in inbuf:
+                expected = b'AMP'
+            else:
+                expected = b'\r'
+
+            # Check if the Loadbank acknowledged the query
+            while not outbuf or outbuf.isspace():
+                
+                # Look for the expected reply or timeout
+                outbuf = tn.read_until(expected, 0.1)  # Timeout = 0.1sec TODO
+                
+                # Decode the reply
+                outbuf = outbuf.decode('ascii').strip('\r\n')
+                
+                # If the reply is not what we expected...
+                if not outbuf or outbuf.isspace():
+                    # Flush the buffer
+                    cls._flush(tn)
+                    
+                    # Send the query again
+                    tn.write(inbuf.encode('ascii'))
+
+            # Return the query reply
+            return outbuf
+            
+        # Was a command not a query, no reply expected.
+        else:
+            return inbuf
