@@ -16,7 +16,7 @@ class error_t(Enum):
 class ElectricalDevice():
     '''DESCRIPTION'''
     # Instance Constructor
-    def __init__(self, **kwargs):
+    def __init__(self, kwargs):
         self._v       = kwargs['v'] if 'v' in kwargs else 0.0
         self._i       = kwargs['i'] if 'i' in kwargs else 0.0
         self._p       = kwargs['p'] if 'p' in kwargs else 0.0
@@ -52,17 +52,17 @@ class ElectricalDevice():
         e_out_accepted = min(e, _e_left)
         self.e_in -= e_out_accepted
         return e_out_accepted
-    def get_v(self):
+    def get_v(self) -> float:
         return self._v
-    def get_i(self):
+    def get_i(self) -> float:
         return self._i
-    def get_p(self):
+    def get_p(self) -> float:
         return self._p
-    def get_e_in(self):
+    def get_e_in(self) -> float:
         return self._e_in
-    def get_e_out(self):
+    def get_e_out(self) -> float:
         return self._e_out
-    def get_e_total(self):
+    def get_e_total(self) -> float:
         return self._e_total
     def set_v(self, v):
         self._v = v
