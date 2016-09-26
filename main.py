@@ -7,69 +7,70 @@ from battery_sw import Battery_Model
 from CarClass import CarClass
 from DataInputClass import DataInputClass
 from ControllerClass import ControllerClass
+from Cars import Nissan_Leaf
 
 # Main run function
 if __name__ == "__main__":
     print("Hello world!")
 
-    eng = matlab.engine.start_matlab('-nojvm')
+    filename = "nedc2"
 
-    print(eng.sqrt(4.0))
+    #eng = matlab.engine.start_matlab('-nojvm')
+    #print(eng.sqrt(4.0))
+    #eng.quit()
 
     print(time.time())
     print(sys.version)
-
-    eng.quit()
-
-    data = dict(v=15, kWh=2.2)
-
-    a = TdiLoadbank(data)
-    b = Battery_Model(data)
-    c = CarClass(data)
-
-    d = DataInputClass("nedc.tsv")
+    
+    d = DataInputClass(filename+".tsv")
     e = ControllerClass(d)
 
+    dt = d.get_dt()
 
-    print(a._v)
-    print(b.update())
+    print('Input dt =', dt)
 
-    print(data['wheel_front_right']._brake._temperature)
-    print(data['wheel_front_left']._brake._temperature)
+    leaf_data = Nissan_Leaf()
 
-    print(b.kwh_to_joules(10.0))
+    leaf = CarClass(dt, leaf_data.data)
 
     d.set_line(['Time','NEDC','Speed'])
 
-    print(d.get_num_lines())
+    print(d.get_num_lines(), 'lines in input file')
 
     while (d.update()):
-        
-        c.update()
+        leaf.target_speed = d.get_line()[1]/2.23694 # mph to m/s
+        leaf.update()
 
-        c.set_speed(d.get_line()[1])
-        
-        d.set_line([d.get_line()[0], d.get_line()[1], c.get_speed(), c._powertrain._dv, c._powertrain._motor.get_torque(), c._powertrain._wheel_front_left._brake._current_torque])
+        d.set_line([d.get_line()[0], leaf.target_speed*2.23694, leaf.speed*2.23694, leaf._powertrain_model_array[0]._dv*2.23694, leaf._powertrain_model_array[0]._error])
+        #print([d.get_line()[0], leaf.target_speed, leaf.speed])
+
+        for ptr in leaf._powertrain_model_array[0]._motor_array:
+            d.set_line([ptr.motor_value])
+        for ptr in leaf._powertrain_model_array[0]._wheel_array:
+            d.set_line([ptr.brake_value])
 
 d.__del__()
 
-data_out = np.genfromtxt("nedc_out.csv", delimiter=',', skip_header=1, skip_footer=1, names = ['x', 'v_set', 'v_true', 'dv', 'tq_motor', 'tq_brake'])
+data_out = np.genfromtxt(filename+"_out.csv", delimiter=',', skip_header=1, skip_footer=1, names = ['x', 'v_set', 'v_true', 'dv', 'error', 'motor', 'brake0', 'brake1', 'brake2', 'brake3'])
 
 fig = plt.figure()
 ax1 = fig.add_subplot(211)
 
 ax1.plot(data_out['x'], data_out['v_set'], label='v_set')
 ax1.plot(data_out['x'], data_out['v_true'], label='v_true')
+ax1.plot(data_out['x'], data_out['dv'], label='dv')
 ax1.set_ylabel('Speed')
 leg1 = ax1.legend(loc='upper right', shadow=True)
 
 ax2 = fig.add_subplot(212)
-ax2.plot(data_out['x'], data_out['dv'], label='dv')
-ax2.plot(data_out['x'], data_out['tq_motor'], label='tq_motor')
-ax2.plot(data_out['x'], data_out['tq_brake'], label='tq_brake')
-ax2.set_xlabel('Time /s')
-ax2.set_ylabel('dV & Torque')
+ax2.plot(data_out['x'], data_out['motor'], label='motor')
+ax2.plot(data_out['x'], data_out['brake0'], label='brake0')
+ax2.plot(data_out['x'], data_out['brake1'], label='brake1')
+ax2.plot(data_out['x'], data_out['brake2'], label='brake2')
+ax2.plot(data_out['x'], data_out['brake3'], label='brake3')
+ax2.set_ylabel('0-255')
 leg2 = ax2.legend(loc='upper right', shadow=True)
+ax2.set_xlabel('Time /s')
 
 plt.show()
 

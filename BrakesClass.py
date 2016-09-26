@@ -3,27 +3,33 @@ class BrakesClass(object):
 
 
     # Instance constructor
-    def __init__(self, kwargs):
-        self._v_set     = kwargs['v']     if 'v'     in kwargs else 10.0
-        self._v_set_min = kwargs['v_min'] if 'v_min' in kwargs else 0.0
-        self._v_set_max = kwargs['v_max'] if 'v_max' in kwargs else 10.0
-        self._i_set_max = kwargs['i_max'] if 'i_max' in kwargs else 10.0
-        self._p_set_max = kwargs['p_max'] if 'p_max' in kwargs else 10.0
-
-        self._temperature = 16.0
-
-        self._max_torque = 500.0
-
+    def __init__(self, diameter, max_torque, kwargs):
+        self._temperature = 16.0 # TODO
+        self._max_torque = max_torque
         self._current_torque = 0.0
-
+        self._value = 0 # 0-255
+        self._diameter = diameter
         return
 
-    def apply(self, switch):
-        if switch:
-            self._current_torque = self._max_torque
+    def update(self):
+        if self._value > 0:
+            # Calculate force & temperature (1-255)
+            self._current_torque = (self._value/255)*self._max_torque
         else:
             self._current_torque = 0.0
         return
 
-    def get_torque(self):
+    @property
+    def value(self):
+        return self._value
+    @value.setter
+    def value(self, value):
+        self._value = max(min(value, 255), 0)
+
+    @property
+    def torque(self):
         return self._current_torque
+
+    @property
+    def temperature(self):
+        return self._temperature

@@ -1,40 +1,48 @@
 import time
-import PowertrainClass
-import AerodynamicsClass
-import battery_sw
+#import PowertrainClass
+#import AerodynamicsClass
+#import battery_sw
+import Cars
 
 class CarClass(object):
     '''DESCRIPTION'''
 
     # Instance constructor
-    def __init__(self, kwargs):
-        self._v_set     = kwargs['v']     if 'v'     in kwargs else 10.0
-        self._v_set_min = kwargs['v_min'] if 'v_min' in kwargs else 0.0
-        self._v_set_max = kwargs['v_max'] if 'v_max' in kwargs else 10.0
-        self._i_set_max = kwargs['i_max'] if 'i_max' in kwargs else 10.0
-        self._p_set_max = kwargs['p_max'] if 'p_max' in kwargs else 10.0
-
-        self._aero = AerodynamicsClass.AerodynamicsClass(kwargs)
-
-        self._battery = battery_sw.Battery_Model(kwargs)
-
-        kwargs.update(battery = self._battery) # TODO: is this necessary?
-
-        self._powertrain = PowertrainClass.PowertrainClass(kwargs)
-
+    def __init__(self, dt, kwargs):
+        self._aero_model = kwargs['aero_model']
+        self._powertrain_model_array = kwargs['powertrain_model_array']
+        self._vehicle_mass = kwargs['car_mass']
+        self._speed = 0.0
+        self._target_speed = 0.0
+        self._dt = dt
+        for ptr in self._powertrain_model_array:
+                ptr.dt = self._dt
         return
 
     def update(self):
-        self._aero.update(self.get_speed())
-        self._battery.update()
-        self._powertrain.update(self._aero.get_drag())
+        for ptr in self._powertrain_model_array:
+                ptr.current_speed = self._speed
+                ptr.target_speed = self._target_speed
+                ptr.update()
+
+        self._aero_model.update(self._speed)
+
+        total_force = sum(ptr.force for ptr in self._powertrain_model_array) - self._aero_model.force
+
+        accn = total_force / self._vehicle_mass
+        self._speed = self._speed + accn*self._dt
         return
 
-    def set_speed(self, speed):
-        self._powertrain.set_speed(speed)
+    @property
+    def target_speed(self,):
+        return self._target_speed
+    @target_speed.setter
+    def target_speed(self, speed):
+        self._target_speed = speed
 
-    def get_speed(self):
-        return self._powertrain.get_speed()
+    @property
+    def speed(self):
+        return self._speed
 
     def charge_battery(self, target_soc):
         self._battery.charge_to(target_soc)

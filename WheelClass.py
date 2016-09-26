@@ -6,38 +6,43 @@ class WheelClass(object):
 
 
 # Instance constructor
-    def __init__(self, kwargs):
-        self._v_set     = kwargs['v']     if 'v'     in kwargs else 10.0
-        self._v_set_min = kwargs['v_min'] if 'v_min' in kwargs else 0.0
-        self._v_set_max = kwargs['v_max'] if 'v_max' in kwargs else 10.0
-        self._i_set_max = kwargs['i_max'] if 'i_max' in kwargs else 10.0
-        self._p_set_max = kwargs['p_max'] if 'p_max' in kwargs else 10.0
-
-        self._brake = BrakesClass.BrakesClass(kwargs)
-
+    def __init__(self, brake, kwargs):
+        self._brake = brake
         self._wheel_speed = 0.0
-
         self._force = 0.0
-
-        self._mass = 1521.0
-
+        self._motor_torque_in = 0.0
+        self._wheel_diameter = kwargs['wheel_diameter']
+        self._road_drag = 0.0
         return
 
-    def update(self, shaft_torque=0, brakes=False):
-        self._brake.apply(brakes)
-        brake_torque = self._brake.get_torque()
-        self._force = (shaft_torque-brake_torque)/0.2159
+    def update(self):
+        self._brake.update()
+        self._force = (self._motor_torque_in-self._brake.torque-self._road_drag)/self._wheel_diameter
+        # TODO wheel speed, road drag??
         return
 
-    def get_force(self):
+    @property 
+    def force(self):
         return self._force
 
-    def brake(self, error):
-        return self._brake.update(error)
+    @property
+    def brake_value(self):
+        return self._brake.value
+    @brake_value.setter
+    def brake_value(self, value):
+        self._brake.value = max(min(value, 255), 0) # 0-255
 
-    def set_speed(self, speed):
-        self._wheel_speed = speed
-        return
+    @property
+    def brake_torque(self):
+        return self._brake.torque
 
-    def get_speed(self):
+    @property
+    def motor_torque(self):
+        return self._motor_torque_in
+    @motor_torque.setter
+    def motor_torque(self, torque):
+        self._motor_torque_in = torque
+
+    @property
+    def speed(self):
         return self._wheel_speed
