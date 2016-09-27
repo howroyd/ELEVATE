@@ -9,6 +9,8 @@ from DataInputClass import DataInputClass
 from ControllerClass import ControllerClass
 from Cars import Nissan_Leaf
 
+many = False
+
 # Main run function
 if __name__ == "__main__":
     print("Hello world!")
@@ -19,7 +21,9 @@ if __name__ == "__main__":
     #print(eng.sqrt(4.0))
     #eng.quit()
 
-    print(time.time())
+    time_start = time.time()
+
+    print(time_start)
     print(sys.version)
     
     d = DataInputClass(filename+".tsv")
@@ -31,6 +35,11 @@ if __name__ == "__main__":
 
     leaf_data = Nissan_Leaf()
 
+    mycar = list()
+    
+    if many:
+        for x in range(1000):
+            mycar.append(CarClass(dt, leaf_data.data))
     leaf = CarClass(dt, leaf_data.data)
 
     d.set_line(['Time','NEDC','Speed'])
@@ -38,6 +47,11 @@ if __name__ == "__main__":
     print(d.get_num_lines(), 'lines in input file')
 
     while (d.update()):
+        if many:
+            for x in mycar:
+                x.target_speed = d.get_line()[1]/2.23694 # mph to m/s
+                x.update()
+
         leaf.target_speed = d.get_line()[1]/2.23694 # mph to m/s
         leaf.update()
 
@@ -71,6 +85,8 @@ ax2.plot(data_out['x'], data_out['brake3'], label='brake3')
 ax2.set_ylabel('0-255')
 leg2 = ax2.legend(loc='upper right', shadow=True)
 ax2.set_xlabel('Time /s')
+
+print("Complete in", int(time.time()-time_start),"seconds")
 
 plt.show()
 
