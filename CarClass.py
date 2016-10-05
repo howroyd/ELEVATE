@@ -1,7 +1,4 @@
 import time
-#import PowertrainClass
-#import AerodynamicsClass
-#import battery_sw
 import Cars
 
 class CarClass(object):
@@ -17,6 +14,7 @@ class CarClass(object):
         self._dt = dt
         for ptr in self._powertrain_model_array:
                 ptr.dt = self._dt
+        super().__init__()
         return
 
     def update(self):

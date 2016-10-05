@@ -1,8 +1,3 @@
-#import MotorClass
-#import WheelClass
-#import ElectricalManagementClass
-#import battery_sw
-
 class PowertrainClass(object):
     """description of class"""
 

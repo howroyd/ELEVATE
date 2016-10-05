@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import telnetlib, time, sys, os
 import matlab.engine
 import matplotlib.pyplot as plt
@@ -8,6 +10,7 @@ from CarClass import CarClass
 from DataInputClass import DataInputClass
 from ControllerClass import ControllerClass
 from Cars import Nissan_Leaf
+import threading
 
 many = False
 
