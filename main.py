@@ -49,6 +49,7 @@ if __name__ == "__main__":
 
     mycar = list()
     
+    # Spawn vehicle(s)
     if many:
         for x in range(1000):
             mycar.append(CarClass(dt, leaf_data.data))
