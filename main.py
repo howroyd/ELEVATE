@@ -2,7 +2,7 @@
 
 VERSION = 1.0
 
-import telnetlib, time, sys, os
+import telnetlib, time, sys, os, datetime
 import matlab.engine
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,7 +17,7 @@ import colorama
 from colorama import Fore, Back, Style
 
 many = False
-graph = False
+graph = True
 
 # Main run function
 if __name__ == "__main__":
@@ -25,10 +25,12 @@ if __name__ == "__main__":
 
     colorama.init()
 
-    print(Fore.GREEN, Style.BRIGHT, "\nELEVATE (ELEctrochemical Vehicle Advanced TEchnology)")
+    print(Fore.GREEN, Style.BRIGHT)
+    print("\nELEVATE (ELEctrochemical Vehicle Advanced TEchnology)")
     print("Hardware Simulation Model Version", VERSION)
-    print("Simon Howroyd 2016")
-    print("Loughborough University\n\n", Style.RESET_ALL)
+    print("Simon Howroyd", datetime.date.today().year)
+    print("Loughborough University\n")
+    print(Style.RESET_ALL)
 
     filename = "nedc2"
 
@@ -41,10 +43,6 @@ if __name__ == "__main__":
     d = DataInputClass(filename+".tsv")
     e = ControllerClass(d)
 
-    dt = d.get_dt()
-
-    print('Input dt =', dt)
-
     leaf_data = Nissan_Leaf()
 
     mycar = list()
@@ -52,8 +50,8 @@ if __name__ == "__main__":
     # Spawn vehicle(s)
     if many:
         for x in range(1000):
-            mycar.append(CarClass(dt, leaf_data.data))
-    leaf = CarClass(dt, leaf_data.data)
+            mycar.append(CarClass(leaf_data.data))
+    leaf = CarClass(leaf_data.data)
 
     d.set_line(['Time','NEDC','Speed'])
 
@@ -63,10 +61,10 @@ if __name__ == "__main__":
         if many:
             for x in mycar:
                 x.target_speed = d.get_line()[1]/2.23694 # mph to m/s
-                x.update()
+                x.update(d.dt)
 
         leaf.target_speed = d.get_line()[1]/2.23694 # mph to m/s
-        leaf.update()
+        leaf.update(d.dt)
 
         d.set_line([d.get_line()[0], leaf.target_speed*2.23694, leaf.speed*2.23694, leaf._powertrain_model_array[0]._dv*2.23694, leaf._powertrain_model_array[0]._error])
         #print([d.get_line()[0], leaf.target_speed, leaf.speed])
@@ -75,33 +73,47 @@ if __name__ == "__main__":
             d.set_line([ptr.motor_value])
         for ptr in leaf._powertrain_model_array[0]._wheel_array:
             d.set_line([ptr.brake_value])
+        
+        d.set_line([leaf._powertrain_model_array[0].error * leaf._powertrain_model_array[0]._kp])
+        d.set_line([leaf._powertrain_model_array[0]._i * leaf._powertrain_model_array[0]._ki])
+        d.set_line([leaf._powertrain_model_array[0]._d * leaf._powertrain_model_array[0]._kd])
 
     if graph:
-        data_out = np.genfromtxt(filename+"_out.csv", delimiter=',', skip_header=1, skip_footer=1, names = ['x', 'v_set', 'v_true', 'dv', 'error', 'motor', 'brake0', 'brake1', 'brake2', 'brake3'])
+        data_out = np.genfromtxt(filename+"_out.csv", delimiter=',', skip_header=1, skip_footer=1, names = ['x', 'v_set', 'v_true', 'dv', 'error', 'motor', 'brake0', 'brake1', 'brake2', 'brake3', 'error', 'errorI', 'errorD'])
 
         fig = plt.figure()
         ax1 = fig.add_subplot(211)
 
         ax1.plot(data_out['x'], data_out['v_set'], label='v_set')
         ax1.plot(data_out['x'], data_out['v_true'], label='v_true')
-        ax1.plot(data_out['x'], data_out['dv'], label='dv')
         ax1.set_ylabel('Speed')
         leg1 = ax1.legend(loc='upper right', shadow=True)
 
+        ## Ax2
         ax2 = fig.add_subplot(212)
-        ax2.plot(data_out['x'], data_out['motor'], label='motor')
-        ax2.plot(data_out['x'], data_out['brake0'], label='brake0')
-        ax2.plot(data_out['x'], data_out['brake1'], label='brake1')
-        ax2.plot(data_out['x'], data_out['brake2'], label='brake2')
-        ax2.plot(data_out['x'], data_out['brake3'], label='brake3')
-        ax2.set_ylabel('0-255')
+        # Motor & Brakes
+#        ax2.plot(data_out['x'], data_out['motor'], label='motor')
+#        ax2.plot(data_out['x'], data_out['brake0'], label='brake0')
+#        ax2.plot(data_out['x'], data_out['brake1'], label='brake1')
+#        ax2.plot(data_out['x'], data_out['brake2'], label='brake2')
+#        ax2.plot(data_out['x'], data_out['brake3'], label='brake3')
+#        ax2.set_ylabel('0-255')
+
+        # Controller
+        ax2.plot(data_out['x'], data_out['error'], label='errorP')
+        ax2.plot(data_out['x'], data_out['errorI'], label='errorI')
+        ax2.plot(data_out['x'], data_out['errorD'], label='errorD')
+
         leg2 = ax2.legend(loc='upper right', shadow=True)
         ax2.set_xlabel('Time /s')
 
-        print("Complete in", int(time.time()-time_start),"seconds")
+    print(Fore.RED, Style.BRIGHT)
+    print("\n", round((time.time()-time_start),1), "seconds to run")
+    print(Fore.RED, Style.DIM)
+    print("\n***end***\n\n")
+    print(Style.RESET_ALL)
 
+    if graph:
         plt.show()
-
-    print(Fore.RED, Style.BRIGHT, round((time.time()-time_start),1),'seconds to run', Style.RESET_ALL)
 
 d.__del__()

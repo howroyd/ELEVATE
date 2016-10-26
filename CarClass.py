@@ -5,30 +5,27 @@ class CarClass(object):
     '''DESCRIPTION'''
 
     # Instance constructor
-    def __init__(self, dt, kwargs):
+    def __init__(self, kwargs):
         self._aero_model = kwargs['aero_model']
         self._powertrain_model_array = kwargs['powertrain_model_array']
         self._vehicle_mass = kwargs['car_mass']
         self._speed = 0.0
         self._target_speed = 0.0
-        self._dt = dt
-        for ptr in self._powertrain_model_array:
-                ptr.dt = self._dt
         super().__init__()
         return
 
-    def update(self):
+    def update(self, dt):
         for ptr in self._powertrain_model_array:
                 ptr.current_speed = self._speed
                 ptr.target_speed = self._target_speed
-                ptr.update()
+                ptr.update(dt)
 
         self._aero_model.update(self._speed)
 
         total_force = sum(ptr.force for ptr in self._powertrain_model_array) - self._aero_model.force
 
         accn = total_force / self._vehicle_mass
-        self._speed = self._speed + accn*self._dt
+        self._speed = self._speed + accn*dt
         return
 
     @property

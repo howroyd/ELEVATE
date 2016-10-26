@@ -13,7 +13,8 @@ class DataInputClass(object):
         self._num_lines = self.file_len(filename)
 
         self._lineout = []
-        self.dt = 0.0
+        self._dt = 0.0
+        self._time_last = 0.0
 
     @staticmethod
     def file_len(fname) -> int:
@@ -22,22 +23,18 @@ class DataInputClass(object):
                 pass
         return i + 1
 
-    def get_dt(self):
-        self._file_in.seek(0)
-        self.update()
-        self.update()
-        self.update()
-        var1 = self._thisline[0]
-        self.update()
-        var2 = self._thisline[0]
-        self._file_in.seek(0)
-        self._dt = var2-var1
-        
+    @property
+    def dt(self):
         return self._dt
+    @dt.setter
+    def dt(self, val):
+        self._dt = val
 
     def update(self):
         try:
             self._thisline = list(map(float,next(self._tsvin)))
+            self.dt = self._thisline[0] - self._time_last
+            self._time_last = self._thisline[0]
             if self._lineout:
                 self._csvout.writerow(self._lineout)
                 self._lineout = []

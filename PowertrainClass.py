@@ -8,25 +8,29 @@ class PowertrainClass(object):
         self._current_speed = 0.0
         self._target_speed  = 0.0
         self._dv = 0.0
+        self._dv_last = 0.0
         self._aero_model = kwargs['aero_model']
         self._total_force = 0.0
-        self._dt = 1.0
-        self._p = 0.0
         self._i = 0.0
+        self._d = 0.0
+        self._kp = 60.0
+        self._ki = 0.05
+        self._kd = 5.0
         self._error = 0.0
 
-    def update(self):      
+    def update(self, dt):      
         self._dv = self._target_speed - self._current_speed # Positive if too slow
 
-        self._p = self._dv * 1
-        self._i = self._i + 0.1*self._dv*self._dt
+        if (dt > 0.00):
+            self._i += self._dv*dt
+            self._d = (self._dv - self._dv_last)/dt
+            self._dv_last = self._dv
 
-        self._error = self._p# + self._i
+        self._error = self._kp*self._dv + self._ki*self._i + self._kd*self._d
 
-
-        if (self._error >= 0.0):
+        if (self._error >= 0.00):
             # Too slow
-            if sum(ptr.brake_torque for ptr in self._wheel_array) > 0.0:
+            if sum(ptr.brake_torque for ptr in self._wheel_array) > 0.00:
                 # Brakes are on, so release
                 #print('Brakes are on, so release')
                 for ptr in self._wheel_array:
@@ -38,7 +42,7 @@ class PowertrainClass(object):
                     ptr.motor_value = ptr.motor_value + self._error
         else:
             # Too fast
-            if sum(ptr.motor_value for ptr in self._motor_array) > 0.0:
+            if sum(ptr.motor_value for ptr in self._motor_array) > 0.00:
                 # Motors are on, reduce power
                 #print('Motors are on, reduce power')
                 for ptr in self._motor_array:
@@ -145,3 +149,7 @@ class PowertrainClass(object):
     @property
     def force(self):
         return self._total_force
+
+    @property
+    def error(self):
+        return self._error
