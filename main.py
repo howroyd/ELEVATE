@@ -92,17 +92,17 @@ if __name__ == "__main__":
         ## Ax2
         ax2 = fig.add_subplot(212)
         # Motor & Brakes
-#        ax2.plot(data_out['x'], data_out['motor'], label='motor')
-#        ax2.plot(data_out['x'], data_out['brake0'], label='brake0')
-#        ax2.plot(data_out['x'], data_out['brake1'], label='brake1')
-#        ax2.plot(data_out['x'], data_out['brake2'], label='brake2')
-#        ax2.plot(data_out['x'], data_out['brake3'], label='brake3')
-#        ax2.set_ylabel('0-255')
+        ax2.plot(data_out['x'], data_out['motor'], label='motor')
+        ax2.plot(data_out['x'], data_out['brake0'], label='brake0')
+        ax2.plot(data_out['x'], data_out['brake1'], label='brake1')
+        ax2.plot(data_out['x'], data_out['brake2'], label='brake2')
+        ax2.plot(data_out['x'], data_out['brake3'], label='brake3')
+        ax2.set_ylabel('0-255')
 
         # Controller
-        ax2.plot(data_out['x'], data_out['error'], label='errorP')
-        ax2.plot(data_out['x'], data_out['errorI'], label='errorI')
-        ax2.plot(data_out['x'], data_out['errorD'], label='errorD')
+#        ax2.plot(data_out['x'], data_out['error'], label='errorP')
+#        ax2.plot(data_out['x'], data_out['errorI'], label='errorI')
+#        ax2.plot(data_out['x'], data_out['errorD'], label='errorD')
 
         leg2 = ax2.legend(loc='upper right', shadow=True)
         ax2.set_xlabel('Time /s')

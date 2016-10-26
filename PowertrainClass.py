@@ -13,9 +13,12 @@ class PowertrainClass(object):
         self._total_force = 0.0
         self._i = 0.0
         self._d = 0.0
-        self._kp = 60.0
-        self._ki = 0.05
-        self._kd = 5.0
+        self._kp = 10#0.8
+        self._ki = 0.001#0.005
+        self._kd = 20#3.0
+        #self._kp = 60.0
+        #self._ki = 0.05
+        #self._kd = 5.0
         self._error = 0.0
 
     def update(self, dt):      
@@ -26,7 +29,7 @@ class PowertrainClass(object):
             self._d = (self._dv - self._dv_last)/dt
             self._dv_last = self._dv
 
-        self._error = self._kp*self._dv + self._ki*self._i + self._kd*self._d
+        self._error = ( self._kp * self._dv ) + ( self._ki * self._i ) + ( self._kd * self._d )
 
         if (self._error >= 0.00):
             # Too slow
