@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+VERSION = 1.0
+
 import telnetlib, time, sys, os
 import matlab.engine
 import matplotlib.pyplot as plt
@@ -11,12 +13,22 @@ from DataInputClass import DataInputClass
 from ControllerClass import ControllerClass
 from Cars import Nissan_Leaf
 import threading
+import colorama
+from colorama import Fore, Back, Style
 
 many = False
+graph = False
 
 # Main run function
 if __name__ == "__main__":
-    print("Hello world!")
+    time_start = time.time()
+
+    colorama.init()
+
+    print(Fore.GREEN, Style.BRIGHT, "\nELEVATE (ELEctrochemical Vehicle Advanced TEchnology)")
+    print("Hardware Simulation Model Version", VERSION)
+    print("Simon Howroyd 2016")
+    print("Loughborough University\n\n", Style.RESET_ALL)
 
     filename = "nedc2"
 
@@ -24,9 +36,6 @@ if __name__ == "__main__":
     #print(eng.sqrt(4.0))
     #eng.quit()
 
-    time_start = time.time()
-
-    print(time_start)
     print(sys.version)
     
     d = DataInputClass(filename+".tsv")
@@ -40,6 +49,7 @@ if __name__ == "__main__":
 
     mycar = list()
     
+    # Spawn vehicle(s)
     if many:
         for x in range(1000):
             mycar.append(CarClass(dt, leaf_data.data))
@@ -66,30 +76,32 @@ if __name__ == "__main__":
         for ptr in leaf._powertrain_model_array[0]._wheel_array:
             d.set_line([ptr.brake_value])
 
+    if graph:
+        data_out = np.genfromtxt(filename+"_out.csv", delimiter=',', skip_header=1, skip_footer=1, names = ['x', 'v_set', 'v_true', 'dv', 'error', 'motor', 'brake0', 'brake1', 'brake2', 'brake3'])
+
+        fig = plt.figure()
+        ax1 = fig.add_subplot(211)
+
+        ax1.plot(data_out['x'], data_out['v_set'], label='v_set')
+        ax1.plot(data_out['x'], data_out['v_true'], label='v_true')
+        ax1.plot(data_out['x'], data_out['dv'], label='dv')
+        ax1.set_ylabel('Speed')
+        leg1 = ax1.legend(loc='upper right', shadow=True)
+
+        ax2 = fig.add_subplot(212)
+        ax2.plot(data_out['x'], data_out['motor'], label='motor')
+        ax2.plot(data_out['x'], data_out['brake0'], label='brake0')
+        ax2.plot(data_out['x'], data_out['brake1'], label='brake1')
+        ax2.plot(data_out['x'], data_out['brake2'], label='brake2')
+        ax2.plot(data_out['x'], data_out['brake3'], label='brake3')
+        ax2.set_ylabel('0-255')
+        leg2 = ax2.legend(loc='upper right', shadow=True)
+        ax2.set_xlabel('Time /s')
+
+        print("Complete in", int(time.time()-time_start),"seconds")
+
+        plt.show()
+
+    print(Fore.RED, Style.BRIGHT, round((time.time()-time_start),1),'seconds to run', Style.RESET_ALL)
+
 d.__del__()
-
-data_out = np.genfromtxt(filename+"_out.csv", delimiter=',', skip_header=1, skip_footer=1, names = ['x', 'v_set', 'v_true', 'dv', 'error', 'motor', 'brake0', 'brake1', 'brake2', 'brake3'])
-
-fig = plt.figure()
-ax1 = fig.add_subplot(211)
-
-ax1.plot(data_out['x'], data_out['v_set'], label='v_set')
-ax1.plot(data_out['x'], data_out['v_true'], label='v_true')
-ax1.plot(data_out['x'], data_out['dv'], label='dv')
-ax1.set_ylabel('Speed')
-leg1 = ax1.legend(loc='upper right', shadow=True)
-
-ax2 = fig.add_subplot(212)
-ax2.plot(data_out['x'], data_out['motor'], label='motor')
-ax2.plot(data_out['x'], data_out['brake0'], label='brake0')
-ax2.plot(data_out['x'], data_out['brake1'], label='brake1')
-ax2.plot(data_out['x'], data_out['brake2'], label='brake2')
-ax2.plot(data_out['x'], data_out['brake3'], label='brake3')
-ax2.set_ylabel('0-255')
-leg2 = ax2.legend(loc='upper right', shadow=True)
-ax2.set_xlabel('Time /s')
-
-print("Complete in", int(time.time()-time_start),"seconds")
-
-plt.show()
-
