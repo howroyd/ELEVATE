@@ -1,5 +1,6 @@
 import BrakesClass
 import TractionControlClass
+import math
 
 class WheelClass(object):
     """description of class"""
@@ -13,10 +14,11 @@ class WheelClass(object):
         self._motor_torque_in = 0.0
         self._wheel_diameter = kwargs['wheel_diameter']
         self._road_drag = 0.0
+        self._wheel_circumference = 2 * math.pi * self._wheel_diameter
         return
 
-    def update(self):
-        self._brake.update()
+    def update(self, dt):
+        self._brake.update(dt)
         self._force = (self._motor_torque_in-self._brake.torque-self._road_drag)/self._wheel_diameter
         # TODO wheel speed, road drag??
         return

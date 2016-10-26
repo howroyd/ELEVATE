@@ -13,21 +13,31 @@ class PowertrainClass(object):
         self._current_speed = 0.0
         self._target_speed  = 0.0
         self._dv = 0.0
+        self._dv_last = 0.0
         self._aero_model = kwargs['aero_model']
         self._total_force = 0.0
-        self._dt = 1.0
         self._p = 0.0
         self._i = 0.0
+        self._d = 0.0
         self._error = 0.0
+        #self._kp = 0.26
+        #self._ki = 0.06
+        #self._kd = 0.11
+        self._kp = 8
+        self._ki = 0.5
+        self._kd = 2
+        
 
-    def update(self):      
+    def update(self, dt):      
         self._dv = self._target_speed - self._current_speed # Positive if too slow
 
-        self._p = self._dv * 1
-        self._i = self._i + 0.1*self._dv*self._dt
+        self._p = self._kp * self._dv
+        self._i = self._ki * (self._i + self._dv*dt)
+        self._d = self._kd * ((self._dv - self._dv_last) / dt)
 
-        self._error = self._p# + self._i
+        self._error = self._p + self._i + self._d
 
+        self._dv_last = self._dv
 
         if (self._error >= 0.0):
             # Too slow
@@ -117,11 +127,11 @@ class PowertrainClass(object):
 
         # Update models
         for ptr in self._battery_array:
-            ptr.update()
+            ptr.update(dt)
         for ptr in self._motor_array:
-            ptr.update()
+            ptr.update(dt)
         for ptr in self._wheel_array:
-            ptr.update()
+            ptr.update(dt)
 
         self._total_force = sum(ptr.force for ptr in self._wheel_array) # minus road drag
         return
