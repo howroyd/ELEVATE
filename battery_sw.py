@@ -26,7 +26,7 @@ class Battery_Model(ElectricalDeviceClass.ElectricalDevice):
     def battery_model(v, i, soc) -> float:
         return v*1 - i*0.1
 
-    def update(self):
+    def update(self, dt):
         return self.battery_model(self._v, self._i, 100)
 
 

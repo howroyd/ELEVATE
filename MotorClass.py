@@ -16,7 +16,7 @@ class MotorClass(ElectricalDeviceClass.ElectricalDevice):
         self._p_max = kwargs['motor_p_max']
         return super().__init__(kwargs)
 
-    def update(self):
+    def update(self, dt):
         self._shaft_torque = (self._value/255)*self._max_torque
         for ptr in self._connected_wheels:
             ptr.motor_torque = self._shaft_torque / len(self._connected_wheels)
@@ -31,4 +31,5 @@ class MotorClass(ElectricalDeviceClass.ElectricalDevice):
         return self._value
     @motor_value.setter
     def motor_value(self, value):
+        #value = self._value + 1*(value - self._value)
         self._value = max(min(value, 255), 0)

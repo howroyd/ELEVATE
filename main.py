@@ -41,7 +41,7 @@ if __name__ == "__main__":
     print(sys.version)
     
     d = DataInputClass(filename+".tsv")
-    e = ControllerClass(d)
+#    e = ControllerClass(d)
 
     leaf_data = Nissan_Leaf()
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         leaf.target_speed = d.get_line()[1]/2.23694 # mph to m/s
         leaf.update(d.dt)
 
-        d.set_line([d.get_line()[0], leaf.target_speed*2.23694, leaf.speed*2.23694, leaf._powertrain_model_array[0]._dv*2.23694, leaf._powertrain_model_array[0]._error])
+        d.set_line([d.get_line()[0], leaf.target_speed*2.23694, leaf.speed*2.23694, leaf._powertrain_model_array[0]._speed_control._dv*2.23694, leaf._powertrain_model_array[0].error])
         #print([d.get_line()[0], leaf.target_speed, leaf.speed])
 
         for ptr in leaf._powertrain_model_array[0]._motor_array:
@@ -74,12 +74,13 @@ if __name__ == "__main__":
         for ptr in leaf._powertrain_model_array[0]._wheel_array:
             d.set_line([ptr.brake_value])
         
-        d.set_line([leaf._powertrain_model_array[0].error * leaf._powertrain_model_array[0]._kp])
-        d.set_line([leaf._powertrain_model_array[0]._i * leaf._powertrain_model_array[0]._ki])
-        d.set_line([leaf._powertrain_model_array[0]._d * leaf._powertrain_model_array[0]._kd])
+        d.set_line([leaf._powertrain_model_array[0]._speed_control.error])
+        d.set_line([leaf._powertrain_model_array[0]._speed_control.error * leaf._powertrain_model_array[0]._speed_control._kp])
+        d.set_line([leaf._powertrain_model_array[0]._speed_control._i * leaf._powertrain_model_array[0]._speed_control._ki])
+        d.set_line([leaf._powertrain_model_array[0]._speed_control._d * leaf._powertrain_model_array[0]._speed_control._kd])
 
     if graph:
-        data_out = np.genfromtxt(filename+"_out.csv", delimiter=',', skip_header=1, skip_footer=1, names = ['x', 'v_set', 'v_true', 'dv', 'error', 'motor', 'brake0', 'brake1', 'brake2', 'brake3', 'error', 'errorI', 'errorD'])
+        data_out = np.genfromtxt(filename+"_out.csv", delimiter=',', skip_header=1, skip_footer=1, names = ['x', 'v_set', 'v_true', 'dv', 'error', 'motor', 'brake0', 'brake1', 'brake2', 'brake3', 'error', 'errorP', 'errorI', 'errorD'])
 
         fig = plt.figure()
         ax1 = fig.add_subplot(211)
@@ -93,14 +94,15 @@ if __name__ == "__main__":
         ax2 = fig.add_subplot(212)
         # Motor & Brakes
         ax2.plot(data_out['x'], data_out['motor'], label='motor')
-        ax2.plot(data_out['x'], data_out['brake0'], label='brake0')
-        ax2.plot(data_out['x'], data_out['brake1'], label='brake1')
-        ax2.plot(data_out['x'], data_out['brake2'], label='brake2')
+        #ax2.plot(data_out['x'], data_out['brake0'], label='brake0')
+        #ax2.plot(data_out['x'], data_out['brake1'], label='brake1')
+        #ax2.plot(data_out['x'], data_out['brake2'], label='brake2')
         ax2.plot(data_out['x'], data_out['brake3'], label='brake3')
         ax2.set_ylabel('0-255')
 
         # Controller
-#        ax2.plot(data_out['x'], data_out['error'], label='errorP')
+        ax2.plot(data_out['x'], data_out['error'], label='error')
+#        ax2.plot(data_out['x'], data_out['errorP'], label='errorP')
 #        ax2.plot(data_out['x'], data_out['errorI'], label='errorI')
 #        ax2.plot(data_out['x'], data_out['errorD'], label='errorD')
 

@@ -11,7 +11,7 @@ class BrakesClass(object):
         self._diameter = diameter
         return
 
-    def update(self):
+    def update(self, dt):
         if self._value > 0:
             # Calculate force & temperature (1-255)
             self._current_torque = (self._value/255)*self._max_torque
@@ -24,6 +24,7 @@ class BrakesClass(object):
         return self._value
     @value.setter
     def value(self, value):
+        #value = self._value + 1*(value - self._value)
         self._value = max(min(value, 255), 0)
 
     @property
