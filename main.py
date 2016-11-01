@@ -32,7 +32,7 @@ if __name__ == "__main__":
     print("Loughborough University\n")
     print(Style.RESET_ALL)
 
-    filename = "nedc2"
+    filename = "nedc2_short"
 
     #eng = matlab.engine.start_matlab('-nojvm')
     #print(eng.sqrt(4.0))
@@ -75,9 +75,9 @@ if __name__ == "__main__":
             d.set_line([ptr.brake_value])
         
         d.set_line([leaf._powertrain_model_array[0]._speed_control.error])
-        d.set_line([leaf._powertrain_model_array[0]._speed_control.error * leaf._powertrain_model_array[0]._speed_control._kp])
-        d.set_line([leaf._powertrain_model_array[0]._speed_control._i * leaf._powertrain_model_array[0]._speed_control._ki])
-        d.set_line([leaf._powertrain_model_array[0]._speed_control._d * leaf._powertrain_model_array[0]._speed_control._kd])
+        d.set_line([leaf._powertrain_model_array[0]._speed_control._motor_controller.error_p])
+        d.set_line([leaf._powertrain_model_array[0]._speed_control._motor_controller.error_i])
+        d.set_line([leaf._powertrain_model_array[0]._speed_control._motor_controller.error_d])
 
     if graph:
         data_out = np.genfromtxt(filename+"_out.csv", delimiter=',', skip_header=1, skip_footer=1, names = ['x', 'v_set', 'v_true', 'dv', 'error', 'motor', 'brake0', 'brake1', 'brake2', 'brake3', 'error', 'errorP', 'errorI', 'errorD'])
@@ -94,20 +94,25 @@ if __name__ == "__main__":
         ax2 = fig.add_subplot(212)
         # Motor & Brakes
         ax2.plot(data_out['x'], data_out['motor'], label='motor')
-        #ax2.plot(data_out['x'], data_out['brake0'], label='brake0')
+        ax2.plot(data_out['x'], data_out['brake0'], label='brake0')
         #ax2.plot(data_out['x'], data_out['brake1'], label='brake1')
         #ax2.plot(data_out['x'], data_out['brake2'], label='brake2')
-        ax2.plot(data_out['x'], data_out['brake3'], label='brake3')
+        ##ax2.plot(data_out['x'], data_out['brake3'], label='brake3')
         ax2.set_ylabel('0-255')
 
         # Controller
-        ax2.plot(data_out['x'], data_out['error'], label='error')
-#        ax2.plot(data_out['x'], data_out['errorP'], label='errorP')
-#        ax2.plot(data_out['x'], data_out['errorI'], label='errorI')
-#        ax2.plot(data_out['x'], data_out['errorD'], label='errorD')
+#        ax2.plot(data_out['x'], data_out['error'], label='error')
+        ax2.plot(data_out['x'], data_out['errorP'], label='errorP')
+        ax2.plot(data_out['x'], data_out['errorI'], label='errorI')
+        ax2.plot(data_out['x'], data_out['errorD'], label='errorD')
 
         leg2 = ax2.legend(loc='upper right', shadow=True)
         ax2.set_xlabel('Time /s')
+
+    print(Fore.YELLOW, Style.BRIGHT)
+    print("Speed Cost:", round(leaf._powertrain_model_array[0]._speed_control.cost, 1))
+    print("Motor Cost:", round(leaf._powertrain_model_array[0]._speed_control._motor_controller.cost, 1))
+    print("Brake Cost:", round(leaf._powertrain_model_array[0]._speed_control._brake_controller.cost, 1))    
 
     print(Fore.RED, Style.BRIGHT)
     print("\n", round((time.time()-time_start),1), "seconds to run")
