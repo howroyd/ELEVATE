@@ -12,8 +12,8 @@ class Continuous_dt(object):
     
     def update(self):
         now = time.time()
-        self._dt = (now - self._time_last)
-        self._sim_time += self._dt * self._dt_scaler
+        self._dt = (now - self._time_last) * self._dt_scaler
+        self._sim_time += self._dt
         if (self._dt >= self._dt_set):
             self._flag = True
             self._time_last = now
@@ -45,6 +45,7 @@ class DataInputClass(object):
         self._csvout = csv.writer(self._file_out,quoting=csv.QUOTE_NONNUMERIC)
 
         self._num_lines = self.file_len(filename)
+        self._num_this_line = -1
 
         self._lineout = []
         self._dt = 0.0
@@ -53,6 +54,8 @@ class DataInputClass(object):
         self._nextline = None
         self._previousline = None
         self._thisline = None
+
+        self._new_data = False
 
         self.update()
 
@@ -84,31 +87,50 @@ class DataInputClass(object):
         if (not sim_time or not self._nextline or not self._thisline or (sim_time >= self._nextline[0])):
             # Simtime is ahead of our next line so get a new line update
             try:
-                self._previousline = self._thisline
-                self._thisline = self._nextline
-                self._nextline = list(map(float,next(self._tsvin)))
+                self._previousline   = self._thisline
+                self._thisline       = self._nextline
+                self._nextline       = list(map(float,next(self._tsvin)))
+                self._num_this_line += 1
+                self._new_data       = True
             except ValueError:
                 # Re-run if value error
-                self.update()
+                self.update(sim_time)
             except StopIteration:
                 # Set flag if end of file
                 self._finished = True
+
+        else: self._new_data = False
+
+        if self._thisline is None: self._new_data = False
 
         # If we get here we know that nextline is ahead of simtime
         self._dt = self._thisline[0] - self._previousline[0] if self._previousline else 0.0
 
         return self.finished
         
-
-    def get_line(self):
+    @property
+    def line(self):
         return self._thisline
-
-    def get_num_lines(self):
-        return self._num_lines
-
-    def set_line(self, data):
+    @line.setter
+    def line(self, data):
         for i in data:
             self._lineout.append(i)
+
+    @property
+    def line_number(self):
+        return self._num_this_line
+
+    @property
+    def num_lines(self):
+        return self._num_lines
+
+    @property
+    def new_data(self):
+        return self._new_data
+
+    @property
+    def percent_complete(self):
+        return self._num_this_line / self._num_lines * 100.0
 
     def __del__(self):
         self._file_in.close()

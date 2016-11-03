@@ -17,7 +17,7 @@ class MotorClass(ElectricalDeviceClass.ElectricalDevice):
         return super().__init__(kwargs)
 
     def update(self, dt):
-        self._shaft_torque = ((self._value/255)*self._max_torque*3) # TODO fudge
+        self._shaft_torque = ((self._value/255)*self._max_torque) # TODO fudge
         for ptr in self._connected_wheels:
             ptr.motor_torque = self._shaft_torque / len(self._connected_wheels)
         return
