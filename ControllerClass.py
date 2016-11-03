@@ -19,9 +19,11 @@ class ControllerClass(object):
         if (self._dont_update_flag or dt<=0.0):
             self._dont_update_flag = False
             return
-        self._i += error*dt
-        self._i = self.constrain(self._i*self._ki, self._min_i, self._max_i) / self._ki
-        self._d = (error - self._error)/dt
+        if self._ki is not 0:
+            self._i += error*dt
+            self._i = self.constrain(self._i*self._ki, self._min_i, self._max_i) / self._ki
+        if self._kd is not 0:
+            self._d = (error - self._error)/dt
         self._error = error
         self._cost += abs(error)*dt # TODO machine learning on cost function
         return

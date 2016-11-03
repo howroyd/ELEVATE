@@ -10,6 +10,7 @@ from TdiLoadbankClass import TdiLoadbank
 from battery_sw import Battery_Model
 from CarClass import CarClass
 from DataInputClass import DataInputClass
+from DataInputClass import Continuous_dt
 from ControllerClass import ControllerClass
 from Cars import Nissan_Leaf
 import threading
@@ -41,6 +42,7 @@ if __name__ == "__main__":
     print(sys.version)
     
     d = DataInputClass(filename+".tsv")
+    timer = Continuous_dt(d.dt, 100)
 #    e = ControllerClass(d)
 
     leaf_data = Nissan_Leaf()
@@ -57,16 +59,19 @@ if __name__ == "__main__":
 
     print(d.get_num_lines(), 'lines in input file')
 
-    while (d.update()):
+    while not d.finished:
+        timer.update()
+        d.update(timer.sim_time)
+
         if many:
             for x in mycar:
                 x.target_speed = d.get_line()[1]/2.23694 # mph to m/s
-                x.update(d.dt)
+                x.update(timer.dt)
+        else:
+            leaf.target_speed = d.get_line()[1]/2.23694 # mph to m/s
+            leaf.update(timer.dt)
 
-        leaf.target_speed = d.get_line()[1]/2.23694 # mph to m/s
-        leaf.update(d.dt)
-
-        d.set_line([d.get_line()[0], leaf.target_speed*2.23694, leaf.speed*2.23694, leaf._powertrain_model_array[0]._speed_control._dv*2.23694, leaf._powertrain_model_array[0].error])
+        d.set_line([timer.sim_time, leaf.target_speed*2.23694, leaf.speed*2.23694, leaf._powertrain_model_array[0]._speed_control._dv*2.23694, leaf._powertrain_model_array[0].error])
         #print([d.get_line()[0], leaf.target_speed, leaf.speed])
 
         for ptr in leaf._powertrain_model_array[0]._motor_array:

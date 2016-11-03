@@ -153,8 +153,8 @@ class TractionControlClass(SpeedControlClass):
     """Takes a control signal and drives the brakes/motors"""
     
     def __init__(self, battery_array, motor_array, wheel_array, kwargs):
-        self._brake_controller = ControllerClass.ControllerClass(1, 0.1, 0, -255, 255)
-        self._motor_controller = ControllerClass.ControllerClass(3, 0.8, -0.1, -255, 255)
+        self._brake_controller = ControllerClass.ControllerClass(1, 0, 0, -255, 255)
+        self._motor_controller = ControllerClass.ControllerClass(1, 0, 0, -255, 255)
         #self._brake_controller.set_i_limits(0,255)
         self._motor_controller.set_i_limits(0,255)
         self._error_brake = 0.0
