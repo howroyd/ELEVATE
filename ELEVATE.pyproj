@@ -22,9 +22,39 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AerodynamicsClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BrakesClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CarClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ControllerClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataInputClass.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ElectricalDeviceClass.py" />
+    <Compile Include="ElectricalManagementClass.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="firstTest.py" />
+    <Compile Include="MotorClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PowertrainClass.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TdiLoadbankClass.py" />
+    <Compile Include="TractionControlClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WheelClass.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />

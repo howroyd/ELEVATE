@@ -19,7 +19,7 @@ class TdiLoadbank(ElectricalDeviceClass.ElectricalDevice):
     CONSTANT_POWER_COMMAND = "cp"
 
     # Instance constructor
-    def __init__(self, **kwargs):
+    def __init__(self, kwargs):
         self._host     = kwargs['host'] if 'host' in kwargs else '127.0.0.1'
         self._port     = kwargs['port'] if 'port' in kwargs else 23
         self._password = kwargs['password'] if 'password' in kwargs else ''
@@ -35,7 +35,7 @@ class TdiLoadbank(ElectricalDeviceClass.ElectricalDevice):
 
         self._dt = time.time()
 
-        return super().__init__(**kwargs)
+        return super().__init__(kwargs)
 
     # Method to connect over the network
     def connect(self):
