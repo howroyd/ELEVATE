@@ -24,6 +24,7 @@ class BrakesClass(object):
         return self._value
     @value.setter
     def value(self, value):
+        #value = self._value + 1*(value - self._value)
         self._value = max(min(value, 255), 0)
 
     @property

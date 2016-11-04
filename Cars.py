@@ -7,6 +7,7 @@ import BrakesClass
 
 class CarData(object):
     _data=dict()
+
     @property
     def data(self):
         return self._data
@@ -44,3 +45,5 @@ class Nissan_Leaf(CarData):
                                             )
         self._data.update(motor_model_array=[MotorClass.MotorClass([self._data['wheel_model_array'][0],self._data['wheel_model_array'][1]],self._data)])
         self._data.update(powertrain_model_array=[PowertrainClass.PowertrainClass([self._data['batt_model_array'][0]],[self._data['motor_model_array'][0]],self._data['wheel_model_array'],self._data)])
+
+        super().__init__()

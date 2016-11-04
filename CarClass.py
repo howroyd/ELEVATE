@@ -1,7 +1,4 @@
 import time
-#import PowertrainClass
-#import AerodynamicsClass
-#import battery_sw
 import Cars
 
 class CarClass(object):
@@ -14,11 +11,12 @@ class CarClass(object):
         self._vehicle_mass = kwargs['car_mass']
         self._speed = 0.0
         self._target_speed = 0.0
+        super().__init__()
         return
 
     def update(self, dt):
         for ptr in self._powertrain_model_array:
-                ptr.current_speed = self._speed
+                ptr.current_speed = self.speed
                 ptr.target_speed = self._target_speed
                 ptr.update(dt)
 
@@ -27,7 +25,7 @@ class CarClass(object):
         total_force = sum(ptr.force for ptr in self._powertrain_model_array) - self._aero_model.force
 
         accn = total_force / self._vehicle_mass
-        self._speed = self._speed + accn*dt
+        self.speed = self.speed + accn*dt
         return
 
     @property
@@ -40,6 +38,10 @@ class CarClass(object):
     @property
     def speed(self):
         return self._speed
+    @speed.setter
+    def speed(self, value):
+        if (value <= 0.0): value = 0.0
+        self._speed = value
 
     def charge_battery(self, target_soc):
         self._battery.charge_to(target_soc)
