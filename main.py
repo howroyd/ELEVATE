@@ -2,7 +2,7 @@
 
 VERSION = 1.0
 
-import telnetlib, time, sys, os, datetime
+import telnetlib, time, sys, os, datetime, copy
 import matlab.engine
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,7 +17,7 @@ import threading
 import colorama
 from colorama import Fore, Back, Style
 
-many = False
+num_cars = 1
 graph = True
 
 # Main run function
@@ -50,51 +50,48 @@ if __name__ == "__main__":
     mycar = list()
     
     # Spawn vehicle(s)
-    if many:
-        for x in range(1000):
-            mycar.append(CarClass(leaf_data.data))
-    leaf = CarClass(leaf_data.data)
+    for x in range(num_cars):
+        mycar.append(CarClass(leaf_data.data))
 
+    # Create "pointer" to car 0
+    leaf1 = mycar[0]
+    
     d.line = ['Time','NEDC','Speed']
 
     print(d.num_lines, 'lines in input file\n')
+
 
     while not d.finished:
         timer.update()
         d.update(timer.sim_time)
 
-        if many:
-            for x in mycar:
-                if d.new_data: d.target_speed = d.line[1]/2.23694 # mph to m/s
-                x.update(timer.dt)
-        else:
-            if d.new_data: leaf.target_speed = d.line[1]/2.23694 # mph to m/s
-            leaf.update(timer.dt)
-
+        for x in mycar:
+            if d.new_data: x.target_speed = d.line[1]/2.23694 # mph to m/s
+            x.update(timer.dt)
 
         if d.new_data: print(round(d.percent_complete,1),'%',end='\r')
 
-
         d.line = [timer.sim_time]
 
-        d.line = [leaf.target_speed * 2.23694]
-        d.line = [leaf.speed * 2.23694]
+        d.line = [leaf1.target_speed * 2.23694]
+        d.line = [leaf1.speed * 2.23694]
        
-        d.line = [leaf._powertrain_model_array[0]._speed_control.error]
-        d.line = [leaf._powertrain_model_array[0]._speed_control.error_p]
-        d.line = [leaf._powertrain_model_array[0]._speed_control.error_i]
-        d.line = [leaf._powertrain_model_array[0]._speed_control.error_d]
+        d.line = [leaf1._powertrain_model_array[0]._speed_control.error]
+        d.line = [leaf1._powertrain_model_array[0]._speed_control.error_p]
+        d.line = [leaf1._powertrain_model_array[0]._speed_control.error_i]
+        d.line = [leaf1._powertrain_model_array[0]._speed_control.error_d]
 
-        d.line = [leaf._powertrain_model_array[0]._speed_control._motor_controller.error]
-        d.line = [leaf._powertrain_model_array[0]._speed_control._motor_controller.error_p]
-        d.line = [leaf._powertrain_model_array[0]._speed_control._motor_controller.error_i]
-        d.line = [leaf._powertrain_model_array[0]._speed_control._motor_controller.error_d]
+        d.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error]
+        d.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_p]
+        d.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_i]
+        d.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_d]
 
-        d.line = [leaf._powertrain_model_array[0]._speed_control._brake_controller.error]
-        d.line = [leaf._powertrain_model_array[0]._speed_control._brake_controller.error_p]
-        d.line = [leaf._powertrain_model_array[0]._speed_control._brake_controller.error_i]
-        d.line = [leaf._powertrain_model_array[0]._speed_control._brake_controller.error_d]
+        d.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error]
+        d.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_p]
+        d.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_i]
+        d.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_d]
 
+    print(end='\r\n')
 
     if graph:
         data_out = np.genfromtxt(filename+"_out.csv", delimiter=',', skip_header=1, skip_footer=1,
@@ -140,9 +137,9 @@ if __name__ == "__main__":
         ax4.set_xlabel('Time /s')
 
     print(Fore.YELLOW, Style.BRIGHT)
-    print("\nSpeed Cost:", round(leaf._powertrain_model_array[0]._speed_control.cost, 1))
-    print("Motor Cost:", round(leaf._powertrain_model_array[0]._speed_control._motor_controller.cost, 1))
-    print("Brake Cost:", round(leaf._powertrain_model_array[0]._speed_control._brake_controller.cost, 1))    
+    print("Speed Cost:", round(leaf1._powertrain_model_array[0]._speed_control.cost, 1))
+    print("Motor Cost:", round(leaf1._powertrain_model_array[0]._speed_control._motor_controller.cost, 1))
+    print("Brake Cost:", round(leaf1._powertrain_model_array[0]._speed_control._brake_controller.cost, 1))    
 
     print(Fore.RED, Style.BRIGHT)
     print("\n", round((time.time()-time_start),1), "seconds to run")
