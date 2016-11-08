@@ -5,7 +5,7 @@ VERSION = 1.0
 import telnetlib, time, sys, os, datetime
 import matlab.engine
 import matplotlib.pyplot as plt
-import numpy as np
+import numpy as nphowroyd
 from TdiLoadbankClass import TdiLoadbank
 from battery_sw import Battery_Model
 from CarClass import CarClass
