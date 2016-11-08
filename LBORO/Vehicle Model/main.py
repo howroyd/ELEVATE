@@ -20,6 +20,8 @@ from colorama import Fore, Back, Style
 num_cars = 1
 graph = True
 
+filename = "nedc2_short"
+
 # Main run function
 if __name__ == "__main__":
     time_start = time.time()
@@ -32,67 +34,62 @@ if __name__ == "__main__":
     print("Simon Howroyd", datetime.date.today().year)
     print("Loughborough University")
     print(Style.RESET_ALL)
-
-    filename = "nedc2_short"
+    print(sys.version, '\n')
 
     #eng = matlab.engine.start_matlab('-nojvm')
     #print(eng.sqrt(4.0))
     #eng.quit()
-
-    print(sys.version, '\n')
     
-    d = DataInputClass(filename+".tsv")
-    timer = Continuous_dt(d.dt, 50)
-#    e = ControllerClass(d)
-
-    leaf_data = Nissan_Leaf()
-
-    mycar = list()
+    datafile = DataInputClass(filename+".tsv")
+    timer    = Continuous_dt(datafile.dt, 50)
     
     # Spawn vehicle(s)
+    mycar = list()
     for x in range(num_cars):
-        mycar.append(CarClass(leaf_data.data))
+        mycar.append(CarClass(Nissan_Leaf().data))
 
     # Create "pointer" to car 0
     leaf1 = mycar[0]
     
-    d.line = ['Time','NEDC','Speed']
+    print(datafile.num_lines, 'lines in input file\n')
 
-    print(d.num_lines, 'lines in input file\n')
+    # RUN SIMULATION
+    while not datafile.finished:
 
-
-    while not d.finished:
+        # Update the timer and input data file
         timer.update()
-        d.update(timer.sim_time)
+        datafile.update(timer.sim_time)
 
+        # Update cars
         for x in mycar:
-            if d.new_data: x.target_speed = d.line[1]/2.23694 # mph to m/s
+            # Update target speed if required
+            if datafile.new_data: x.target_speed = datafile.line[1]/2.23694 # mph to m/s
+            # Calculate dynamics
             x.update(timer.dt)
 
-        if d.new_data: print(round(d.percent_complete,1),'%',end='\r')
+        # Print to screen the percentage of number of lines completed from the input data file
+        if datafile.new_data: print(round(datafile.percent_complete,1),'%',end='\r')
 
-        d.line = [timer.sim_time]
-
-        d.line = [leaf1.target_speed * 2.23694]
-        d.line = [leaf1.speed * 2.23694]
-       
-        d.line = [leaf1._powertrain_model_array[0]._speed_control.error]
-        d.line = [leaf1._powertrain_model_array[0]._speed_control.error_p]
-        d.line = [leaf1._powertrain_model_array[0]._speed_control.error_i]
-        d.line = [leaf1._powertrain_model_array[0]._speed_control.error_d]
-
-        d.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error]
-        d.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_p]
-        d.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_i]
-        d.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_d]
-
-        d.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error]
-        d.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_p]
-        d.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_i]
-        d.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_d]
+        # Output data to save file
+        datafile.line = [timer.sim_time]
+        datafile.line = [leaf1.target_speed * 2.23694]
+        datafile.line = [leaf1.speed * 2.23694]
+        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.error]
+        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.error_p]
+        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.error_i]
+        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.error_d]
+        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error]
+        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_p]
+        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_i]
+        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_d]
+        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error]
+        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_p]
+        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_i]
+        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_d]
 
     print(end='\r\n')
 
+    # Plot data to screen
     if graph:
         data_out = np.genfromtxt(filename+"_out.csv", delimiter=',', skip_header=1, skip_footer=1,
                     names = ['x', 'v_set', 'v_true', 'speedE', 'speedP', 'speedI', 'speedD', 'motorE', 'motorP', 'motorI', 'motorD', 'brakeE', 'brakeP', 'brakeI', 'brakeD'])
