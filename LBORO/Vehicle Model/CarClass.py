@@ -5,13 +5,14 @@ class CarClass(object):
     '''DESCRIPTION'''
 
     # Instance constructor
-    def __init__(self, kwargs):
-        self._aero_model = kwargs['aero_model']
-        self._powertrain_model_array = kwargs['powertrain_model_array']
-        self._vehicle_mass = kwargs['car_mass']
-        self._speed = 0.0
-        self._target_speed = 0.0
-        super().__init__()
+    def __init__(self, kwargs=None):
+        if (kwargs is not None):
+            self._aero_model = kwargs['aero_model']
+            self._powertrain_model_array = kwargs['powertrain_model_array']
+            self._vehicle_mass = kwargs['car_mass']
+            self._speed = 0.0
+            self._target_speed = 0.0
+            super().__init__()
         return
 
     def update(self, dt):
