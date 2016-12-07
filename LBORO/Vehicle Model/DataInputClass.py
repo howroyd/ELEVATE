@@ -117,6 +117,10 @@ class DataInputClass(object):
             self._lineout.append(i)
 
     @property
+    def nextline(self):
+        return self._nextline
+
+    @property
     def line_number(self):
         return self._num_this_line
 

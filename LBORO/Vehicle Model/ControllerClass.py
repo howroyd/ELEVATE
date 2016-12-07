@@ -32,6 +32,9 @@ class ControllerClass(object):
         self._min_i = min_i
         self._max_i = max_i
 
+    def anti_wind_up(self):
+        self._i = 0.0
+
     def reset(self):
         self._i = 0.0
         self._d = 0.0
@@ -60,4 +63,4 @@ class ControllerClass(object):
 
     @property
     def error_d(self):
-        return self.constrain(self._d * self._kd, self._min_val, self._max_val)
+        return self._d * self._kd

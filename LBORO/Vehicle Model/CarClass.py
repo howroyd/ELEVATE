@@ -12,6 +12,7 @@ class CarClass(object):
             self._vehicle_mass = kwargs['car_mass']
             self._speed = 0.0
             self._target_speed = 0.0
+            self._feed_forward_speed = None
             super().__init__()
         return
 
@@ -19,6 +20,8 @@ class CarClass(object):
         for ptr in self._powertrain_model_array:
                 ptr.current_speed = self.speed
                 ptr.target_speed = self._target_speed
+                if self._feed_forward_speed is not None:
+                    ptr.feed_forward_speed = self._feed_forward_speed
                 ptr.update(dt)
 
         self._aero_model.update(self._speed)
@@ -35,6 +38,13 @@ class CarClass(object):
     @target_speed.setter
     def target_speed(self, speed):
         self._target_speed = speed
+
+    @property
+    def feed_forward_speed(self,):
+        return self._feed_forward_speed
+    @feed_forward_speed.setter
+    def feed_forward_speed(self, speed):
+        self._feed_forward_speed = speed
 
     @property
     def speed(self):

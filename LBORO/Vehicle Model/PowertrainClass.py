@@ -12,6 +12,7 @@ class PowertrainClass(object):
         self._total_force = 0.0
         #self._speed_control = TractionControlClass.SpeedControlClass(battery_array, motor_array, wheel_array, kwargs)
         self._speed_control = TractionControlClass.TractionControlClass(battery_array, motor_array, wheel_array, kwargs)
+        self._speed_control.set_i_limits(-50, 50)
 
     def update(self, dt):            
         self._speed_control.update(dt)
@@ -24,6 +25,13 @@ class PowertrainClass(object):
     @target_speed.setter
     def target_speed(self, speed):
         self._speed_control.target = max(0.0, speed)
+
+    @property
+    def feed_forward_speed(self):
+        return self._speed_control.feed_forward
+    @feed_forward_speed.setter
+    def feed_forward_speed(self, speed):
+        self._speed_control.feed_forward = max(0.0, speed)
 
     @property
     def dt(self):

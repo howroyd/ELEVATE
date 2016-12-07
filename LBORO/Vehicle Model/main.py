@@ -19,6 +19,7 @@ from colorama import Fore, Back, Style
 
 num_cars = 1
 graph = True
+feed_forward = True
 
 filename = "nedc2_short"
 
@@ -63,7 +64,11 @@ if __name__ == "__main__":
         # Update cars
         for x in mycar:
             # Update target speed if required
-            if datafile.new_data: x.target_speed = datafile.line[1]/2.23694 # mph to m/s
+            if datafile.new_data:
+                x.target_speed = datafile.line[1]/2.23694 # mph to m/s
+                if feed_forward:
+                    
+                    x.feed_forward_speed = datafile.nextline[1]/2.23694 # mph to m/s
             # Calculate dynamics
             x.update(timer.dt)
 
