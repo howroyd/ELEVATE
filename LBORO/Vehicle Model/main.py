@@ -6,6 +6,7 @@ import telnetlib, time, sys, os, datetime, copy
 import matlab.engine
 import matplotlib.pyplot as plt
 import numpy as np
+from abc import ABCMeta
 from TdiLoadbankClass import TdiLoadbank
 from battery_sw import Battery_Model
 from CarClass import CarClass
