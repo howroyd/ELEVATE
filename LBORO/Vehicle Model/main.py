@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-VERSION = 1.0
+VERSION = 1.1
 
 import telnetlib, time, sys, os, datetime, copy
 import matlab.engine
