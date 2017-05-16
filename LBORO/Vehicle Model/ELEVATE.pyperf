@@ -4,9 +4,4 @@
     <TargetProject>536be80e-3cdf-4acd-87db-e25b99033a20</TargetProject>
     <FriendlyName>ELEVATE</FriendlyName>
   </ProjectTarget>
-  <Reports>
-    <Report>
-      <Filename>C:\Users\ttsh\AppData\Local\Temp\ELEVATE_20160927.vsp</Filename>
-    </Report>
-  </Reports>
 </ProfilingTarget>

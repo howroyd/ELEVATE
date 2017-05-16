@@ -32,14 +32,40 @@ class Continuous_dt(object):
             return True
         else: return False
 
+class DataOutputClass(object):
+    def __init__(self, filename):
+        self._file_out = open(filename+"_out"+".csv",'w', newline="\n", encoding="utf-8")
+        self._csvout = csv.writer(self._file_out,quoting=csv.QUOTE_NONNUMERIC)
+        self._lineout = []
+        self.update()
 
+    def __del__(self):
+        self._file_out.close()
+
+    def update(self, sim_time=None):
+        # Update output file
+        if self._lineout:
+                self._csvout.writerow(self._lineout)
+                self._lineout = []
+        return
+
+    @property
+    def line(self):
+        return self._thisline
+    @line.setter
+    def line(self, data):
+        for i in data:
+            self._lineout.append(i)
 
 class DataInputClass(object):
     """description of class"""
-    def __init__(self, filename):
+    def __init__(self, filename, filenameout=None):
 
         self._file_in = open(filename,'rt')
-        self._file_out = open(filename.rsplit('.')[0]+"_out"+".csv",'w', newline="\n", encoding="utf-8")
+        if filenameout is None:
+            self._file_out = open(filename.rsplit('.')[0]+"_out"+".csv",'w', newline="\n", encoding="utf-8")
+        else:
+            self._file_out = open(filenameout,'w', newline="\n", encoding="utf-8")
 
         self._tsvin = csv.reader(self._file_in, delimiter='\t')
         self._csvout = csv.writer(self._file_out,quoting=csv.QUOTE_NONNUMERIC)
@@ -84,7 +110,7 @@ class DataInputClass(object):
                 self._lineout = []
 
         # Update the input
-        if (not sim_time or not self._nextline or not self._thisline or (sim_time >= self._nextline[0])):
+        if (not sim_time or not self._nextline or not self._thisline) or (sim_time >= self._nextline[0]):
             # Simtime is ahead of our next line so get a new line update
             try:
                 self._previousline   = self._thisline
@@ -98,6 +124,7 @@ class DataInputClass(object):
             except StopIteration:
                 # Set flag if end of file
                 self._finished = True
+                self._file_out.flush() # TODO might not be necessary
 
         else: self._new_data = False
 
@@ -115,6 +142,10 @@ class DataInputClass(object):
     def line(self, data):
         for i in data:
             self._lineout.append(i)
+
+    @property
+    def nextline(self):
+        return self._nextline
 
     @property
     def line_number(self):

@@ -24,16 +24,19 @@ class Nissan_Leaf(CarData):
                     batt_p_max=80000.0,
                     batt_kwh=30.0,
                     car_cd=0.29,
-                    car_area=0.725,
+                    car_cda=0.725,
+                    car_area=2.276124,
                     car_mass=1521.0,
-                    wheel_diameter=0.2159,
+                    wheel_diameter=0.2159*2.0,
                     brake_diameter=[0.1]*4, # assumed
                     brake_max_torque=[500.0]*4,
-                    motor_max_torque=500,#280.0,
+                    motor_max_torque=280,#280.0,  # TODO
                     motor_v_min = 400.0, # assumed
                     motor_v_max=300.0, # assumed
                     motor_i_max=266.0, # assumed
-                    motor_p_max=80000.0 # assumed
+                    motor_p_max=80000.0, # assumed
+                    motor_reduction_ratio=7.9377,
+                    motor_max_rpm=10390
                     )
         self._data.update(batt_model_array=[battery_sw.Battery_Model(self._data)])
         self._data.update(aero_model=AerodynamicsClass.AerodynamicsClass(self._data))
@@ -45,5 +48,7 @@ class Nissan_Leaf(CarData):
                                             )
         self._data.update(motor_model_array=[MotorClass.MotorClass([self._data['wheel_model_array'][0],self._data['wheel_model_array'][1]],self._data)])
         self._data.update(powertrain_model_array=[PowertrainClass.PowertrainClass([self._data['batt_model_array'][0]],[self._data['motor_model_array'][0]],self._data['wheel_model_array'],self._data)])
+        for ptr in self._data['wheel_model_array']: # Dodgy cyclic link
+            ptr.powertrain_model_reference = self._data['powertrain_model_array'][0]
 
         super().__init__()
