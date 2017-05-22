@@ -4,6 +4,7 @@ import AerodynamicsClass
 import WheelClass
 import MotorClass
 import BrakesClass
+import EscClass
 
 class CarData(object):
     _data=dict()
@@ -47,6 +48,7 @@ class Nissan_Leaf(CarData):
                                             WheelClass.WheelClass(self._data['brake_model_array'][3],self._data)]  # Rear right
                                             )
         self._data.update(motor_model_array=[MotorClass.MotorClass([self._data['wheel_model_array'][0],self._data['wheel_model_array'][1]],self._data)])
+        self._data.update(esc=EscClass.ESC(self._data))
         self._data.update(powertrain_model_array=[PowertrainClass.PowertrainClass([self._data['batt_model_array'][0]],[self._data['motor_model_array'][0]],self._data['wheel_model_array'],self._data)])
         for ptr in self._data['wheel_model_array']: # Dodgy cyclic link
             ptr.powertrain_model_reference = self._data['powertrain_model_array'][0]

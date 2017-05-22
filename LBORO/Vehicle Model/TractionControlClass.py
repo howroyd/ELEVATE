@@ -3,6 +3,7 @@ import MotorClass
 import BrakesClass
 import ControllerClass
 import enum
+import EscClass
 
 PowertrainState = { 'initialising',
                     'stopped',
@@ -39,6 +40,7 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._motor_array = motor_array
         self._wheel_array = wheel_array
         self._brake_array = kwargs['brake_model_array']
+        self._esc = kwargs['esc']
         self._dt_last = 0.0
         self._dv = 0.0
         self._dv_filtered = 0.0
@@ -94,6 +96,7 @@ class SpeedControlClass(ControllerClass.ControllerClass):
             # Update models
             for ptr in self._battery_array:
                 ptr.update(dt)
+            self._esc.update(dt)
             for ptr in self._motor_array:
                 ptr.update(dt)
             for ptr in self._wheel_array:

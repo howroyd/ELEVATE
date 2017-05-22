@@ -2,6 +2,7 @@ import ElectricalDeviceClass
 import ElectricalManagementClass
 from Filters import LowPassFilter
 from math import pi
+from EscClass import ESC
 
 class MotorClass(ElectricalDeviceClass.ElectricalDevice):
     """description of class"""
@@ -22,6 +23,7 @@ class MotorClass(ElectricalDeviceClass.ElectricalDevice):
         self._mechanical_efficiency = 0.9
         self._electrical_efficiency = 0.85
         self._max_rpm = kwargs['motor_max_rpm']
+        self._ESC = kwargs['esc'] if 'esc' in kwargs else None
         return super().__init__(kwargs)
 
     def update(self, dt):

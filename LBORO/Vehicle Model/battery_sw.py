@@ -1,5 +1,6 @@
 import time
 import ElectricalDeviceClass
+import EscClass
 
 class Battery_Model(ElectricalDeviceClass.ElectricalDevice):
     '''DESCRIPTION'''
@@ -7,7 +8,7 @@ class Battery_Model(ElectricalDeviceClass.ElectricalDevice):
     def __init__(self, kwargs):
         self._v_set_max = kwargs['e']     if 'e'     in kwargs else 0.0
         self._v_set_max = self.kwh_to_joules(kwargs['kwh'])   if 'kwh' in kwargs else 0.0
-        
+        self._ESC = kwargs['esc'] if 'esc' in kwargs else None
         return super().__init__(kwargs)
 
 

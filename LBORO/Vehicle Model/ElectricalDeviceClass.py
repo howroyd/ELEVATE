@@ -29,6 +29,31 @@ class ElectricalDevice():
         self.error    = error_t.none
         return None
 
+    def elec_update(self, kwargs):
+        self._v       = kwargs['v'] if 'v' in kwargs else self._v
+        self._i       = kwargs['i'] if 'i' in kwargs else self._i
+        self._p       = kwargs['p'] if 'p' in kwargs else self._p
+        self._e_in    = kwargs['e_in'] if 'e_in' in kwargs else self._e_in
+        self._e_out   = kwargs['e_out'] if 'e_out' in kwargs else self._e_out
+        self._e_total = kwargs['e'] if 'e' in kwargs else self._e_total
+        self._e_start = kwargs['e_start'] if 'e_start' in kwargs else self._e_start
+        self._e_max   = kwargs['e_max'] if 'e_max' in kwargs else self._e_max
+        self._e_min   = kwargs['e_min'] if 'e_min' in kwargs else self._e_min
+        self.error    = kwargs['error'] if 'error' in kwargs else self.error
+
+    def export(self):
+        return dict(    v       = self._v,
+                        i       = self._i,
+                        p       = self._p,
+                        e_in    = self._e_in,
+                        e_out   = self._e_out,
+                        e       = self._e_total,
+                        e_start = self._e_start,
+                        e_max   = self._e_max,
+                        e_min   = self._e_min,
+                        error   = self.error
+                    )
+
     # Interactive methods
     def add_v(self, v):
         self._v += v
