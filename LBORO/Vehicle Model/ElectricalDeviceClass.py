@@ -1,4 +1,5 @@
 from enum import Enum, unique
+import ElectricityClass
 
 @unique
 class error_t(Enum):
@@ -13,7 +14,7 @@ class error_t(Enum):
     e_full  = 7
     e_empty = 8
 
-class ElectricalDevice():
+class ElectricalDevice(ElectricityClass.Electricity):
     '''DESCRIPTION'''
     # Instance Constructor
     def __init__(self, kwargs):
@@ -27,7 +28,13 @@ class ElectricalDevice():
         self._e_max   = kwargs['e_max'] if 'e_max' in kwargs else 0.0
         self._e_min   = kwargs['e_min'] if 'e_min' in kwargs else 0.0
         self.error    = error_t.none
-        return None
+        return super().__init__(kwargs)
+
+    def update(self, dt):
+        self.error_check()
+
+    def error_check(self):
+        pass
 
     # Interactive methods
     def add_v(self, v):
