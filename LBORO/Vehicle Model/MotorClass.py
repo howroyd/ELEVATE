@@ -1,5 +1,4 @@
 import ElectricalDeviceClass
-import ElectricalManagementClass
 from Filters import LowPassFilter
 from math import pi
 
