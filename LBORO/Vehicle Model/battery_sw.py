@@ -1,20 +1,26 @@
 import time
 import ElectricalDeviceClass
-import EscClass
+from ElectricityClass import Electricity
 
 class Battery_Model(ElectricalDeviceClass.ElectricalDevice):
     '''DESCRIPTION'''
     # Instance constructor
     def __init__(self, kwargs):
-        self._v_set_max = kwargs['e']     if 'e'     in kwargs else 0.0
+        self._v_set_max = kwargs['e'] if 'e' in kwargs else 0.0
         self._v_set_max = self.kwh_to_joules(kwargs['kwh'])   if 'kwh' in kwargs else 0.0
-        self._ESC = kwargs['esc'] if 'esc' in kwargs else None
+        self._output = Electricity()
         return super().__init__(kwargs)
 
 
     def charge_to(self, soc):
         self._soc = soc
         self.update(dt)
+
+    def get_electricity(self):
+        return self._output
+
+    def give_electricity(self, input):
+        pass
 
     @staticmethod
     def kwh_to_joules(kwh) -> float:
