@@ -1,6 +1,7 @@
 import ElectricalDeviceClass
 from Filters import LowPassFilter
 from math import pi
+from ElectricityClass import Electricity
 
 class MotorClass(ElectricalDeviceClass.ElectricalDevice):
     """description of class"""
@@ -22,6 +23,12 @@ class MotorClass(ElectricalDeviceClass.ElectricalDevice):
         self._electrical_efficiency = 0.85
         self._max_rpm = kwargs['motor_max_rpm']
         return super().__init__(kwargs)
+
+    def get_electricity(self):
+        return self._output
+
+    def give_electricity(self, input):
+        pass
 
     def update(self, dt):
         self._shaft_torque = (self._value/255)*self._max_torque

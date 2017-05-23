@@ -16,6 +16,12 @@ class Battery_Model(ElectricalDeviceClass.ElectricalDevice):
         self._soc = soc
         self.update(dt)
 
+    def get_electricity(self):
+        return self._output
+
+    def give_electricity(self, input):
+        pass
+
     @staticmethod
     def kwh_to_joules(kwh) -> float:
         return kwh * 3.6e+6
