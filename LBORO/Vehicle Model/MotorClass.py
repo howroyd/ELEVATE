@@ -22,12 +22,14 @@ class MotorClass(ElectricalDeviceClass.ElectricalDevice):
         self._mechanical_efficiency = 0.9
         self._electrical_efficiency = 0.85
         self._max_rpm = kwargs['motor_max_rpm']
+        self._electricity = Electricity()
         return super().__init__(kwargs)
 
-    def get_electricity(self):
+    @property
+    def electricity(self):
         return self._output
-
-    def give_electricity(self, input):
+    @electricity.setter
+    def electricity(self, elec):
         pass
 
     def update(self, dt):

@@ -9,8 +9,26 @@ class Battery_Model(ElectricalDeviceClass.ElectricalDevice):
         self._v_set_max = kwargs['e'] if 'e' in kwargs else 0.0
         self._v_set_max = self.kwh_to_joules(kwargs['kwh'])   if 'kwh' in kwargs else 0.0
         self._output = Electricity()
+        self._power_good = True 
+        self._max_power = False
         return super().__init__(kwargs)
 
+    def update(self):
+        # check power good
+        # check max power
+
+    @property
+    def power_good(self):
+        return self._power_good
+    @property
+    def max_power(self):
+        return self._max_power
+
+    def power_good_reset(self):
+        self._power_good = True
+
+    def set_max_power(self):
+        pass
 
     def charge_to(self, soc):
         self._soc = soc
@@ -21,6 +39,8 @@ class Battery_Model(ElectricalDeviceClass.ElectricalDevice):
 
     def give_electricity(self, input):
         pass
+
+
 
     @staticmethod
     def kwh_to_joules(kwh) -> float:

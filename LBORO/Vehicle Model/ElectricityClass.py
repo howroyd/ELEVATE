@@ -16,6 +16,10 @@ class Electricity(object):
         self._noise_f = 50
         self._noise_rms = 0.0
 
+    def _update(self):
+        pass
+
+
     @property
     def v(self):
         return self._v

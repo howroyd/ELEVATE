@@ -29,10 +29,21 @@ class ESC(ElectricalDeviceClass.ElectricalDevice):
             
             pass
 
-    def get_electricity(self):
-        return self._output
+    def _generate_electricity_class(self):
+        pass
 
-    def give_electricity(self, input):
+    @property
+    def electricity(self):
+        return self._output
+    @electricity.setter
+    def electricity(self, elec):
+        pass
+
+    @property
+    def electricity_array(self):
+        return None
+    @electricity_array.setter
+    def electricity_array(self, elec):
         pass
 
     # def elec_update(kwargs):
