@@ -28,14 +28,21 @@ k_lpf2 = 1
 
 inpath = "DriveCycles"
 outpath= "Results"
+
+# Real world analysis
+filename = "bham_lboro_int_kph"
+
+# Drive cycle analysis
 #filename = "FTP_mph"
 #filename = "nedc_int_kph"
-#filename = "bham_lboro_int_kph"
 #filename = "WLTP_kph" # ****
+
+# Robustness Analysis
 #filename = "parabola_kph"
 #filename = "impulse_kph"
 #filename = "step_kph"
-filename = "sine_kph"
+#filename = "sine_kph"
+#filename = "sine_fast_kph" # =SIN((A1)/20-PI()/2)*50+50
 
 time_lim = None
 #time_lim = [920, 940]
@@ -231,6 +238,7 @@ if __name__ == "__main__":
 
 
         fig = plt.figure(1)
+        fig_pres = plt.figure(2)
 
 #        ax1 = fig.add_subplot(511)
 #        ax1.plot(data_out['x'], data_out['w'], label='w')
@@ -272,11 +280,69 @@ if __name__ == "__main__":
          
 #        ax5.set_xlabel('Time /s')
 
-        fig = plt.figure(1)
-
         fig.suptitle(filename)
+        fig_pres.suptitle(filename)
 
-        ax1 = fig.add_subplot(611)
+#        ax = fig_pres.add_subplot(111)
+#        ax.plot(data_out['x'], data_out['v_real'], ':', label='v_real')
+#        ax.plot(data_out['x'], data_out['v_set'], label='v_set')
+#        ax.plot(data_out['x'], data_out['v_true'], label='v_true')
+#        ax.plot(data_out['x'], data_out['dv'], '--', label='dv')
+#        ax.set_ylabel('Velocity\n'+units)
+##        ax1.set_ylim([0, 60])
+#        if time_lim is not None: ax.set_xlim(time_lim)
+#        leg = ax.legend(loc='upper right', shadow=True)
+#        plt.grid()
+
+
+
+
+
+
+        ax = fig_pres.add_subplot(211)
+        ax.plot(data_out['x'], data_out['v_real'], ':', label='v_real')
+        ax.plot(data_out['x'], data_out['v_set'], label='v_set')
+        ax.plot(data_out['x'], data_out['v_true'], label='v_true')
+        ax.plot(data_out['x'], data_out['dv'], '--', label='dv')
+        ax.set_ylabel('Velocity\n'+units)
+#        ax.set_ylim([0, 60])
+        if time_lim is not None: ax.set_xlim(time_lim)
+        leg = ax.legend(loc='upper right', shadow=True)
+        plt.grid()
+
+#        ax2 = fig.add_subplot(512)
+#        ax2.plot(data_out['x'], data_out['state'], label='state')
+#        ax2.plot(data_out['x'], data_out['slip'], label='slip')
+#        ax2.plot(data_out['x'], (data_out['force']/1000) -10, ':', label='force')
+#        #ax2.set_ylabel(units)
+##        ax2.set_ylim([0, 60])
+#        leg2 = ax2.text(1,0.1,"initialising=0\nstopped=1\naccelerating=2\ncruising=3\ncoasting=4\ndeccelerating=5\nbraking=6\nerror=-1",
+#                    horizontalalignment='right', transform = ax2.transAxes)
+
+        ax0 = fig_pres.add_subplot(212)
+        ax0.plot(data_force['x'], data_force['force'], label='Total')
+        ax0.plot(data_force['x'], data_force['F_motor'], label='Fmotor')
+        ax0.plot(data_force['x'], data_force['F_brake'], label='Fbrake')
+        ax0.set_ylabel('Force\nNewtons')
+#        ax2.set_ylim([0, 60])
+        if time_lim is not None: ax0.set_xlim(time_lim)
+        leg0 = ax0.legend(loc='upper right', shadow=True)
+        plt.grid()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        ax1 = fig.add_subplot(511)
         ax1.plot(data_out['x'], data_out['v_real'], ':', label='v_real')
         ax1.plot(data_out['x'], data_out['v_set'], label='v_set')
         ax1.plot(data_out['x'], data_out['v_true'], label='v_true')
@@ -296,7 +362,7 @@ if __name__ == "__main__":
 #        leg2 = ax2.text(1,0.1,"initialising=0\nstopped=1\naccelerating=2\ncruising=3\ncoasting=4\ndeccelerating=5\nbraking=6\nerror=-1",
 #                    horizontalalignment='right', transform = ax2.transAxes)
 
-        ax2 = fig.add_subplot(612)
+        ax2 = fig.add_subplot(512)
         ax2.plot(data_force['x'], data_force['force'], label='Total')
         ax2.plot(data_force['x'], data_force['F_motor'], label='Fmotor')
         ax2.plot(data_force['x'], data_force['F_brake'], label='Fbrake')
@@ -306,7 +372,7 @@ if __name__ == "__main__":
         leg2 = ax2.legend(loc='upper right', shadow=True)
         plt.grid()
 
-        ax3 = fig.add_subplot(613)
+        ax3 = fig.add_subplot(513)
         ax3.plot(data_ctrl['x'], data_ctrl['motor'], label='motor')
         ax3.plot(data_ctrl['x'], data_ctrl['brake'], label='brake')
         ax3.set_ylabel('Ctrl Sig\n-255 to 255')
@@ -315,7 +381,7 @@ if __name__ == "__main__":
         leg3 = ax3.legend(loc='upper right', shadow=True)
         plt.grid()
 
-        ax4 = fig.add_subplot(614)
+        ax4 = fig.add_subplot(514)
         ax4.plot(data_out['x'], data_out['state'], label='state')
         if time_lim is not None: ax4.set_xlim(time_lim)
         ax4.set_ylabel('Ctrl State\n-1 to 4')
@@ -334,7 +400,7 @@ if __name__ == "__main__":
         #plt.grid()
 
         ## Controller
-        ax5 = fig.add_subplot(615)
+        ax5 = fig.add_subplot(515)
         ax5.plot(data_ctrl['x'], data_ctrl['error'], '--', label='error')
         ax5.plot(data_ctrl['x'], data_ctrl['p'], label='p')
         ax5.plot(data_ctrl['x'], data_ctrl['i'], label='i')
@@ -348,14 +414,14 @@ if __name__ == "__main__":
         #ax5.set_xlabel('Time /s')
 
         ## Controller
-        ax6 = fig.add_subplot(616)
-        ax6.plot(data_elec_motor['x'], data_elec_motor['v'], label='v')
-        ax6.plot(data_elec_motor['x'], data_elec_motor['i'], label='i')
-        ax6.plot(data_elec_motor['x'], data_elec_motor['p'], label='p')
-        ax6.set_ylabel('Voltage, current, power')
-        if time_lim is not None: ax6.set_xlim(time_lim)
-        leg6 = ax6.legend(loc='upper right', shadow=True)
-        plt.grid()
+        #ax6 = fig.add_subplot(616)
+        #ax6.plot(data_elec_motor['x'], data_elec_motor['v'], label='v')
+        #ax6.plot(data_elec_motor['x'], data_elec_motor['i'], label='i')
+        #ax6.plot(data_elec_motor['x'], data_elec_motor['p'], label='p')
+        #ax6.set_ylabel('Voltage, current, power')
+        #if time_lim is not None: ax6.set_xlim(time_lim)
+        #leg6 = ax6.legend(loc='upper right', shadow=True)
+        #plt.grid()
 
 #        fig2 = plt.figure(2)
 #        a2x1 = fig2.add_subplot(111)
