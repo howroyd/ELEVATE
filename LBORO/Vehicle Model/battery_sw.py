@@ -1,14 +1,13 @@
 import time
-import ElectricalDeviceClass
-from ElectricityClass import Electricity
+import ElectricityClass
 
-class Battery_Model(ElectricalDeviceClass.ElectricalDevice):
+class Battery_Model(ElectricityClass.ElectricalDevice):
     '''DESCRIPTION'''
     # Instance constructor
     def __init__(self, kwargs):
         self._v_set_max = kwargs['e'] if 'e' in kwargs else 0.0
         self._v_set_max = self.kwh_to_joules(kwargs['kwh'])   if 'kwh' in kwargs else 0.0
-        self._output = Electricity()
+        self._output = ElectricityClass.Electricity()
         self._power_good = True 
         self._max_power = False
         return super().__init__(kwargs)
@@ -16,6 +15,7 @@ class Battery_Model(ElectricalDeviceClass.ElectricalDevice):
     def update(self):
         # check power good
         # check max power
+        pass
 
     @property
     def power_good(self):

@@ -1,9 +1,8 @@
-import ElectricalDeviceClass
+import ElectricityClass
 from Filters import LowPassFilter
 from math import pi
-from ElectricityClass import Electricity
 
-class MotorClass(ElectricalDeviceClass.ElectricalDevice):
+class MotorClass(ElectricityClass.ElectricalDevice):
     """description of class"""
 
     # Instance constructor
@@ -22,7 +21,7 @@ class MotorClass(ElectricalDeviceClass.ElectricalDevice):
         self._mechanical_efficiency = 0.9
         self._electrical_efficiency = 0.85
         self._max_rpm = kwargs['motor_max_rpm']
-        self._electricity = Electricity()
+        self._electricity = ElectricityClass.Electricity()
         return super().__init__(kwargs)
 
     @property

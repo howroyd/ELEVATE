@@ -1,8 +1,7 @@
-import ElectricalDeviceClass
 from Filters import LowPassFilter
-from ElectricityClass import Electricity
+import ElectricityClass
 
-class ESC(ElectricalDeviceClass.ElectricalDevice):
+class ESC(ElectricityClass.ElectricalDevice):
     """description of class"""
 
     # Takes in electrical power from battery and converts it to elec power for motor
@@ -19,7 +18,7 @@ class ESC(ElectricalDeviceClass.ElectricalDevice):
         self._electrical_efficiency = 0.85
 
         self._first_iteration = True
-        self._output = Electricity()
+        self._output = ElectricityClass.Electricity()
         return super().__init__(kwargs)
 
     def update(self, dt):

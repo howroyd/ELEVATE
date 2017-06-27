@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
-VERSION = 1.1
+VERSION = 1.2
 
 import telnetlib, time, sys, os, datetime, copy
 import matlab.engine
 import matplotlib.pyplot as plt
 import numpy as np
-from TdiLoadbankClass import TdiLoadbank
+#from TdiLoadbankClass import TdiLoadbank
 from battery_sw import Battery_Model
 from CarClass import CarClass
 from DataInputClass import DataInputClass, DataOutputClass
@@ -19,7 +19,6 @@ from colorama import Fore, Back, Style
 import random
 from Filters import LowPassFilter
 
-
 num_cars = 1
 graph = True
 feed_forward = True
@@ -29,13 +28,13 @@ k_lpf2 = 1
 inpath = "DriveCycles"
 outpath= "Results"
 #filename = "FTP_mph"
-#filename = "nedc_int_kph"
+filename = "nedc_int_kph"
 #filename = "bham_lboro_int_kph"
 #filename = "WLTP_kph" # ****
 #filename = "parabola_kph"
 #filename = "impulse_kph"
 #filename = "step_kph"
-filename = "sine_kph"
+#filename = "sine_kph"
 
 time_lim = None
 #time_lim = [920, 940]
