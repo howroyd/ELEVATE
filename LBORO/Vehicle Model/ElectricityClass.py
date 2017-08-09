@@ -20,16 +20,27 @@ class error_t(Enum):
     e_empty = 8
 
 class Electricity(object):
-    def __init__(self):
+    def __init__(self, name="electricity"):
         self._type = electricity_t.DC
         self._v = 0.0
         self._i = 0.0
         self._f = None
         self._noise_f = 50
         self._noise_rms = 0.0
+        self._name = name
+        self._data = dict()
 
     def _update(self):
-        pass
+        self._data.update({(self._name+'_v') : self.v,
+                            (self._name+'_i') : self.i,
+                            (self._name+'_f') : self.f,
+                            (self._name+'_noise_f') : self.noise_f,
+                            (self._name+'_noise_rms') : self.noise_rms
+        })
+
+    @property
+    def data(self):
+        return self._data
 
     @property
     def v(self):
@@ -94,7 +105,7 @@ class Electricity(object):
 class ElectricalDevice(Electricity):
     '''DESCRIPTION'''
     # Instance Constructor
-    def __init__(self, kwargs):
+    def __init__(self, kwargs, name="electricalDevice"):
         self._v       = kwargs['v'] if 'v' in kwargs else 0.0
         self._i       = kwargs['i'] if 'i' in kwargs else 0.0
         self._p       = kwargs['p'] if 'p' in kwargs else 0.0
@@ -105,10 +116,22 @@ class ElectricalDevice(Electricity):
         self._e_max   = kwargs['e_max'] if 'e_max' in kwargs else 0.0
         self._e_min   = kwargs['e_min'] if 'e_min' in kwargs else 0.0
         self.error    = error_t.none
-        return super().__init__()
+        self._name = name
+        return super().__init__(name=self._name)
 
     def update(self, dt):
         self.error_check()
+        self._data.update({(self._name+'_v') : self.v,
+                            (self._name+'_i') : self.i,
+                            (self._name+'_p') : self.p,
+                            (self._name+'_e_in') : self._e_in,
+                            (self._name+'_e_out') : self._e_out,
+                            (self._name+'_e_total') : self._e_total,
+                            (self._name+'_e_start') : self._e_start,
+                            (self._name+'_e_max') : self._e_max,
+                            (self._name+'_e_min') : self._e_min,
+                            (self._name+'_error') : self.error
+        })
 
     def error_check(self):
         pass

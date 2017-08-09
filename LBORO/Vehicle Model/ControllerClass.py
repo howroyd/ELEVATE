@@ -1,7 +1,7 @@
 class ControllerClass(object):
     """description of class"""
 
-    def __init__(self, kP, kI, kD, min_val=-255, max_val=255, min_i=-255, max_i=255, rate=None, name=""):
+    def __init__(self, kP, kI, kD, min_val=-255, max_val=255, min_i=-255, max_i=255, rate=None, name="controller"):
         self._kp = kP
         self._ki = kI
         self._kd = kD
@@ -17,6 +17,8 @@ class ControllerClass(object):
         self._max_val = max_val
         self._min_i = min_i
         self._max_i = max_i
+        self._name = name
+        self._data = dict()
 
     def update(self, dt, error, rate=None):
         self._output_last = self._output
@@ -46,6 +48,14 @@ class ControllerClass(object):
 
 
         self._cost += abs(error)*dt # TODO machine learning on cost function
+
+        self._data.update({(self._name+'_p') : self.error_p,
+                            (self._name+'_i') : self.error_i,
+                            (self._name+'_d') : self.error_d,
+                            (self._name+'_error') : self.error,
+                            (self._name+'_cost') : self._cost
+        })
+
         return
 
     def set_i_limits(self, min_i, max_i):
@@ -60,6 +70,10 @@ class ControllerClass(object):
         self._d = 0.0
         self._error = 0.0
         self._dont_update_flag = True
+
+    @property
+    def data(self):
+        return self._data
 
     @property
     def cost(self):

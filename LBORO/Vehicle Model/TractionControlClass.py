@@ -33,7 +33,7 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         elif self._state is PowertrainState['deccelerating']:   return  4
         elif self._state is PowertrainState['error']:           return -1
 
-    def __init__(self, battery_array, motor_array, wheel_array, kwargs):
+    def __init__(self, battery_array, motor_array, wheel_array, kwargs, name="speedController"):
         self._state = PowertrainState['initialising']
         self._control_state = ControlState['off']
         self._battery_array = battery_array
@@ -51,7 +51,7 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._feed_forward = None
         self._state = PowertrainState['stopped']
         self._regen = False # Set to None to disable
-
+        self._name = name
         self._hysteresis_speed = 0.25*1 # 0.45=1mph
 
         p = 100 # 100
@@ -61,9 +61,13 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._k_feed_forward = 2 # 15
 
         self._hysteresis = self._hysteresis_speed * p/10 # PID error
+        self._data = dict()
+        super(SpeedControlClass, self).__init__(p, i, d, min_i=-50, max_i=50)
 
-        return super(SpeedControlClass, self).__init__(p, i, d, min_i=-50, max_i=50)
-
+        return 
+    @property
+    def data(self):
+        return self._data
     def update(self, dt):
         if ((self._target <= self._hysteresis_speed/10.0) and (self._current <= self._hysteresis_speed/10.0) and ((self._feed_forward <= self._hysteresis_speed/10.0) if self._feed_forward is not None else True)):
             if (self._state is not PowertrainState['stopped']):
@@ -90,6 +94,15 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._set_brakes(brake, parking)
 
         self._update_models(dt)
+
+        self._data.update({(self._name+'_motor') : motor,
+                            (self._name+'_brake') : brake,
+                            (self._name+'_parking') : parking,
+                            (self._name+'_powertrain_state') : self._state,
+                            (self._name+'_control_state') : self._control_state,
+        })
+
+        return
 
     def _update_models(self, dt):
         #if (self._dt_last > dt):

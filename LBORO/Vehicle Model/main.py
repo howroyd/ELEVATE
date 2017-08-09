@@ -1,29 +1,12 @@
 #!/usr/bin/python3
+from elevate_includes import *
 
-VERSION = 1.2
+VERSION = 2.0
 
-import telnetlib, time, sys, os, datetime, copy
-import matlab.engine
-import matplotlib.pyplot as plt
-import numpy as np
-#from TdiLoadbankClass import TdiLoadbank
-from battery_sw import Battery_Model
-from CarClass import CarClass
-from DataInputClass import DataInputClass, DataOutputClass
-from DataInputClass import Continuous_dt
-from ControllerClass import ControllerClass
-from Cars import Nissan_Leaf
-import threading
-import colorama
-from colorama import Fore, Back, Style
-import random
-from Filters import LowPassFilter
-
-num_cars = 1
 graph = True
 feed_forward = True
-k_lpf1 = 1
-k_lpf2 = 1
+matlab = False
+display = True
 
 inpath = "DriveCycles"
 outpath= "Results"
@@ -36,12 +19,9 @@ filename = "nedc_int_kph"
 #filename = "step_kph"
 #filename = "sine_kph"
 
-time_lim = None
-#time_lim = [920, 940]
-
 def display_init():
     colorama.init()
-    print(Fore.GREEN, Style.BRIGHT)
+    print(Fore.GREEN, Style.BRIGHT, end='')
     print("\nELEVATE (ELEctrochemical Vehicle Advanced TEchnology)")
     print("Hardware Simulation Model Version", VERSION)
     print("Simon Howroyd", datetime.date.today().year)
@@ -55,45 +35,61 @@ def matlab_init():
     eng.quit()
     return eng
 
+def check_units(fname):
+    if 'kph' in filename:
+        _conversion_factor = 1.0/3.6
+        _units = 'kph'
+    elif 'mph' in filename:
+        _conversion_factor = 0.44704
+        _units = 'mph'
+    elif 'ms' in filename:
+        _conversion_factor = 1.0
+        _units = 'ms'
+    else:
+        sys.exit("No defined speed units in drive cycle filename")
+    return _conversion_factor, _units
+
+# Check the units of the input data file; mph, kph, m/s
+conversion_factor, units = check_units(filename)
+
+time_lim = None
+#time_lim = [920, 940]
+
+time_start = 0.0
+time_init  = 0.0
+time_calc  = 0.0
+time_disp  = 0.0
+
 # Main run function
 if __name__ == "__main__":
+    # Make a note of the start time
     time_start = time.time()
 
-    display_init()
+    # Initialise the terminal display
+    if display: display_init()
 
-    #matlab_init()
+    # Initialise the Matlab engine
+    if matlab: matlab_init()
     
-    datafile = DataInputClass(inpath+"/"+filename+".tsv", outpath+"/"+filename+".csv")
-    d_force = DataOutputClass(outpath+"/"+"force")
-    d_ctrl = DataOutputClass(outpath+"/"+"ctrl")
-    d_ctrl_spd = DataOutputClass(outpath+"/"+"ctrl_spd")
+    # Construct the input data gatherer and timer
+    datafile     = DataInputClass(inpath+"/"+filename+".tsv", outpath+"/"+filename+".csv")
+    timer        = Continuous_dt(datafile.dt, 50)
+
+    # Construct the output data buffers
+    d_force      = DataOutputClass(outpath+"/"+"force")
+    d_ctrl       = DataOutputClass(outpath+"/"+"ctrl")
+    d_ctrl_spd   = DataOutputClass(outpath+"/"+"ctrl_spd")
     d_ctrl_motor = DataOutputClass(outpath+"/"+"ctrl_motor")
     d_ctrl_brake = DataOutputClass(outpath+"/"+"ctrl_brake")
     d_elec_motor = DataOutputClass(outpath+"/"+"elec_motor")
-    timer    = Continuous_dt(datafile.dt, 50)
 
-    lpf1 = LowPassFilter(k_lpf1)
-    lpf2 = LowPassFilter(k_lpf2) # Feed forward
-
-    if 'kph' in filename:
-        conversion_factor = 1.0/3.6
-        units = 'kph'
-    elif 'mph' in filename:
-        conversion_factor = 0.44704
-        units = 'mph'
-    elif 'ms' in filename:
-        conversion_factor = 1.0
-        units = 'ms'
-    else:
-        sys.exit("No defined speed units in drive cycle filename")
+    # Define low pass filters TODO
+    lpf1 = LowPassFilter(1.0)
+    lpf2 = LowPassFilter(1.0) # Feed forward
     
     # Spawn vehicle(s)
     mycar = list()
-    for x in range(num_cars):
-        mycar.append(CarClass(Nissan_Leaf().data))
-
-    # Create "pointer" to car 0
-    leaf1 = mycar[0]
+    mycar.append(CarClass(Nissan_Leaf().data))
     
     print(datafile.num_lines, 'lines in input file\n')
 
@@ -102,35 +98,29 @@ if __name__ == "__main__":
 
         # Update the timer and input data file
         timer.update()
+        _new_data = datafile.update(timer.sim_time)
 
-        #if (timer.sim_time > 200.0): break
-
-        datafile.update(timer.sim_time)
-
-        # Update cars
-        for x in mycar:
+        # Calculate dynamics (main updater)
+        for _car in mycar:
             # Update target speed if required
-            if datafile.new_data:
-                x.target_speed = lpf1.get((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
-                #print(datafile.line[1]*conversion_factor)
-                if feed_forward:
-                    x.feed_forward_speed = lpf2.get((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
-            # Calculate dynamics
-            x.update(timer.dt)
+            if _new_data:
+                _car.target_speed = lpf1.get((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
 
-        # Print to screen the percentage of number of lines completed from the input data file
-        if datafile.new_data: print(round(datafile.percent_complete,1),'%',end='\r')
+                if feed_forward:
+                    _car.feed_forward_speed = lpf2.get((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
+
+            _car.update(timer.dt)
 
         # Output data to save file
-        datafile.line = [timer.sim_time]
-        datafile.line = [(datafile.line[1] if datafile.line[1] is not 'NaN' else 0)]
-        datafile.line = [leaf1.target_speed / conversion_factor]
-        datafile.line = [leaf1.speed / conversion_factor]
-        datafile.line = [leaf1.dv / conversion_factor]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.error]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.error_p]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.error_i]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.error_d]
+        datafile.line = [timer.sim_time,
+            (datafile.line[1] if datafile.line[1] is not 'NaN' else 0),
+            mycar[0].target_speed / conversion_factor,
+            mycar[0].speed / conversion_factor,
+            mycar[0].dv / conversion_factor,
+            mycar[0].data['powertrain_error'],
+            mycar[0]._powertrain_model_array[0]._speed_control.error_p,
+            mycar[0]._powertrain_model_array[0]._speed_control.error_i,
+            mycar[0]._powertrain_model_array[0]._speed_control.error_d,
         #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error]
         #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_p]
         #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_i]
@@ -140,7 +130,7 @@ if __name__ == "__main__":
         #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_i]
         #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_d]
         #datafile.line = [int(leaf1._powertrain_model_array[0]._speed_control._wheel_array[0].brake_parking)*-100]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.state]
+            mycar[0]._powertrain_model_array[0]._speed_control.state]
         #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._adhesion_coeff]
         #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0].force]
 
@@ -161,10 +151,10 @@ if __name__ == "__main__":
         #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._F_motor]
         #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._F_brake]
 
-        d_force.line = [timer.sim_time]
-        d_force.line = [leaf1._total_force]
-        d_force.line = [leaf1._powertrain_model_array[0]._wheel_array[0]._F_motor]
-        d_force.line = [leaf1._powertrain_model_array[0]._wheel_array[0]._F_brake]
+        d_force.line = [timer.sim_time,
+            mycar[0]._total_force,
+            mycar[0]._powertrain_model_array[0]._wheel_array[0]._F_motor,
+            mycar[0]._powertrain_model_array[0]._wheel_array[0]._F_brake]
         #d_ctrl_spd.line   = [timer.sim_time]
         #d_ctrl_spd.line   = [leaf1._powertrain_model_array[0]._speed_control.error] 
         #d_ctrl_spd.line   = [leaf1._powertrain_model_array[0]._speed_control.error_p] 
@@ -175,18 +165,18 @@ if __name__ == "__main__":
         #d_ctrl_motor.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_p] 
         #d_ctrl_motor.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_i] 
         #d_ctrl_motor.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_d]
-        d_ctrl.line = [timer.sim_time] 
-        d_ctrl.line = [leaf1._powertrain_model_array[0].error] 
-        d_ctrl.line = [leaf1._powertrain_model_array[0]._motor_array[0].motor_value] 
-        d_ctrl.line = [leaf1._powertrain_model_array[0]._wheel_array[0]._brake.value] 
-        d_ctrl.line = [leaf1._powertrain_model_array[0]._speed_control.error_p] 
-        d_ctrl.line = [leaf1._powertrain_model_array[0]._speed_control.error_i] 
-        d_ctrl.line = [leaf1._powertrain_model_array[0]._speed_control.error_d] 
+        d_ctrl.line = [timer.sim_time,
+            mycar[0]._powertrain_model_array[0].error,
+            mycar[0]._powertrain_model_array[0]._motor_array[0].motor_value,
+            mycar[0]._powertrain_model_array[0]._wheel_array[0]._brake.value,
+            mycar[0]._powertrain_model_array[0]._speed_control.error_p,
+            mycar[0]._powertrain_model_array[0]._speed_control.error_i,
+            mycar[0]._powertrain_model_array[0]._speed_control.error_d] 
 
-        d_elec_motor.line = [timer.sim_time] 
-        d_elec_motor.line = [leaf1._powertrain_model_array[0]._motor_array[0]._v]
-        d_elec_motor.line = [leaf1._powertrain_model_array[0]._motor_array[0]._i]
-        d_elec_motor.line = [leaf1._powertrain_model_array[0]._motor_array[0]._p]
+        d_elec_motor.line = [timer.sim_time,
+            mycar[0]._powertrain_model_array[0]._motor_array[0]._v,
+            mycar[0]._powertrain_model_array[0]._motor_array[0]._i,
+            mycar[0]._powertrain_model_array[0]._motor_array[0]._p]
 
 
         d_force.update()
@@ -196,6 +186,16 @@ if __name__ == "__main__":
         d_ctrl_brake.update()
         d_elec_motor.update()
 
+        # Print to screen the percentage of number of lines completed from the input data file
+        if datafile.new_data: print(round(datafile.percent_complete,1),'%',end='\r')
+
+    # Print to screen the percentage of number of lines completed from the input data file
+    print(Fore.GREEN, Style.BRIGHT, end='')
+    print('100 % -', end='')
+    print(Fore.RED, Style.BRIGHT, end='')
+    print(round((time.time()-time_start),1), 'sec', end='\r\n')
+    print(Style.RESET_ALL, end='')
+    
     print(end='\r\n')
 
     #time.sleep(2)
@@ -367,7 +367,7 @@ if __name__ == "__main__":
 
 
     print(Fore.YELLOW, Style.BRIGHT)
-    print("Speed Cost:", round(leaf1._powertrain_model_array[0]._speed_control.cost, 1))
+    print("Speed Cost:", round(mycar[0]._powertrain_model_array[0]._speed_control.cost, 1))
     #print("Motor Cost:", round(leaf1._powertrain_model_array[0]._speed_control._motor_controller.cost, 1))
     #print("Brake Cost:", round(leaf1._powertrain_model_array[0]._speed_control._brake_controller.cost, 1))    
 

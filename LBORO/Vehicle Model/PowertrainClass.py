@@ -4,19 +4,28 @@ import TractionControlClass
 class PowertrainClass(object):
     """description of class"""
 
-    def __init__(self, battery_array, motor_array, wheel_array, kwargs):
+    def __init__(self, battery_array, motor_array, wheel_array, kwargs, name="powertrain"):
         self._battery_array = battery_array
         self._motor_array = motor_array
         self._wheel_array = wheel_array
         self._aero_model = kwargs['aero_model']
         self._total_force = 0.0
-        self._speed_control = TractionControlClass.SpeedControlClass(battery_array, motor_array, wheel_array, kwargs)
+        self._speed_control = TractionControlClass.SpeedControlClass(battery_array, motor_array, wheel_array, kwargs, name="speedController")
         #self._speed_control = TractionControlClass.TractionControlClass(battery_array, motor_array, wheel_array, kwargs)
+        self._data = dict()
+        self._name = name
 
     def update(self, dt):
         self._speed_control.update(dt)
         self._total_force = sum(ptr.force for ptr in self._wheel_array)
+        self._data.update(self._speed_control.data)
+        self._data.update(self._motor_array[0].data)
+        self._data.update({(self._name+'_force') : self._total_force})
         return
+
+    @property
+    def data(self):
+        return self._data
 
     @property
     def target_speed(self):

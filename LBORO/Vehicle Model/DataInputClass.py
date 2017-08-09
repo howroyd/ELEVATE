@@ -133,7 +133,7 @@ class DataInputClass(object):
         # If we get here we know that nextline is ahead of simtime
         self._dt = self._thisline[0] - self._previousline[0] if self._previousline else 0.0
 
-        return self.finished
+        return self.new_data
         
     @property
     def line(self):

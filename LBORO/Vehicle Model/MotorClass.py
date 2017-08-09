@@ -6,7 +6,7 @@ class MotorClass(ElectricityClass.ElectricalDevice):
     """description of class"""
 
     # Instance constructor
-    def __init__(self, connected_wheels, kwargs):
+    def __init__(self, connected_wheels, kwargs, name="motor"):
         self._connected_wheels = connected_wheels
         self._shaft_torque = 0.0
         self._value = 0 # 0-255
@@ -22,7 +22,8 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         self._electrical_efficiency = 0.85
         self._max_rpm = kwargs['motor_max_rpm']
         self._electricity = ElectricityClass.Electricity()
-        return super().__init__(kwargs)
+        self._name = name
+        return super().__init__(kwargs, name=self._name)
 
     @property
     def electricity(self):
@@ -90,6 +91,9 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         for ptr in self._connected_wheels:
             ptr.motor_torque = self._shaft_torque / len(self._connected_wheels)
 
+        self._data.update({(self._name+'_shaftTorque') : self.shaft_torque,
+                            (self._name+'_value') : self.motor_value
+            })
         return
 
     @property

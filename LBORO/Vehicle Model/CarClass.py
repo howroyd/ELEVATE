@@ -5,7 +5,7 @@ class CarClass(object):
     '''DESCRIPTION'''
 
     # Instance constructor
-    def __init__(self, kwargs=None):
+    def __init__(self, kwargs=None, name="car"):
         if (kwargs is not None):
             self._aero_model = kwargs['aero_model']
             self._powertrain_model_array = kwargs['powertrain_model_array']
@@ -14,7 +14,8 @@ class CarClass(object):
             self._target_speed = 0.0
             self._feed_forward_speed = None
             self._total_force = 0.0
-            super().__init__()
+        self._data = dict()
+        self._name = name
         return
 
     def update(self, dt):
@@ -40,7 +41,18 @@ class CarClass(object):
         #print(accn*dt, dt)
         #print("speed=", self.speed, 'dt=', dt)
 
+        self._data.update(self._powertrain_model_array[0].data)
+        self._data.update(self._aero_model.data)
+        self._data.update({(self._name+'_speed') : self.speed,
+                            (self._name+'_accel') : accn,
+                            (self._name+'_dv') : self.dv
+        })
+
         return
+
+    @property
+    def data(self):
+        return self._data
 
     @property
     def dv(self):
