@@ -45,7 +45,9 @@ class CarClass(object):
         self._data.update(self._aero_model.data)
         self._data.update({(self._name+'_speed') : self.speed,
                             (self._name+'_accel') : accn,
-                            (self._name+'_dv') : self.dv
+                            (self._name+'_target_speed') : self.target_speed,
+                            (self._name+'_dv') : self.dv,
+                            (self._name+'_total_force') : self._total_force
         })
 
         return

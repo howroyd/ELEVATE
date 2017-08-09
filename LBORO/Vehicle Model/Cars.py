@@ -42,10 +42,10 @@ class Nissan_Leaf(CarData):
         self._data.update(batt_model_array=[battery_sw.Battery_Model(self._data)])
         self._data.update(aero_model=AerodynamicsClass.AerodynamicsClass(self._data))
         self._data.update(brake_model_array=[BrakesClass.BrakesClass(self._data['brake_diameter'][0],self._data['brake_max_torque'][0],self._data)]*4)
-        self._data.update(wheel_model_array=[WheelClass.WheelClass(self._data['brake_model_array'][0],self._data), # Front left
-                                            WheelClass.WheelClass(self._data['brake_model_array'][1],self._data),  # Front right
-                                            WheelClass.WheelClass(self._data['brake_model_array'][2],self._data),  # Rear left
-                                            WheelClass.WheelClass(self._data['brake_model_array'][3],self._data)]  # Rear right
+        self._data.update(wheel_model_array=[WheelClass.WheelClass(self._data['brake_model_array'][0],self._data,name='front_left'), # Front left
+                                            WheelClass.WheelClass(self._data['brake_model_array'][1],self._data,name='front_right'),  # Front right
+                                            WheelClass.WheelClass(self._data['brake_model_array'][2],self._data,name='rear_left'),  # Rear left
+                                            WheelClass.WheelClass(self._data['brake_model_array'][3],self._data,name='rear_right')]  # Rear right
                                             )
         self._data.update(motor_model_array=[MotorClass.MotorClass([self._data['wheel_model_array'][0],self._data['wheel_model_array'][1]],self._data)])
         self._data.update(esc=EscClass.ESC(self._data))

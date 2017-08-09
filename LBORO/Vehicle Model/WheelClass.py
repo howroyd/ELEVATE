@@ -8,7 +8,7 @@ class WheelClass(object):
 
 
 # Instance constructor
-    def __init__(self, brake, kwargs):
+    def __init__(self, brake, kwargs, name='wheel'):
         self._brake = brake
         self._force = 0.0
         self._motor_torque_in = 0.0
@@ -30,7 +30,14 @@ class WheelClass(object):
 
         self._F_motor = 0.0
         self._F_brake = 0.0
+
+        self._name = name
+        self._data = dict()
         return
+
+    @property
+    def data(self):
+        return self._data
 
     def update(self, dt):
         if self._brake_parking:
@@ -44,6 +51,11 @@ class WheelClass(object):
         self._F_brake = self.brake_torque / (self._wheel_diameter / 2.0)
 
         self._force = self._F_motor + self._F_brake
+
+        self._data.update({(self._name+'_force_motor') : self._F_motor,
+                            (self._name+'_force_brake') : self._F_brake,
+                            (self._name+'_force') : self._force
+        })
 
         return
 

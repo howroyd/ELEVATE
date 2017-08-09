@@ -18,7 +18,7 @@ class ESC(ElectricityClass.ElectricalDevice):
         self._electrical_efficiency = 0.85
 
         self._first_iteration = True
-        self._output = ElectricityClass.Electricity()
+        #self._output = ElectricityClass.Electricity()
         return super().__init__(kwargs)
 
     def update(self, dt):

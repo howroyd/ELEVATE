@@ -52,6 +52,7 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._state = PowertrainState['stopped']
         self._regen = False # Set to None to disable
         self._name = name
+        self._data = dict()
         self._hysteresis_speed = 0.25*1 # 0.45=1mph
 
         p = 100 # 100
@@ -61,13 +62,14 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._k_feed_forward = 2 # 15
 
         self._hysteresis = self._hysteresis_speed * p/10 # PID error
-        self._data = dict()
-        super(SpeedControlClass, self).__init__(p, i, d, min_i=-50, max_i=50)
+        super(SpeedControlClass, self).__init__(p, i, d, min_i=-50, max_i=50, name=self._name)
 
         return 
+
     @property
     def data(self):
         return self._data
+
     def update(self, dt):
         if ((self._target <= self._hysteresis_speed/10.0) and (self._current <= self._hysteresis_speed/10.0) and ((self._feed_forward <= self._hysteresis_speed/10.0) if self._feed_forward is not None else True)):
             if (self._state is not PowertrainState['stopped']):
@@ -95,6 +97,7 @@ class SpeedControlClass(ControllerClass.ControllerClass):
 
         self._update_models(dt)
 
+        self._data.update(super(SpeedControlClass, self).data)
         self._data.update({(self._name+'_motor') : motor,
                             (self._name+'_brake') : brake,
                             (self._name+'_parking') : parking,

@@ -10,7 +10,7 @@ class PowertrainClass(object):
         self._wheel_array = wheel_array
         self._aero_model = kwargs['aero_model']
         self._total_force = 0.0
-        self._speed_control = TractionControlClass.SpeedControlClass(battery_array, motor_array, wheel_array, kwargs, name="speedController")
+        self._speed_control = TractionControlClass.SpeedControlClass(battery_array, motor_array, wheel_array, kwargs)
         #self._speed_control = TractionControlClass.TractionControlClass(battery_array, motor_array, wheel_array, kwargs)
         self._data = dict()
         self._name = name
@@ -21,6 +21,7 @@ class PowertrainClass(object):
         self._data.update(self._speed_control.data)
         self._data.update(self._motor_array[0].data)
         self._data.update({(self._name+'_force') : self._total_force})
+        for ptr in self._wheel_array: self._data.update(ptr.data)
         return
 
     @property

@@ -4,13 +4,14 @@ import ElectricityClass
 class Battery_Model(ElectricityClass.ElectricalDevice):
     '''DESCRIPTION'''
     # Instance constructor
-    def __init__(self, kwargs):
+    def __init__(self, kwargs, name='battery'):
         self._v_set_max = kwargs['e'] if 'e' in kwargs else 0.0
         self._v_set_max = self.kwh_to_joules(kwargs['kwh'])   if 'kwh' in kwargs else 0.0
-        self._output = ElectricityClass.Electricity()
+        #self._output = ElectricityClass.Electricity()
         self._power_good = True 
         self._max_power = False
-        return super().__init__(kwargs)
+        self._name = name
+        return super().__init__(kwargs, name=self._name)
 
     def update(self):
         # check power good

@@ -21,8 +21,9 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         self._mechanical_efficiency = 0.9
         self._electrical_efficiency = 0.85
         self._max_rpm = kwargs['motor_max_rpm']
-        self._electricity = ElectricityClass.Electricity()
+        #self._electricity = ElectricityClass.Electricity()
         self._name = name
+        self._data = dict()
         return super().__init__(kwargs, name=self._name)
 
     @property
@@ -91,10 +92,20 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         for ptr in self._connected_wheels:
             ptr.motor_torque = self._shaft_torque / len(self._connected_wheels)
 
+        super(MotorClass, self).update(dt)
+
+        self._data.update(super(MotorClass, self).data)
         self._data.update({(self._name+'_shaftTorque') : self.shaft_torque,
                             (self._name+'_value') : self.motor_value
             })
+
+
+
         return
+
+    @property
+    def data(self):
+        return self._data
 
     @property
     def shaft_torque(self):

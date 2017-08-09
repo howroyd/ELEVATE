@@ -20,10 +20,10 @@ class error_t(Enum):
     e_empty = 8
 
 class Electricity(object):
-    def __init__(self, name="electricity"):
+    def __init__(self, kwargs, name="electricity"):
         self._type = electricity_t.DC
-        self._v = 0.0
-        self._i = 0.0
+        self._v       = kwargs['v'] if 'v' in kwargs else 0.0
+        self._i       = kwargs['i'] if 'i' in kwargs else 0.0
         self._f = None
         self._noise_f = 50
         self._noise_rms = 0.0
@@ -37,6 +37,8 @@ class Electricity(object):
                             (self._name+'_noise_f') : self.noise_f,
                             (self._name+'_noise_rms') : self.noise_rms
         })
+
+
 
     @property
     def data(self):
@@ -75,7 +77,7 @@ class Electricity(object):
     def f(self):
         if self._type is electricity_t.AC: return self._f
         else:
-            print('Requested DC frequency!')
+            #print('Requested DC frequency!')
             return None
     @f.setter
     def f(self, frequency):
@@ -106,8 +108,7 @@ class ElectricalDevice(Electricity):
     '''DESCRIPTION'''
     # Instance Constructor
     def __init__(self, kwargs, name="electricalDevice"):
-        self._v       = kwargs['v'] if 'v' in kwargs else 0.0
-        self._i       = kwargs['i'] if 'i' in kwargs else 0.0
+        super().__init__(kwargs, name=name)
         self._p       = kwargs['p'] if 'p' in kwargs else 0.0
         self._e_in    = 0.0
         self._e_out   = 0.0
@@ -117,13 +118,16 @@ class ElectricalDevice(Electricity):
         self._e_min   = kwargs['e_min'] if 'e_min' in kwargs else 0.0
         self.error    = error_t.none
         self._name = name
-        return super().__init__(name=self._name)
+        self._data = dict()
+        return 
 
     def update(self, dt):
+        super(ElectricalDevice, self)._update()
         self.error_check()
-        self._data.update({(self._name+'_v') : self.v,
-                            (self._name+'_i') : self.i,
-                            (self._name+'_p') : self.p,
+        self._data.update(super(ElectricalDevice, self).data)
+        self._data.update({(self._name+'_v') : super(ElectricalDevice, self).v,
+                            (self._name+'_i') : super(ElectricalDevice, self).i,
+                            (self._name+'_p') : self._p,
                             (self._name+'_e_in') : self._e_in,
                             (self._name+'_e_out') : self._e_out,
                             (self._name+'_e_total') : self._e_total,
@@ -160,6 +164,10 @@ class ElectricalDevice(Electricity):
                         e_min   = self._e_min,
                         error   = self.error
                     )
+
+    @property
+    def data(self):
+        return self._data
 
     # Interactive methods
     def add_v(self, v):

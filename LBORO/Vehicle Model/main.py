@@ -60,6 +60,13 @@ time_init  = 0.0
 time_calc  = 0.0
 time_disp  = 0.0
 
+def get(ptr, item):
+    if item in ptr.data:
+        return ptr.data[item]
+    else:
+        print(item + ' not found')
+        return None
+
 # Main run function
 if __name__ == "__main__":
     # Make a note of the start time
@@ -114,77 +121,44 @@ if __name__ == "__main__":
         # Output data to save file
         datafile.line = [timer.sim_time,
             (datafile.line[1] if datafile.line[1] is not 'NaN' else 0),
-            mycar[0].target_speed / conversion_factor,
-            mycar[0].speed / conversion_factor,
-            mycar[0].dv / conversion_factor,
-            mycar[0].data['powertrain_error'],
-            mycar[0]._powertrain_model_array[0]._speed_control.error_p,
-            mycar[0]._powertrain_model_array[0]._speed_control.error_i,
-            mycar[0]._powertrain_model_array[0]._speed_control.error_d,
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_p]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_i]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_d]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_p]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_i]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_d]
-        #datafile.line = [int(leaf1._powertrain_model_array[0]._speed_control._wheel_array[0].brake_parking)*-100]
-            mycar[0]._powertrain_model_array[0]._speed_control.state]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._adhesion_coeff]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0].force]
+            get(mycar[0], 'car_target_speed') / conversion_factor,
+            get(mycar[0], 'car_speed') / conversion_factor,
+            get(mycar[0], 'car_dv') / conversion_factor,
+            get(mycar[0], 'speedController_error'),
+            get(mycar[0], 'speedController_p'),
+            get(mycar[0], 'speedController_i'),
+            get(mycar[0], 'speedController_d'),
+            get(mycar[0], 'speedController_powertrain_state'),
+            ]
 
-        #datafile.line = [leaf1._total_force]
-        #datafile.line = [leaf1._aero_model.force]
-        #datafile.line = [leaf1._powertrain_model_array[0].force]
-
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._omega_veh]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._omega_wheel]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0].motor_torque]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0].brake_torque]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._force]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._omega]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._adhesion_coeff]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._adhesion_coeff2]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._vehicle_speed]
-        #datafile.line = [timer.dt]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._F_motor]
-        #datafile.line = [leaf1._powertrain_model_array[0]._speed_control._wheel_array[0]._F_brake]
 
         d_force.line = [timer.sim_time,
-            mycar[0]._total_force,
-            mycar[0]._powertrain_model_array[0]._wheel_array[0]._F_motor,
-            mycar[0]._powertrain_model_array[0]._wheel_array[0]._F_brake]
-        #d_ctrl_spd.line   = [timer.sim_time]
-        #d_ctrl_spd.line   = [leaf1._powertrain_model_array[0]._speed_control.error] 
-        #d_ctrl_spd.line   = [leaf1._powertrain_model_array[0]._speed_control.error_p] 
-        #d_ctrl_spd.line   = [leaf1._powertrain_model_array[0]._speed_control.error_i] 
-        #d_ctrl_spd.line   = [leaf1._powertrain_model_array[0]._speed_control.error_d]
-        #d_ctrl_motor.line = [timer.sim_time] 
-        #d_ctrl_motor.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error] 
-        #d_ctrl_motor.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_p] 
-        #d_ctrl_motor.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_i] 
-        #d_ctrl_motor.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_d]
+            get(mycar[0], 'car_total_force'),
+            get(mycar[0], 'front_left_force_motor'),
+            get(mycar[0], 'front_left_force_brake'),
+            ]
+        d_force.update()
+
         d_ctrl.line = [timer.sim_time,
             mycar[0]._powertrain_model_array[0].error,
-            mycar[0]._powertrain_model_array[0]._motor_array[0].motor_value,
-            mycar[0]._powertrain_model_array[0]._wheel_array[0]._brake.value,
-            mycar[0]._powertrain_model_array[0]._speed_control.error_p,
-            mycar[0]._powertrain_model_array[0]._speed_control.error_i,
-            mycar[0]._powertrain_model_array[0]._speed_control.error_d] 
+            get(mycar[0], 'speedController_motor'),
+            get(mycar[0], 'speedController_brake'),
+            get(mycar[0], 'speedController_p'),
+            get(mycar[0], 'speedController_i'),
+            get(mycar[0], 'speedController_d'),
+            ] 
+        d_ctrl.update()
 
         d_elec_motor.line = [timer.sim_time,
-            mycar[0]._powertrain_model_array[0]._motor_array[0]._v,
-            mycar[0]._powertrain_model_array[0]._motor_array[0]._i,
-            mycar[0]._powertrain_model_array[0]._motor_array[0]._p]
-
-
-        d_force.update()
-        d_ctrl.update()
-        #d_ctrl_spd.update()
+            get(mycar[0], 'motor_v'),
+            get(mycar[0], 'motor_i'),
+            get(mycar[0], 'motor_p'),
+            ]
         d_ctrl_motor.update()
-        d_ctrl_brake.update()
-        d_elec_motor.update()
+
+        #d_ctrl_spd.update()
+        #d_ctrl_brake.update()
+        #d_elec_motor.update()
 
         # Print to screen the percentage of number of lines completed from the input data file
         if datafile.new_data: print(round(datafile.percent_complete,1),'%',end='\r')
