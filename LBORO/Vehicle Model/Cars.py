@@ -23,7 +23,7 @@ class Nissan_Leaf(CarData):
                     batt_v_max=400.0,
                     batt_i_max=266.0,
                     batt_p_max=80000.0,
-                    batt_kwh=30.0,
+                    batt_kwh_max=30.0,
                     car_cd=0.29,
                     car_cda=0.725,
                     car_area=2.276124,

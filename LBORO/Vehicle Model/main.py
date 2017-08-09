@@ -154,11 +154,13 @@ if __name__ == "__main__":
             get(mycar[0], 'motor_i'),
             get(mycar[0], 'motor_p'),
             ]
-        d_ctrl_motor.update()
+        d_elec_motor.update()
+
+        #d_ctrl_motor.update()
 
         #d_ctrl_spd.update()
         #d_ctrl_brake.update()
-        #d_elec_motor.update()
+        #
 
         # Print to screen the percentage of number of lines completed from the input data file
         if datafile.new_data: print(round(datafile.percent_complete,1),'%',end='\r')
@@ -184,13 +186,13 @@ if __name__ == "__main__":
 
         
         data_force = np.genfromtxt(outpath+"/"+"force_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
-                    names = ['x','force', 'F_motor', 'F_brake'])
+                    names = ['x', 'force', 'F_motor', 'F_brake'])
 
         data_ctrl = np.genfromtxt(outpath+"/"+"ctrl_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
-                    names = ['x','error', 'motor', 'brake', 'p', 'i', 'd'])
+                    names = ['x', 'error', 'motor', 'brake', 'p', 'i', 'd'])
 
         data_elec_motor = np.genfromtxt(outpath+"/"+"elec_motor_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
-                    names = ['x','v', 'i', 'p'])
+                    names = ['x', 'v', 'i', 'p'])
 
         #data_ctrl_spd = np.genfromtxt(outpath+"/"+"ctrl_spd_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
         #            names = ['x','speedE', 'speedP', 'speedI', 'speedD'])

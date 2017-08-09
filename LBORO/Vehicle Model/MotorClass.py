@@ -26,12 +26,12 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         self._data = dict()
         return super().__init__(kwargs, name=self._name)
 
-    @property
-    def electricity(self):
-        return self._output
-    @electricity.setter
-    def electricity(self, elec):
-        pass
+    #@property
+    #def electricity(self):
+    #    return self._output
+    #@electricity.setter
+    #def electricity(self, elec):
+    #    pass
 
     def update(self, dt):
         self._shaft_torque = (self._value/255)*self._max_torque
@@ -48,56 +48,57 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         if (rotation > 0.0):
             mechanical_power = rotation * self._shaft_torque * (1.0/self._mechanical_efficiency) # Supplied by motor
 
-            self._p = mechanical_power * (1.0/self._electrical_efficiency) # Required by motor
+            self.p = mechanical_power * (1.0/self._electrical_efficiency) # Required by motor
             # https://www.precisionmicrodrives.com/tech-blog/2015/08/03/dc-motor-speed-voltage-and-torque-relationships
 
             #y=mx+c
             m = self._i_max / self._max_rpm
 
-            self._i = m*rotation
+            self.i = m*rotation
 
-            self._v = self._p/self._i
+            self.v = self.p / self.i
 
-            if (self._v > self._v_max) or (self._v < self._v_min):
-                self._v = max(self._v_min, min(self._v, self._v_max))
+            if (self.v > self._v_max) or (self.v < self._v_min):
+                self.v = max(self._v_min, min(self.v, self._v_max))
                 #print("Overcurrent")
-                self._i = self._p / self._v # Overcurrent for rotational speed
+                self.i = self.p / self.v # Overcurrent for rotational speed
 
-                if (self._i > self._i_max):
-                    self._i = self._i_max
-                    self._p = self._v * self._i
+                if (self.i > self._i_max):
+                    self.i = self._i_max
+                    self.p = self.v * self.i
 
-                if (self._p > self._p_max):
-                    self._i = self._i_max
-                    self._v = self._p / self._i       
+                if (self.p > self._p_max):
+                    self.i = self._i_max
+                    self.v = self.p / self.i       
 
-                self._shaft_torque = self._p * self._electrical_efficiency * self._mechanical_efficiency / rotation
+                self._shaft_torque = self.p * self._electrical_efficiency * self._mechanical_efficiency / rotation
 
-            if (self._i > self._i_max):
-                self._i = self._i_max
+            if (self.i > self._i_max):
+                self.i = self._i_max
                 #print("Overvoltage")
 
-                self._v = self._p / self._i # Overvoltage for rotational speed
+                self.v = self.p / self.i # Overvoltage for rotational speed
 
-                if (self._v > self._v_max):
-                    self._v = self._v_max
-                    self._p = self._v * self._i
+                if (self.v > self._v_max):
+                    self.v = self._v_max
+                    self.p = self.v * self.i
 
-                if (self._p > self._p_max):
-                    self._v = self._v_max
-                    self._i = self._p / self._v       
+                if (self.p > self._p_max):
+                    self.v = self._v_max
+                    self.i = self.p / self.v       
 
-                self._shaft_torque = self._p * self._electrical_efficiency * self._mechanical_efficiency / rotation
+                self._shaft_torque = self.p * self._electrical_efficiency * self._mechanical_efficiency / rotation
 
         for ptr in self._connected_wheels:
             ptr.motor_torque = self._shaft_torque / len(self._connected_wheels)
 
-        super(MotorClass, self).update(dt)
+        #self._error = None
+        super().update(dt)
 
-        self._data.update(super(MotorClass, self).data)
+        self._data.update(super().data)
         self._data.update({(self._name+'_shaftTorque') : self.shaft_torque,
                             (self._name+'_value') : self.motor_value
-            })
+                            })
 
 
 
