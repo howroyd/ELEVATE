@@ -17,7 +17,7 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         self._p_max = kwargs['motor_p_max']
         self._reduction_ratio = kwargs['motor_reduction_ratio']
         self._wheel_diameter = kwargs['wheel_diameter']
-        self._lpf = LowPassFilter(1)
+        self._lpf = LowPassFilter(0.05)
         self._mechanical_efficiency = 0.9
         self._electrical_efficiency = 0.85
         self._max_rpm = kwargs['motor_max_rpm']
@@ -34,9 +34,9 @@ class MotorClass(ElectricityClass.ElectricalDevice):
     #    pass
 
     def update(self, dt):
-        self._shaft_torque = (self._value/255)*self._max_torque
+        self._shaft_torque = self._lpf.get((self._value/255)*self._max_torque)
 
-        rotation = 0
+        rotation = 0.0
 
         for ptr in self._connected_wheels:
             rotation += ptr.vehicle_speed
@@ -52,7 +52,7 @@ class MotorClass(ElectricityClass.ElectricalDevice):
             # https://www.precisionmicrodrives.com/tech-blog/2015/08/03/dc-motor-speed-voltage-and-torque-relationships
 
             #y=mx+c
-            m = self._i_max / self._max_rpm
+            m = self._i_max / self._max_rpm # motor model
 
             self.i = m*rotation
 
@@ -117,7 +117,8 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         return self._value
     @motor_value.setter
     def motor_value(self, value):
+        self._value = max(min(value, 255), -255/4) if value is not None else 0.0
         #value = self._value + 1*(value - self._value)
         #self._value = max(min(value, 255), -255/4)
-        self._value = self._lpf.get(max(min(value, 255), -255/4))
+        #self._value = self._lpf.get(max(min(value, 255), -255/4))
         #print("value: ", self._value)

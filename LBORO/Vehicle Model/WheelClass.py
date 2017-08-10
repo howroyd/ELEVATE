@@ -52,6 +52,7 @@ class WheelClass(object):
 
         self._force = self._F_motor + self._F_brake
 
+        self._data.update(self._brake.data)
         self._data.update({(self._name+'_force_motor') : self._F_motor,
                             (self._name+'_force_brake') : self._F_brake,
                             (self._name+'_force') : self._force

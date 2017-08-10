@@ -1,5 +1,7 @@
 import time
 import Cars
+from Filters import LowPassFilter
+
 
 class CarClass(object):
     '''DESCRIPTION'''
@@ -13,7 +15,9 @@ class CarClass(object):
             self._speed = 0.0
             self._target_speed = 0.0
             self._feed_forward_speed = None
-            self._total_force = 0.0
+            self._total_force = 0.0 
+        self._lpf    = LowPassFilter(0.5)
+        self._lpf_ff = LowPassFilter(0.25)
         self._data = dict()
         self._name = name
         return
@@ -65,14 +69,14 @@ class CarClass(object):
         return self._target_speed
     @target_speed.setter
     def target_speed(self, speed):
-        self._target_speed = speed
+        self._target_speed = self._lpf.get(speed)
 
     @property
     def feed_forward_speed(self,):
         return self._feed_forward_speed
     @feed_forward_speed.setter
     def feed_forward_speed(self, speed):
-        self._feed_forward_speed = speed
+        self._feed_forward_speed = self._lpf_ff.get(speed)
 
     @property
     def speed(self):

@@ -55,9 +55,9 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._data = dict()
         self._hysteresis_speed = 0.25*1 # 0.45=1mph
 
-        p = 100 # 100
-        i = 100 # 100
-        d = 0 # 3.5
+        p = 125 # 100
+        i = 25 # 100
+        d = 6.25 # 3.5
 
         self._k_feed_forward = 2 # 15
 
@@ -95,7 +95,25 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._set_motor(motor)
         self._set_brakes(brake, parking)
 
-        self._update_models(dt)
+        self._esc.update(dt)
+        for ptr in self._motor_array:
+            ptr.update(dt)
+        for ptr in self._wheel_array:
+            ptr.update(dt)
+
+
+        for ptr in self._battery_array:
+            ptr.i = self._motor_array[0].i
+            ptr.p = self._motor_array[0].p
+
+        for ptr in self._motor_array:
+            ptr.v = self._battery_array[0].v
+
+        for ptr in self._battery_array:
+            ptr.update(dt)
+
+
+        #self._update_models(dt)
 
         self._data.update(super(SpeedControlClass, self).data)
         self._data.update({(self._name+'_motor') : motor,
@@ -336,7 +354,7 @@ class TractionControlClass(SpeedControlClass):
     
     def __init__(self, battery_array, motor_array, wheel_array, kwargs):
         self._motor_controller = ControllerClass.ControllerClass(1, 0, 0, min_val=0, max_val=255)
-        self._brake_controller = ControllerClass.ControllerClass(0, 0, 0, min_val=0, max_val=255)
+        self._brake_controller = ControllerClass.ControllerClass(1, 0, 0, min_val=0, max_val=255)
         
         self._motor_controller.set_i_limits(-150,150)
         self._brake_controller.set_i_limits(-100,100)

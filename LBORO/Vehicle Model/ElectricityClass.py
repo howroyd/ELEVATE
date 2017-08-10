@@ -59,6 +59,13 @@ class Electricity(object):
         self._i = current
 
     @property
+    def p(self):
+        return self._p
+    @p.setter
+    def p(self, power):
+        self._p = power
+
+    @property
     def type(self):
         if self._type is electricity_t.AC: return 'AC'
         elif self._type is electricity_t.DC: return 'DC'

@@ -18,6 +18,11 @@ class PowertrainClass(object):
     def update(self, dt):
         self._speed_control.update(dt)
         self._total_force = sum(ptr.force for ptr in self._wheel_array)
+
+
+
+        self._data.update(self._wheel_array[0].data)
+        self._data.update(self._battery_array[0].data)
         self._data.update(self._speed_control.data)
         self._data.update(self._motor_array[0].data)
         self._data.update({(self._name+'_force') : self._total_force})

@@ -30,6 +30,7 @@ class Battery_Model(ElectricityClass.ElectricalDevice):
         self._power_good = True 
         self._max_power = False
         self._name = name
+        self._data = dict()
         self._error    = error_t.none
         return super().__init__(kwargs, name=self._name)
 
@@ -37,11 +38,15 @@ class Battery_Model(ElectricityClass.ElectricalDevice):
     #def battery_model(v, i, soc) -> float:
     #    return v*1 - i*0.1
 
+    @property
+    def data(self):
+        return self._data
+
     def update(self, dt):
         error = self._check_errors()
         
         if error is error_t.none:
-            joules_transferred = self.i * self.v * dt # Joule is a watt-second
+            joules_transferred = self.i * self.v * dt * 10.0 # Joule is a watt-second
             self._joules -= joules_transferred
         elif error is error_t.e_full:
             if self.i >= 0.0:
@@ -54,7 +59,12 @@ class Battery_Model(ElectricityClass.ElectricalDevice):
             self.i = 0.0
             self.p = 0.0 
 
-        self.v = (self._joules / self._joules_max * 100.0) + self._v_min
+        self.v = ((self._joules / self._joules_max) * 100.0) + self._v_min
+
+        self._data.update({(self._name+'_v') : self.v,
+                            (self._name+'_i') : self.i,
+                            (self._name+'_p') : self.p,
+        })
 
         return
 

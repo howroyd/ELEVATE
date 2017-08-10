@@ -4,7 +4,7 @@ from elevate_includes import *
 VERSION = 2.0
 
 graph = True
-feed_forward = True
+feed_forward = False
 matlab = False
 display = True
 
@@ -12,7 +12,7 @@ inpath = "DriveCycles"
 outpath= "Results"
 #filename = "FTP_mph"
 filename = "nedc_int_kph"
-#filename = "bham_lboro_int_kph"
+#filename = "bham_lboro_int_mph"
 #filename = "WLTP_kph" # ****
 #filename = "parabola_kph"
 #filename = "impulse_kph"
@@ -64,7 +64,7 @@ def get(ptr, item):
     if item in ptr.data:
         return ptr.data[item]
     else:
-        print(item + ' not found')
+        #print(item + ' not found')
         return None
 
 # Main run function
@@ -84,6 +84,7 @@ if __name__ == "__main__":
 
     # Construct the output data buffers
     d_force      = DataOutputClass(outpath+"/"+"force")
+    d_gen        = DataOutputClass(outpath+"/"+"general")
     d_ctrl       = DataOutputClass(outpath+"/"+"ctrl")
     d_ctrl_spd   = DataOutputClass(outpath+"/"+"ctrl_spd")
     d_ctrl_motor = DataOutputClass(outpath+"/"+"ctrl_motor")
@@ -99,7 +100,7 @@ if __name__ == "__main__":
     mycar.append(CarClass(Nissan_Leaf().data))
     
     print(datafile.num_lines, 'lines in input file\n')
-
+    _new_data = False
     # RUN SIMULATION
     while not datafile.finished:
 
@@ -111,15 +112,17 @@ if __name__ == "__main__":
         for _car in mycar:
             # Update target speed if required
             if _new_data:
-                _car.target_speed = lpf1.get((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
+                #_car.target_speed = lpf1.get((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
+                _car.target_speed = ((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
 
                 if feed_forward:
-                    _car.feed_forward_speed = lpf2.get((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
+                    #_car.feed_forward_speed = lpf2.get((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
+                    _car.feed_forward_speed = ((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
 
             _car.update(timer.dt)
 
         # Output data to save file
-        datafile.line = [timer.sim_time,
+        d_gen.line = [timer.sim_time,
             (datafile.line[1] if datafile.line[1] is not 'NaN' else 0),
             get(mycar[0], 'car_target_speed') / conversion_factor,
             get(mycar[0], 'car_speed') / conversion_factor,
@@ -130,7 +133,7 @@ if __name__ == "__main__":
             get(mycar[0], 'speedController_d'),
             get(mycar[0], 'speedController_powertrain_state'),
             ]
-
+        d_gen.update()
 
         d_force.line = [timer.sim_time,
             get(mycar[0], 'car_total_force'),
@@ -141,8 +144,8 @@ if __name__ == "__main__":
 
         d_ctrl.line = [timer.sim_time,
             mycar[0]._powertrain_model_array[0].error,
-            get(mycar[0], 'speedController_motor'),
-            get(mycar[0], 'speedController_brake'),
+            get(mycar[0], 'motor_value'),
+            get(mycar[0], 'brake_value'),
             get(mycar[0], 'speedController_p'),
             get(mycar[0], 'speedController_i'),
             get(mycar[0], 'speedController_d'),
@@ -150,9 +153,9 @@ if __name__ == "__main__":
         d_ctrl.update()
 
         d_elec_motor.line = [timer.sim_time,
-            get(mycar[0], 'motor_v'),
-            get(mycar[0], 'motor_i'),
-            get(mycar[0], 'motor_p'),
+            get(mycar[0], 'battery_v'),
+            get(mycar[0], 'battery_i'),
+            get(mycar[0], 'battery_v')*get(mycar[0], 'battery_i')/1000,
             ]
         d_elec_motor.update()
 
@@ -178,8 +181,8 @@ if __name__ == "__main__":
 
     # Plot data to screen
     if graph:
-        data_out = np.genfromtxt(outpath+"/"+filename+".csv", delimiter=',', skip_header=1, skip_footer=1,
-                    names = ['x', 'v_real', 'v_set', 'v_true', 'dv', 'speedE', 'speedP', 'speedI', 'speedD', 'state'])#, 'motorE',
+        data_out = np.genfromtxt(outpath+"/"+"general_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
+                    names = ['x', 'v_tgt', 'v_car', 'dv', 'speedE', 'speedP', 'speedI', 'speedD', 'state'])#, 'motorE',
                                 #'motorP', 'motorI', 'motorD', 'brakeE', 'brakeP', 'brakeI', 'brakeD', 'parking',
                                 #'state', 'slip', 'force', 'force_car', 'force_aero', 'force_powertrain',
                                 #'w_veh', 'w_wheel', 'Tm', 'Tb', 'F', 'w', 'adhesion','adhesion2', 'v', 'dt', 'F_motor', 'F_brake'])
@@ -251,10 +254,9 @@ if __name__ == "__main__":
 
         fig.suptitle(filename)
 
-        ax1 = fig.add_subplot(611)
-        ax1.plot(data_out['x'], data_out['v_real'], ':', label='v_real')
-        ax1.plot(data_out['x'], data_out['v_set'], label='v_set')
-        ax1.plot(data_out['x'], data_out['v_true'], label='v_true')
+        ax1 = fig.add_subplot(511)
+        ax1.plot(data_out['x'], data_out['v_tgt'], ':', label='v_tgt')
+        ax1.plot(data_out['x'], data_out['v_car'], label='v_car')
         ax1.plot(data_out['x'], data_out['dv'], '--', label='dv')
         ax1.set_ylabel('Velocity\n'+units)
 #        ax1.set_ylim([0, 60])
@@ -271,7 +273,7 @@ if __name__ == "__main__":
 #        leg2 = ax2.text(1,0.1,"initialising=0\nstopped=1\naccelerating=2\ncruising=3\ncoasting=4\ndeccelerating=5\nbraking=6\nerror=-1",
 #                    horizontalalignment='right', transform = ax2.transAxes)
 
-        ax2 = fig.add_subplot(612)
+        ax2 = fig.add_subplot(512)
         ax2.plot(data_force['x'], data_force['force'], label='Total')
         ax2.plot(data_force['x'], data_force['F_motor'], label='Fmotor')
         ax2.plot(data_force['x'], data_force['F_brake'], label='Fbrake')
@@ -281,7 +283,7 @@ if __name__ == "__main__":
         leg2 = ax2.legend(loc='upper right', shadow=True)
         plt.grid()
 
-        ax3 = fig.add_subplot(613)
+        ax3 = fig.add_subplot(513)
         ax3.plot(data_ctrl['x'], data_ctrl['motor'], label='motor')
         ax3.plot(data_ctrl['x'], data_ctrl['brake'], label='brake')
         ax3.set_ylabel('Ctrl Sig\n-255 to 255')
@@ -290,13 +292,13 @@ if __name__ == "__main__":
         leg3 = ax3.legend(loc='upper right', shadow=True)
         plt.grid()
 
-        ax4 = fig.add_subplot(614)
-        ax4.plot(data_out['x'], data_out['state'], label='state')
-        if time_lim is not None: ax4.set_xlim(time_lim)
-        ax4.set_ylabel('Ctrl State\n-1 to 4')
-        ax4.set_ylim([-1, 5])
-        leg4 = ax4.legend(loc='upper right', shadow=True)
-        plt.grid()
+        #ax4 = fig.add_subplot(614)
+        #ax4.plot(data_out['x'], data_out['state'], label='state')
+        #if time_lim is not None: ax4.set_xlim(time_lim)
+        #ax4.set_ylabel('Ctrl State\n-1 to 4')
+        #ax4.set_ylim([-1, 5])
+        #leg4 = ax4.legend(loc='upper right', shadow=True)
+        #plt.grid()
 
         #ax4 = fig.add_subplot(514)
         #ax4.plot(data_ctrl_motor['x'], data_ctrl_motor['motorE'], '--', label='motorE')
@@ -309,7 +311,7 @@ if __name__ == "__main__":
         #plt.grid()
 
         ## Controller
-        ax5 = fig.add_subplot(615)
+        ax5 = fig.add_subplot(514)
         ax5.plot(data_ctrl['x'], data_ctrl['error'], '--', label='error')
         ax5.plot(data_ctrl['x'], data_ctrl['p'], label='p')
         ax5.plot(data_ctrl['x'], data_ctrl['i'], label='i')
@@ -323,10 +325,10 @@ if __name__ == "__main__":
         #ax5.set_xlabel('Time /s')
 
         ## Controller
-        ax6 = fig.add_subplot(616)
+        ax6 = fig.add_subplot(515)
         ax6.plot(data_elec_motor['x'], data_elec_motor['v'], label='v')
         ax6.plot(data_elec_motor['x'], data_elec_motor['i'], label='i')
-        ax6.plot(data_elec_motor['x'], data_elec_motor['p'], label='p')
+        #ax6.plot(data_elec_motor['x'], data_elec_motor['p'], label='p')
         ax6.set_ylabel('Voltage, current, power')
         if time_lim is not None: ax6.set_xlim(time_lim)
         leg6 = ax6.legend(loc='upper right', shadow=True)
