@@ -10,10 +10,16 @@ display = True
 
 inpath = "DriveCycles"
 outpath= "Results"
-#filename = "FTP_mph"
-filename = "nedc_int_kph"
+
+
+#filename = "nedc_kph"
+#filename = "WLTP_kph"
+#filename = "FTP75_mph"
+#filename = "HWFET_mph"
+filename = "SFTP_US06_mph"
+
 #filename = "bham_lboro_int_mph"
-#filename = "WLTP_kph" # ****
+
 #filename = "parabola_kph"
 #filename = "impulse_kph"
 #filename = "step_kph"
@@ -334,14 +340,15 @@ if __name__ == "__main__":
         leg6 = ax6.legend(loc='upper right', shadow=True)
         plt.grid()
 
-#        fig2 = plt.figure(2)
-#        a2x1 = fig2.add_subplot(111)
-#        a2x1.plot(data_out['x'], data_out['force_car'], '--', label='force_car')
-#        a2x1.plot(data_out['x'], data_out['force_aero'], label='force_aero')
-#        a2x1.plot(data_out['x'], data_out['force_powertrain'], ':', label='force_powertrain')
-#        a2x1.set_ylabel('Force /N')
-#        a2x1.set_xlabel('Time /s')
-#        l2eg1 = a2x1.legend(loc='upper right', shadow=True)
+        fig2 = plt.figure(2)
+        a2x1 = fig2.add_subplot(111)
+        a2x1.plot(data_out['x'], data_out['v_tgt'], ':', label='v_tgt')
+        a2x1.plot(data_out['x'], data_out['v_car'], label='v_car')
+        a2x1.plot(data_out['x'], data_out['dv'], '--', label='dv')
+        a2x1.set_ylabel('Velocity\n'+units)
+        a2x1.set_xlabel('Time /s')
+        l2eg1 = a2x1.legend(loc='upper right', shadow=True)
+
 
 
     print(Fore.YELLOW, Style.BRIGHT)
