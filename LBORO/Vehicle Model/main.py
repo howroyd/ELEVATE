@@ -4,7 +4,7 @@ from elevate_includes import *
 VERSION = 2.0
 
 graph = True
-feed_forward = False
+feed_forward = True
 matlab = False
 display = True
 
@@ -16,9 +16,9 @@ outpath= "Results"
 #filename = "WLTP_kph"
 #filename = "FTP75_mph"
 #filename = "HWFET_mph"
-filename = "SFTP_US06_mph"
+#filename = "SFTP_US06_mph"
 
-#filename = "bham_lboro_int_mph"
+filename = "bham_lboro_int_mph"
 
 #filename = "parabola_kph"
 #filename = "impulse_kph"
@@ -188,7 +188,7 @@ if __name__ == "__main__":
     # Plot data to screen
     if graph:
         data_out = np.genfromtxt(outpath+"/"+"general_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
-                    names = ['x', 'v_tgt', 'v_car', 'dv', 'speedE', 'speedP', 'speedI', 'speedD', 'state'])#, 'motorE',
+                    names = ['x', 'data', 'v_tgt', 'v_car', 'dv', 'speedE', 'speedP', 'speedI', 'speedD', 'state'])#, 'motorE',
                                 #'motorP', 'motorI', 'motorD', 'brakeE', 'brakeP', 'brakeI', 'brakeD', 'parking',
                                 #'state', 'slip', 'force', 'force_car', 'force_aero', 'force_powertrain',
                                 #'w_veh', 'w_wheel', 'Tm', 'Tb', 'F', 'w', 'adhesion','adhesion2', 'v', 'dt', 'F_motor', 'F_brake'])
@@ -348,7 +348,7 @@ if __name__ == "__main__":
         a2x1.set_ylabel('Velocity\n'+units)
         a2x1.set_xlabel('Time /s')
         l2eg1 = a2x1.legend(loc='upper right', shadow=True)
-
+        plt.grid()
 
 
     print(Fore.YELLOW, Style.BRIGHT)

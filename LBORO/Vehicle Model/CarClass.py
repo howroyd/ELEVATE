@@ -62,7 +62,7 @@ class CarClass(object):
 
     @property
     def dv(self):
-        return self._powertrain_model_array[0]._speed_control.dv
+        return self.target_speed - self.speed
 
     @property
     def target_speed(self,):
