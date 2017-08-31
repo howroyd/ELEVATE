@@ -12,13 +12,13 @@ inpath = "DriveCycles"
 outpath= "Results"
 
 
-#filename = "nedc_kph"
+filename = "nedc_kph"
 #filename = "WLTP_kph"
 #filename = "FTP75_mph"
 #filename = "HWFET_mph"
 #filename = "SFTP_US06_mph"
 
-filename = "bham_lboro_int_mph"
+#filename = "bham_lboro_int_mph"
 
 #filename = "parabola_kph"
 #filename = "impulse_kph"
