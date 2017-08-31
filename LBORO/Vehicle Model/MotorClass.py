@@ -18,8 +18,8 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         self._reduction_ratio = kwargs['motor_reduction_ratio']
         self._wheel_diameter = kwargs['wheel_diameter']
         self._lpf = LowPassFilter(0.05)
-        self._mechanical_efficiency = 0.9
-        self._electrical_efficiency = 0.85
+        self._mechanical_efficiency = 0.96
+        self._electrical_efficiency = 0.92
         self._max_rpm = kwargs['motor_max_rpm']
         #self._electricity = ElectricityClass.Electricity()
         self._name = name
@@ -41,15 +41,17 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         for ptr in self._connected_wheels:
             rotation += ptr.vehicle_speed
 
-        rotation /= (len(self._connected_wheels) * 2.0 * pi * self._wheel_diameter)
+        rotation /= (len(self._connected_wheels) * pi * self._wheel_diameter)
 
         rotation *= self._reduction_ratio
 
         if (rotation > 0.0):
-            mechanical_power = rotation * self._shaft_torque * (1.0/self._mechanical_efficiency) # Supplied by motor
+            mechanical_power = rotation * self._shaft_torque * (1.0/self._mechanical_efficiency) * 1.5  # Supplied by motor # TODO 1.5 bodge
 
-            self.p = mechanical_power * (1.0/self._electrical_efficiency) # Required by motor
+            self.p = min(self._p_max, mechanical_power * (1.0/self._electrical_efficiency)) # Required by motor
             # https://www.precisionmicrodrives.com/tech-blog/2015/08/03/dc-motor-speed-voltage-and-torque-relationships
+
+            #print(self.p)
 
             #y=mx+c
             m = self._i_max / self._max_rpm # motor model

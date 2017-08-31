@@ -61,6 +61,43 @@ class DataInputClass(object):
     """description of class"""
     def __init__(self, filename, filenameout=None):
 
+        self._data = list()
+
+        num_lines_in_file = self.file_len(filename)-1
+
+        with open(filename,'rt') as f:
+            reader = csv.reader(f, delimiter='\t')
+            
+            for row in reader:
+                try:
+                    self._data.append(list(map(float, row)))
+                except:
+                    pass
+
+        self._num_lines = len(self._data)
+
+        if round(num_lines_in_file) is not round(self._num_lines): print("Warning: Difference between input file length and parsed data length;", num_lines_in_file, "vs", self._num_lines, '\n')
+
+        if filenameout is None:
+            self._file_out = open(filename.rsplit('.')[0]+"_out"+".csv",'w', newline="\n", encoding="utf-8")
+        else:
+            self._file_out = open(filenameout,'w', newline="\n", encoding="utf-8")
+        
+        self._csvout = csv.writer(self._file_out,quoting=csv.QUOTE_NONNUMERIC)
+
+        self._num_this_line = -1
+        self._new_data = False
+        self._lineout = []
+        self._dt = 0.0
+        self._finished = False
+
+        return
+
+
+
+
+        # Old code
+
         self._file_in = open(filename,'rt')
         if filenameout is None:
             self._file_out = open(filename.rsplit('.')[0]+"_out"+".csv",'w', newline="\n", encoding="utf-8")
@@ -85,6 +122,8 @@ class DataInputClass(object):
 
         self.update()
 
+
+
     @staticmethod
     def file_len(fname) -> int:
         with open(fname) as f:
@@ -108,6 +147,38 @@ class DataInputClass(object):
         if self._lineout:
                 self._csvout.writerow(self._lineout)
                 self._lineout = []
+
+        try:
+            if (not sim_time or not self._data[self._num_this_line]) or (sim_time >= self._data[self._num_this_line+1][0]):
+                # Simtime is ahead of our next line so get a new line update
+                self._num_this_line += 1
+                if self._num_this_line >= self._num_lines-1:
+                    self._num_this_line = self._num_lines-1
+                    self._finished = True
+                    self._file_out.flush()
+                    self._file_out.close()
+                else:
+                    self._new_data = True
+            else:
+                self._new_data = False
+
+            if self._data[self._num_this_line] is None:
+                self._new_data = False
+
+            # If we get here we know that nextline is ahead of simtime
+            self._dt = self._data[self._num_this_line][0] - self._data[self._num_this_line-1][0] if self._data[self._num_this_line-1][0] else 0.0
+
+        except IndexError:
+            self._num_this_line = self._num_lines-1
+            print("End of file;", self._num_this_line+1, "of", self._num_lines)
+            self._finished = True
+            self._file_out.flush()
+            self._file_out.close()
+
+        return self.new_data
+
+
+        # Old code
 
         # Update the input
         if (not sim_time or not self._nextline or not self._thisline) or (sim_time >= self._nextline[0]):
@@ -137,7 +208,7 @@ class DataInputClass(object):
         
     @property
     def line(self):
-        return self._thisline
+        return self._data[min(self._num_this_line, self._num_lines-1)]
     @line.setter
     def line(self, data):
         for i in data:
@@ -145,7 +216,11 @@ class DataInputClass(object):
 
     @property
     def nextline(self):
-        return self._nextline
+        return self._data[self._num_this_line+1]
+
+    def read_ahead(self, vision=1):
+        _vision = vision + self._num_this_line
+        return self._data[min(max(0, _vision), self._num_lines-1)]
 
     @property
     def line_number(self):

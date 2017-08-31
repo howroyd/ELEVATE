@@ -55,11 +55,11 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._data = dict()
         self._hysteresis_speed = 0.25*1 # 0.45=1mph
 
-        p = 125 # 100
+        p = 150 # 100
         i = 25 # 100
-        d = 6.25 # 3.5
+        d = 8.0 #6.25 # 3.5
 
-        self._k_feed_forward = 1 # 15
+        self._k_feed_forward = 0.5 # 15
 
         self._hysteresis = self._hysteresis_speed * p/10 # PID error
         super(SpeedControlClass, self).__init__(p, i, d, min_i=-50, max_i=50, name=self._name)

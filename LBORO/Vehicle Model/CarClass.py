@@ -16,8 +16,8 @@ class CarClass(object):
             self._target_speed = 0.0
             self._feed_forward_speed = None
             self._total_force = 0.0 
-        self._lpf    = LowPassFilter(0.5)
-        self._lpf_ff = LowPassFilter(0.25)
+        self._lpf    = LowPassFilter(1)
+        self._lpf_ff = LowPassFilter(1)
         self._data = dict()
         self._name = name
         return
