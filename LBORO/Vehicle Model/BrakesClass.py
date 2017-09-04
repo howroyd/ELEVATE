@@ -11,7 +11,7 @@ class BrakesClass(object):
         self._current_torque = 0.0
         self._value = 0 # 0-255
         self._diameter = diameter
-        self._lpf = LowPassFilter(0.01)
+        self._lpf = LowPassFilter(1)
         self._name = name
         self._data = dict()
         return
@@ -20,7 +20,7 @@ class BrakesClass(object):
         if self._value is None: self._value = 0.0
         if self._value > 0.0:
             # Calculate force & temperature (1-255)
-            self._current_torque = self._lpf.get(max(0.0, (self._value/255)*self._max_torque))
+            self._current_torque = (max(0.0, (self._value/255)*self._max_torque))
         else:
             self._current_torque = 0.0
 
@@ -39,7 +39,7 @@ class BrakesClass(object):
         return self._value
     @value.setter
     def value(self, value):
-        self._value = max(min(-value/10, 255), 0) if value is not None else 0.0
+        self._value = max(min(value, 255), 0) if value is not None else 0.0
         #self._value = value
         #if value is None:
         #    self._value = self._lpf.reset()
