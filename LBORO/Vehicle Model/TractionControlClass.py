@@ -53,15 +53,15 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._regen = False # Set to None to disable
         self._name = name
         self._data = dict()
-        self._hysteresis_speed = 0.25*1 # 0.45=1mph
+        self._hysteresis_speed = 0.44704/4#0.25*1 # 0.45=1mph
 
-        p = 150 # 100
-        i = 25 # 100
-        d = 8.0 #6.25 # 3.5
+        p = 100
+        i = 1/20
+        d = 0
 
         self._k_feed_forward = 0.5 # 15
 
-        self._hysteresis = self._hysteresis_speed * p/10 # PID error
+        self._hysteresis = 0#self._hysteresis_speed * p/10 # PID error
         super(SpeedControlClass, self).__init__(p, i, d, min_i=-50, max_i=50, name=self._name)
 
         return 
