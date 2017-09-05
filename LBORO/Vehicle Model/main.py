@@ -27,6 +27,23 @@ def get(ptr, item):
 def get_motor_wheel(_car, _val):
     return (_val / 255) * _car._data.get('motor_max_torque') * _car._data.get('motor_reduction_ratio') / 2
 
+def check_units(fname):
+    if 'kph' in fname:
+        _conversion_factor = 1.0/3.6
+        _units = 'kph'
+    elif 'mph' in fname:
+        _conversion_factor = 0.44704
+        _units = 'mph'
+    elif 'ms' in fname:
+        _conversion_factor = 1.0
+        _units = 'ms'
+    else:
+        sys.exit("No defined speed units in drive cycle filename")
+    return _conversion_factor, _units
+
+# Check the units of the input data file; mph, kph, m/s
+conversion_factor, units = check_units("mph")
+
 # Main run function
 if __name__ == "__main__":
     # Make a note of the start time
@@ -47,23 +64,25 @@ if __name__ == "__main__":
 
     speed = 0.0
     
-    # RUN SIMULATION
-    for x in range(130):
+    dt = 0.01
 
-        if x < 6:
+    # RUN SIMULATION
+    for x in np.arange(0.0, 130.0, dt):
+
+        if x < 30:
             wheel.brake_value = 0
-            wheel.motor_torque = get_motor_wheel(car, 255)
-        elif x < 66:
+            wheel.motor_torque = get_motor_wheel(car, 255/16)
+        elif x < 35:
             wheel.brake_value = 0
             wheel.motor_torque = get_motor_wheel(car, 255/4)
-        elif x < 100:
+        elif x < 60:
             wheel.brake_value = 0
             wheel.motor_torque = 0
         elif x < 110:
-            wheel.brake_value   = 255/8
+            wheel.brake_value   = 255/16
             wheel.motor_torque  = 0 
         else:
-            wheel.brake_value   = 255/2
+            wheel.brake_value   = 255/8
             wheel.motor_torque  = 0 
 
 
@@ -80,11 +99,11 @@ if __name__ == "__main__":
 
         wheel.update(x)
 
-        drag_dynamic = 0.5*1.225*speed*speed*car._data.get('car_area')*car._data.get('car_cd')
+        drag_dynamic = 0#0.5*1.225*speed*speed*car._data.get('car_area')*car._data.get('car_cd')
 
         accn = (wheel.force-drag_dynamic) / (car._data.get('car_mass')/4)
 
-        speed = max(speed + accn*1, 0.0)
+        speed = max(speed + accn*dt, 0.0)
 
         wheel.vehicle_speed = speed
 
@@ -92,10 +111,10 @@ if __name__ == "__main__":
         d_wheel.line = [x,
             get(wheel, 'brake_value'),
             get(wheel, 'brake_torque'),
-            get(wheel, 'wheel_force_motor')/100, #dN
-            get(wheel, 'wheel_force_brake')/-10 if speed > 0 else 0, #N E10
-            get(wheel, 'wheel_force')/10, #N E10
-            speed,
+            get(wheel, 'wheel_force_motor'), #dN
+            get(wheel, 'wheel_force_brake') if speed > 0 else 0, #N E10
+            get(wheel, 'wheel_force'), #N E10
+            speed/conversion_factor,
             ]
         d_wheel.update()
 
@@ -128,14 +147,14 @@ if __name__ == "__main__":
         ax7 = fig_pres.add_subplot(111)#add_subplot(211)
         #ax7.plot(data_out['x'], data_out['brake_value'], label='brake_value')
         #ax7.plot(data_out['x'], data_out['brake_torque'], label='brake_torque')
-        ax7.plot(data_out['x'], data_out['force_motor'], label='force_motor')
-        ax7.plot(data_out['x'], data_out['force_brake'], ':', label='force_brake')
+        ax7.plot(data_out['x'], data_out['force_motor']/1000, label='force_motor')
+        ax7.plot(data_out['x'], data_out['force_brake']/1000, ':', label='force_brake')
         #ax7.plot(data_out['x'], data_out['force'], '--', label='force')
         ax7.plot(data_out['x'], data_out['speed'], '--', label='speed')
-        ax7.set_ylabel('Something something dark side')
-        leg7 = ax7.legend(loc='upper left', shadow=True)
+        ax7.set_ylabel('Horizontal Force /kN, Vehicle Speed /mph')
+        leg7 = ax7.legend(loc='upper center', shadow=True)
         plt.grid()
-        ax7.set_xlabel('Something something complete')
+        ax7.set_xlabel('Time /s')
 
 
 
