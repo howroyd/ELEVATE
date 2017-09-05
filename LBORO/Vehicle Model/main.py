@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 from elevate_includes import *
 
-VERSION = 2.1
+VERSION = 2.2
 
 graph = True
-feed_forward = 3 # Zero/None for off, integer for for forcast distance
+feed_forward = 1 # Zero/None for off, integer for for forcast distance
 matlab = False
 display = True
 
@@ -75,6 +75,9 @@ def get(ptr, item):
         #print(item + ' not found')
         return None
 
+mytime = 0
+dt = 0.01
+
 # Main run function
 if __name__ == "__main__":
     # Make a note of the start time
@@ -88,7 +91,7 @@ if __name__ == "__main__":
     
     # Construct the input data gatherer and timer
     datafile     = DataInputClass(inpath+"/"+filename+".tsv", outpath+"/"+filename+".csv")
-    timer        = Continuous_dt(datafile.dt, 50)
+    #timer        = Continuous_dt(datafile.dt, 50)
 
     # Construct the output data buffers
     d_force      = DataOutputClass(outpath+"/"+"force")
@@ -113,8 +116,9 @@ if __name__ == "__main__":
     while not datafile.finished:
 
         # Update the timer and input data file
-        timer.update()
-        _new_data = datafile.update(timer.sim_time)
+        #timer.update()
+        mytime += dt
+        _new_data = datafile.update(mytime)#timer.sim_time)
 
         # Calculate dynamics (main updater)
         for _car in mycar:
@@ -129,10 +133,10 @@ if __name__ == "__main__":
                     #print(datafile.read_ahead(10))
                     _car.feed_forward_speed = ((datafile.read_ahead(feed_forward)[1] if datafile.read_ahead(feed_forward)[1] is not 'NaN' else 0) *conversion_factor)
 
-            _car.update(timer.dt)
+            _car.update(dt)#timer.dt)
 
         # Output data to save file
-        d_gen.line = [timer.sim_time,
+        d_gen.line = [mytime,
             (datafile.line[1] if datafile.line[1] is not 'NaN' else 0),
             get(mycar[0], 'car_target_speed') / conversion_factor,
             get(mycar[0], 'car_speed') / conversion_factor,
@@ -145,7 +149,7 @@ if __name__ == "__main__":
             ]
         d_gen.update()
 
-        d_force.line = [timer.sim_time,
+        d_force.line = [mytime,
             get(mycar[0], 'car_total_force'),
             get(mycar[0], 'front_left_force_motor'),
             get(mycar[0], 'front_left_force_brake'),
@@ -153,7 +157,7 @@ if __name__ == "__main__":
             ]
         d_force.update()
 
-        d_ctrl.line = [timer.sim_time,
+        d_ctrl.line = [mytime,
             mycar[0]._powertrain_model_array[0].error,
             get(mycar[0], 'motor_value'),
             get(mycar[0], 'brake_value'),
@@ -163,7 +167,7 @@ if __name__ == "__main__":
             ] 
         d_ctrl.update()
 
-        d_elec_motor.line = [timer.sim_time,
+        d_elec_motor.line = [mytime,
             get(mycar[0], 'battery_v'),
             get(mycar[0], 'battery_i'),
             get(mycar[0], 'battery_v')*get(mycar[0], 'battery_i')/1000,

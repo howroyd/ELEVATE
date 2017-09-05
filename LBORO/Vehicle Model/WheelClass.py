@@ -43,14 +43,14 @@ class WheelClass(object):
         if self._brake_parking:
             self.reset()
             self._force += 0.2*(((self._mass_on_wheel * -self.vehicle_speed/dt) if dt > 0.0 else 0.0) - self._force) # TODO F=ma brute force
-            return
+        else:
 
-        self._brake.update(dt)
+            self._brake.update(dt)
 
-        self._F_motor = self._motor_torque_in / (self._wheel_diameter / 2.0)
-        self._F_brake = self.brake_torque / (self._wheel_diameter / 2.0)
+            self._F_motor = self._motor_torque_in / (self._wheel_diameter / 2.0)
+            self._F_brake = self.brake_torque / (self._wheel_diameter / 2.0)
 
-        self._force = self._F_motor + self._F_brake
+            self._force = self._F_motor + self._F_brake
 
         self._data.update(self._brake.data)
         self._data.update({(self._name+'_force_motor') : self._F_motor,

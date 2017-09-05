@@ -14,7 +14,7 @@ class CarClass(object):
             self._vehicle_mass = kwargs['car_mass']
             self._speed = 0.0
             self._target_speed = 0.0
-            self._feed_forward_speed = None
+            self._feed_forward_speed = 0.0
             self._total_force = 0.0 
         self._lpf    = LowPassFilter(1)
         self._lpf_ff = LowPassFilter(1)

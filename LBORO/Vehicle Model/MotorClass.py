@@ -37,7 +37,7 @@ class MotorClass(ElectricityClass.ElectricalDevice):
     #    pass
 
     def update(self, dt):
-        self._dt = dt - self._time_last
+        self._dt = dt# - self._time_last
         self._time_last = dt
 
         self._shaft_torque = (self._value/255)*self._max_torque
@@ -129,8 +129,8 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         return self._value
     @motor_value.setter
     def motor_value(self, value):
-        if value > self._value and value > 0:
-            value = self._value + 0.85*self._dt*(value - self._value) # TODO this is Tract control
+        #if value > self._value and value > 0:
+        value = self._value + 0.85*self._dt*(value - self._value) # TODO this is Tract control
         if self._regen_activated:
             self._value = max(min(value, 255), -255/4) if value is not None else 0.0
         else:

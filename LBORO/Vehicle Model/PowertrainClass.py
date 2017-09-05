@@ -42,10 +42,10 @@ class PowertrainClass(object):
 
     @property
     def feed_forward_speed(self):
-        return self._speed_control.feed_forward
+        return self._speed_control.target_forward
     @feed_forward_speed.setter
     def feed_forward_speed(self, speed):
-        self._speed_control.feed_forward = max(0.0, speed)
+        self._speed_control.target_forward = max(0.0, speed)
 
     @property
     def dt(self):

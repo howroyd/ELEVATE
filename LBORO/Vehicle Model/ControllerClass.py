@@ -23,7 +23,7 @@ class ControllerClass(object):
         self._data = dict()
 
     def update(self, dt, error, rate=None):
-        self._dt = dt - self._time_last
+        self._dt = dt# - self._time_last
         self._time_last = dt
 
         self._output_last = self._output

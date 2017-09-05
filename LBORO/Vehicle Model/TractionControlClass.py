@@ -48,18 +48,18 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._dv_next = None
         self._target = 0.0
         self._current = 0.0
-        self._feed_forward = None
         self._state = PowertrainState['stopped']
         self._regen = False # Set to None to disable
         self._name = name
         self._data = dict()
-        self._hysteresis_speed = 0.44704/4#0.25*1 # 0.45=1mph
+        self._hysteresis_speed = 0#0.44704/4#0.25*1 # 0.45=1mph
+        self._target_forward = 0
 
         p = 100
         i = 1/20
         d = 0
 
-        self._k_feed_forward = 0.5 # 15
+        self._feed_forward = None#ControllerClass.ControllerClass(p, i, d, min_i=-50, max_i=50, name=(self._name+"_ff"))
 
         self._hysteresis = 0#self._hysteresis_speed * p/10 # PID error
         super(SpeedControlClass, self).__init__(p, i, d, min_i=-50, max_i=50, name=self._name)
@@ -71,15 +71,31 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         return self._data
 
     def update(self, dt):
-        if ((self._target <= self._hysteresis_speed/10.0) and (self._current <= self._hysteresis_speed/10.0) and ((self._feed_forward <= self._hysteresis_speed/10.0) if self._feed_forward is not None else True)):
-            if (self._state is not PowertrainState['stopped']):
-                self._state = PowertrainState['stopped']
-            super(SpeedControlClass, self).reset()
+        #if ((self._target <= self._hysteresis_speed/10.0) and (self._current <= self._hysteresis_speed/10.0) and ((self._feed_forward.error <= self._hysteresis_speed/10.0) if self._feed_forward is not None else True)):
+        #    if (self._state is not PowertrainState['stopped']):
+        #        self._state = PowertrainState['stopped']
+        #    super(SpeedControlClass, self).reset()
+        #    self._feed_forward.reset() if self._feed_forward is not None else None
 
-        super(SpeedControlClass, self).update(dt, self.dv)
+        super(SpeedControlClass, self).update(dt, (self._target+self._target_forward)/2 - self._current)#self.dv)
 
-        (motor, brake, parking) = self._control(super(SpeedControlClass, self).error, self.dv, self._hysteresis, self._hysteresis_speed,
+        if self._feed_forward is not None:
+            self._feed_forward.update(dt, self._target_forward - self._current)
+            #print(self._feed_forward.error)
+            self._error = (super(SpeedControlClass, self).error + self._feed_forward.error) 
+        else:
+            self._error = super(SpeedControlClass, self).error  
+
+        #print(self.error)
+
+        (motor, brake, parking) = self._control(self._error, self.dv, self._hysteresis, self._hysteresis_speed,
                                                         True if (ptr.brake_parking for ptr in self._wheel_array) else False, verbose=False)
+
+
+        #if self._feed_forward is not None:
+        #    return self._target - self._current + self._k_feed_forward*(self._feed_forward)
+        #else:
+
 
         if (brake is not None and parking is not True):
             if (brake > -255/4):
@@ -141,6 +157,8 @@ class SpeedControlClass(ControllerClass.ControllerClass):
     def _set_motor(self, val, verbose=False):
         if verbose: print("Motor: ", end=' ')
         for ptr in self._motor_array:
+            if self._regen is None: ptr.regen_activated = False
+            else: ptr.regen_activated = True
             ptr.motor_value = val
             if verbose: print(str(int(ptr.motor_value)), end=' ')
         if verbose: print()
@@ -322,11 +340,11 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._target = max(0, value) # Positive numbers only
 
     @property
-    def feed_forward(self):
+    def target_forward(self):
         return self._feed_forward
-    @feed_forward.setter
-    def feed_forward(self, value):
-        self._feed_forward = max(0, value) # Positive numbers only
+    @target_forward.setter
+    def target_forward(self, value):
+        self._target_forward = max(0, value) # Positive numbers only
 
     @property
     def current(self):
@@ -339,14 +357,14 @@ class SpeedControlClass(ControllerClass.ControllerClass):
 
     @property
     def dv(self):
-        if self._feed_forward is not None:
-            return self._target + self._k_feed_forward*(self._feed_forward - self._target) - self._current
-        else:
+        #if self._feed_forward is not None:
             return self._target - self._current
+        #else:
+        #    return self._target - self._current
 
     @property
     def error(self):
-        return super(SpeedControlClass, self).error
+        return self._error
 
 
 class TractionControlClass(SpeedControlClass):
