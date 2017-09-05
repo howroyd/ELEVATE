@@ -24,6 +24,9 @@ def get(ptr, item):
         #print(item + ' not found')
         return None
 
+def get_motor_wheel(_car, _val):
+    return (_val / 255) * _car._data.get('motor_max_torque') * _car._data.get('motor_reduction_ratio') / 2
+
 # Main run function
 if __name__ == "__main__":
     # Make a note of the start time
@@ -45,17 +48,35 @@ if __name__ == "__main__":
     speed = 0.0
     
     # RUN SIMULATION
-    for x in range(100):
+    for x in range(130):
 
         if x < 6:
             wheel.brake_value = 0
-            wheel.motor_torque = car._data.get('motor_max_torque') * car._data.get('motor_reduction_ratio') / 2
-        elif x < 20:
+            wheel.motor_torque = get_motor_wheel(car, 255)
+        elif x < 66:
+            wheel.brake_value = 0
+            wheel.motor_torque = get_motor_wheel(car, 255/4)
+        elif x < 100:
             wheel.brake_value = 0
             wheel.motor_torque = 0
-        else:
-            wheel.brake_value   = max(24,speed * 1.5)
+        elif x < 110:
+            wheel.brake_value   = 255/8
             wheel.motor_torque  = 0 
+        else:
+            wheel.brake_value   = 255/2
+            wheel.motor_torque  = 0 
+
+
+
+
+
+
+
+
+
+
+
+
 
         wheel.update(x)
 
@@ -71,9 +92,9 @@ if __name__ == "__main__":
         d_wheel.line = [x,
             get(wheel, 'brake_value'),
             get(wheel, 'brake_torque'),
-            get(wheel, 'wheel_force_motor')/1000, #kN
-            get(wheel, 'wheel_force_brake')/-1000, #kN
-            get(wheel, 'wheel_force')/1000, #kN
+            get(wheel, 'wheel_force_motor')/100, #dN
+            get(wheel, 'wheel_force_brake')/-10 if speed > 0 else 0, #N E10
+            get(wheel, 'wheel_force')/10, #N E10
             speed,
             ]
         d_wheel.update()
