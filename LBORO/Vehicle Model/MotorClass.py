@@ -24,6 +24,9 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         #self._electricity = ElectricityClass.Electricity()
         self._name = name
         self._data = dict()
+        self._regen_activated = False
+        self._dt = 0.001
+        self._time_last = 0
         return super().__init__(kwargs, name=self._name)
 
     #@property
@@ -34,7 +37,10 @@ class MotorClass(ElectricityClass.ElectricalDevice):
     #    pass
 
     def update(self, dt):
-        self._shaft_torque = self._lpf.get((self._value/255)*self._max_torque)
+        self._dt = dt - self._time_last
+        self._time_last = dt
+
+        self._shaft_torque = (self._value/255)*self._max_torque
 
         rotation = 0.0
 
@@ -43,7 +49,7 @@ class MotorClass(ElectricityClass.ElectricalDevice):
 
         rotation /= (len(self._connected_wheels) * pi * self._wheel_diameter)
 
-        rotation *= self._reduction_ratio
+        rotation /= self._reduction_ratio
 
         if (rotation > 0.0):
             mechanical_power = rotation * self._shaft_torque * (1.0/self._mechanical_efficiency)  # Supplied by motor # TODO 1.5 bodge
@@ -92,7 +98,7 @@ class MotorClass(ElectricityClass.ElectricalDevice):
                 self._shaft_torque = self.p * self._electrical_efficiency * self._mechanical_efficiency / rotation
 
         for ptr in self._connected_wheels:
-            ptr.motor_torque = self._shaft_torque / len(self._connected_wheels)
+            ptr.motor_torque = self._shaft_torque*self._reduction_ratio / len(self._connected_wheels)
 
         #self._error = None
         super().update(dt)
@@ -115,11 +121,23 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         return self._shaft_torque
 
     @property
+    def regen_activated(self):
+        return self._regen_activated
+    @regen_activated.setter
+    def regen_activated(self, value):
+        self._regen_activated = bool(value)
+
+    @property
     def motor_value(self):
         return self._value
     @motor_value.setter
     def motor_value(self, value):
-        self._value = max(min(value, 255), -255/4) if value is not None else 0.0
+        if value > self._value and value > 0:
+            value = self._value + 0.85*self._dt*(value - self._value) # TODO this is Tract control
+        if self._regen_activated:
+            self._value = max(min(value, 255), -255/4) if value is not None else 0.0
+        else:
+            self._value = max(min(value, 255), 0) if value is not None else 0.0
         #value = self._value + 1*(value - self._value)
         #self._value = max(min(value, 255), -255/4)
         #self._value = self._lpf.get(max(min(value, 255), -255/4))

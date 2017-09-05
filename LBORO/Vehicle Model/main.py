@@ -1,31 +1,14 @@
 #!/usr/bin/python3
 from elevate_includes import *
+from BrakesClass import BrakesClass
+from WheelClass import WheelClass
+from battery_sw import Battery_Model
+from MotorClass import MotorClass
+from PowertrainClass import PowertrainClass
 
-VERSION = 2.1
+VERSION = 0.0
 
-graph = True
-feed_forward = 3 # Zero/None for off, integer for for forcast distance
-matlab = False
-display = True
-
-inpath = "DriveCycles"
 outpath= "Results"
-
-filename = "nedc_kph"
-#filename = "WLTP_kph"
-#filename = "FTP75_mph"
-#filename = "HWFET_mph"
-#filename = "SFTP_US06_mph"
-
-#filename = "bham_lboro_int_mph"
-
-#filename = "parabola_kph"
-#filename = "impulse_kph"
-#filename = "step_kph"
-#filename = "sine_kph"
-
-time_lim = None
-#time_lim = [920, 940]
 
 def display_init():
     colorama.init()
@@ -37,20 +20,24 @@ def display_init():
     print(Style.RESET_ALL)
     print(sys.version, '\n')
 
-def matlab_init():
-    eng = matlab.engine.start_matlab('-nojvm')
-    print(eng.sqrt(4.0))
-    eng.quit()
-    return eng
+def get(ptr, item):
+    if item in ptr.data:
+        return ptr.data[item] if ptr.data[item] is not None else 0.0
+    else:
+        #print(item + ' not found')
+        return None
+
+def get_motor_wheel(_car, _val):
+    return (_val / 255) * _car._data.get('motor_max_torque') * _car._data.get('motor_reduction_ratio') / 2
 
 def check_units(fname):
-    if 'kph' in filename:
+    if 'kph' in fname:
         _conversion_factor = 1.0/3.6
         _units = 'kph'
-    elif 'mph' in filename:
+    elif 'mph' in fname:
         _conversion_factor = 0.44704
         _units = 'mph'
-    elif 'ms' in filename:
+    elif 'ms' in fname:
         _conversion_factor = 1.0
         _units = 'ms'
     else:
@@ -58,22 +45,10 @@ def check_units(fname):
     return _conversion_factor, _units
 
 # Check the units of the input data file; mph, kph, m/s
-conversion_factor, units = check_units(filename)
+conversion_factor, units = check_units("mph")
 
-time_lim = None
-#time_lim = [920, 940]
 
-time_start = 0.0
-time_init  = 0.0
-time_calc  = 0.0
-time_disp  = 0.0
 
-def get(ptr, item):
-    if item in ptr.data:
-        return ptr.data[item]
-    else:
-        #print(item + ' not found')
-        return None
 
 # Main run function
 if __name__ == "__main__":
@@ -81,103 +56,99 @@ if __name__ == "__main__":
     time_start = time.time()
 
     # Initialise the terminal display
-    if display: display_init()
+    display_init()
 
-    # Initialise the Matlab engine
-    if matlab: matlab_init()
+
+
+
+
+    car = Nissan_Leaf()
+
+    battery = Battery_Model(car.data)
     
-    # Construct the input data gatherer and timer
-    datafile     = DataInputClass(inpath+"/"+filename+".tsv", outpath+"/"+filename+".csv")
-    timer        = Continuous_dt(datafile.dt, 50)
+    brake = BrakesClass(car._data.get('wheel_diameter'), car._data.get('brake_max_torque')[0], kwargs=dict())
+    wheel = [WheelClass(brake, kwargs={'wheel_diameter':car._data.get('wheel_diameter') , 'car_mass':car._data.get('car_mass')})] * 2
 
+    motor   = MotorClass(wheel, car.data)
+    motor.regen_activated = False
+
+    powertrain = PowertrainClass([battery], [motor], wheel, car.data)
+
+
+
+    
     # Construct the output data buffers
-    d_force      = DataOutputClass(outpath+"/"+"force")
-    d_gen        = DataOutputClass(outpath+"/"+"general")
-    d_ctrl       = DataOutputClass(outpath+"/"+"ctrl")
-    d_ctrl_spd   = DataOutputClass(outpath+"/"+"ctrl_spd")
-    d_ctrl_motor = DataOutputClass(outpath+"/"+"ctrl_motor")
-    d_ctrl_brake = DataOutputClass(outpath+"/"+"ctrl_brake")
-    d_elec_motor = DataOutputClass(outpath+"/"+"elec_motor")
+    d_wheel      = DataOutputClass(outpath+"/"+"wheel")
 
-    # Define low pass filters TODO
-    lpf1 = LowPassFilter(1.0)
-    lpf2 = LowPassFilter(1.0) # Feed forward
     
-    # Spawn vehicle(s)
-    mycar = list()
-    mycar.append(CarClass(Nissan_Leaf().data))
-    
-    print(datafile.num_lines, 'lines in input file\n')
-    _new_data = False
+
+    speed = 0.0
+
+    for ptr in wheel:
+        ptr.vehicle_speed = speed
+        ptr.brake_parking = False
+    powertrain.force = 0.0
+    powertrain.current_speed = speed
+    powertrain.update(0)
+
+    dt = 0.01
     # RUN SIMULATION
-    while not datafile.finished:
+    for x in np.arange(0.0, 130.0, dt):
 
-        # Update the timer and input data file
-        timer.update()
-        _new_data = datafile.update(timer.sim_time)
+        if x < 1:
+            powertrain.target_speed = 0
+        elif x < 15:
+            powertrain.target_speed = conversion_factor * 60
+        elif x < 70:
+            powertrain.target_speed = conversion_factor * 50
+        elif x < 100:
+            powertrain.target_speed = conversion_factor * 30
+        else:
+            powertrain.target_speed = 0.0
 
-        # Calculate dynamics (main updater)
-        for _car in mycar:
-            # Update target speed if required
-            if _new_data:
-                #_car.target_speed = lpf1.get((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
-                #print(datafile.line)
-                _car.target_speed = ((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
 
-                if feed_forward:
-                    #_car.feed_forward_speed = lpf2.get((datafile.line[1] if datafile.line[1] is not 'NaN' else 0) *conversion_factor)
-                    #print(datafile.read_ahead(10))
-                    _car.feed_forward_speed = ((datafile.read_ahead(feed_forward)[1] if datafile.read_ahead(feed_forward)[1] is not 'NaN' else 0) *conversion_factor)
 
-            _car.update(timer.dt)
+
+
+
+
+
+
+
+        powertrain.current_speed = speed
+        
+        
+
+
+        #wheel.update(x)
+
+        drag_dynamic = 0.5*1.225*speed*speed*car._data.get('car_area')*car._data.get('car_cd')
+
+        force = wheel[0].force*2.0 - drag_dynamic
+
+        accn = force / (car._data.get('car_mass'))
+
+        speed = max(speed + accn*dt, 0.0)
+
+        for ptr in wheel:
+            ptr.vehicle_speed = speed
+
+        powertrain.force = force
+
+        powertrain.update(x)
+
+
 
         # Output data to save file
-        d_gen.line = [timer.sim_time,
-            (datafile.line[1] if datafile.line[1] is not 'NaN' else 0),
-            get(mycar[0], 'car_target_speed') / conversion_factor,
-            get(mycar[0], 'car_speed') / conversion_factor,
-            get(mycar[0], 'car_dv') / conversion_factor,
-            get(mycar[0], 'speedController_error'),
-            get(mycar[0], 'speedController_p'),
-            get(mycar[0], 'speedController_i'),
-            get(mycar[0], 'speedController_d'),
-            get(mycar[0], 'speedController_powertrain_state'),
+        d_wheel.line = [x,
+            get(powertrain, 'brake_value'),
+            get(powertrain, 'brake_torque'),
+            get(powertrain, 'wheel_force_motor'), #dN
+            get(powertrain, 'wheel_force_brake'), #N E10
+            get(powertrain, 'wheel_force'), #N E10
+            speed/conversion_factor,
             ]
-        d_gen.update()
-
-        d_force.line = [timer.sim_time,
-            get(mycar[0], 'car_total_force'),
-            get(mycar[0], 'front_left_force_motor'),
-            get(mycar[0], 'front_left_force_brake'),
-            get(mycar[0], 'aero_dynamic'),
-            ]
-        d_force.update()
-
-        d_ctrl.line = [timer.sim_time,
-            mycar[0]._powertrain_model_array[0].error,
-            get(mycar[0], 'motor_value'),
-            get(mycar[0], 'brake_value'),
-            get(mycar[0], 'speedController_p'),
-            get(mycar[0], 'speedController_i'),
-            get(mycar[0], 'speedController_d'),
-            ] 
-        d_ctrl.update()
-
-        d_elec_motor.line = [timer.sim_time,
-            get(mycar[0], 'battery_v'),
-            get(mycar[0], 'battery_i'),
-            get(mycar[0], 'battery_v')*get(mycar[0], 'battery_i')/1000,
-            ]
-        d_elec_motor.update()
-
-        #d_ctrl_motor.update()
-
-        #d_ctrl_spd.update()
-        #d_ctrl_brake.update()
-        #
-
-        # Print to screen the percentage of number of lines completed from the input data file
-        if datafile.new_data: print(round(datafile.percent_complete,1),'%',end='\r')
+        d_wheel.update()
 
     # Print to screen the percentage of number of lines completed from the input data file
     print(Fore.GREEN, Style.BRIGHT, end='')
@@ -188,108 +159,49 @@ if __name__ == "__main__":
     
     print(end='\r\n')
 
-    #time.sleep(2)
+    d_wheel.__del__()
 
     # Plot data to screen
-    if graph:
-        data_out = np.genfromtxt(outpath+"/"+"general_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
-                    names = ['x', 'data', 'v_tgt', 'v_car', 'dv', 'speedE', 'speedP', 'speedI', 'speedD', 'state'])#, 'motorE',
-                                #'motorP', 'motorI', 'motorD', 'brakeE', 'brakeP', 'brakeI', 'brakeD', 'parking',
-                                #'state', 'slip', 'force', 'force_car', 'force_aero', 'force_powertrain',
-                                #'w_veh', 'w_wheel', 'Tm', 'Tb', 'F', 'w', 'adhesion','adhesion2', 'v', 'dt', 'F_motor', 'F_brake'])
+    if True:
+        data_out = np.genfromtxt(outpath+"/"+"wheel_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
+                    names = ['x', 'brake_value', 'brake_torque', 'force_motor', 'force_brake', 'force', 'speed'])
 
-        
-        data_force = np.genfromtxt(outpath+"/"+"force_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
-                    names = ['x', 'force', 'F_motor', 'F_brake', 'F_aero_d'])
+        plt.style.use('grayscale')
 
-        data_ctrl = np.genfromtxt(outpath+"/"+"ctrl_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
-                    names = ['x', 'error', 'motor', 'brake', 'p', 'i', 'd'])
-
-        data_elec_motor = np.genfromtxt(outpath+"/"+"elec_motor_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
-                    names = ['x', 'v', 'i', 'p'])
-
-
-
-
-        # Figure 1
-        fig = plt.figure(1)
-        fig.suptitle(filename)
-
-        ax1 = fig.add_subplot(511)
-        ax1.plot(data_out['x'], data_out['v_tgt'], ':', label='v_tgt')
-        ax1.plot(data_out['x'], data_out['v_car'], label='v_car')
-        ax1.plot(data_out['x'], data_out['dv'], '--', label='dv')
-        ax1.set_ylabel('Velocity\n'+units)
-        if time_lim is not None: ax1.set_xlim(time_lim)
-        leg1 = ax1.legend(loc='upper right', shadow=True)
-        plt.grid()
-
-        ax2 = fig.add_subplot(512)
-        ax2.plot(data_force['x'], data_force['force'], label='Total')
-        ax2.plot(data_force['x'], data_force['F_motor'], label='Fmotor')
-        ax2.plot(data_force['x'], data_force['F_brake'], label='Fbrake')
-        ax2.plot(data_force['x'], data_force['F_aero_d'], label='Faero')
-        ax2.set_ylabel('Force\nNewtons')
-        if time_lim is not None: ax2.set_xlim(time_lim)
-        leg2 = ax2.legend(loc='upper right', shadow=True)
-        plt.grid()
-
-        ax3 = fig.add_subplot(513)
-        ax3.plot(data_ctrl['x'], data_ctrl['motor'], label='motor')
-        ax3.plot(data_ctrl['x'], data_ctrl['brake'], label='brake')
-        ax3.set_ylabel('Ctrl Sig\n-255 to 255')
-        ax3.set_ylim([-300, 300])
-        ax3.set_xlim(time_lim)
-        leg3 = ax3.legend(loc='upper right', shadow=True)
-        plt.grid()
-
-        ax5 = fig.add_subplot(514)
-        ax5.plot(data_ctrl['x'], data_ctrl['error'], '--', label='error')
-        ax5.plot(data_ctrl['x'], data_ctrl['p'], label='p')
-        ax5.plot(data_ctrl['x'], data_ctrl['i'], label='i')
-        ax5.plot(data_ctrl['x'], data_ctrl['d'], label='d')
-        ax5.set_ylabel('Ctrl Sig PID\n-255 to 255')
-        if time_lim is not None: ax5.set_xlim(time_lim)
-        leg5 = ax5.legend(loc='upper right', shadow=True)
-        plt.grid()
-         
-        ax6 = fig.add_subplot(515)
-        ax6.plot(data_elec_motor['x'], data_elec_motor['v'], label='v')
-        ax6.plot(data_elec_motor['x'], data_elec_motor['i'], label='i')
-        ax6.set_ylabel('Voltage,\ncurrent,\npower')
-        if time_lim is not None: ax6.set_xlim(time_lim)
-        leg6 = ax6.legend(loc='upper right', shadow=True)
-        plt.grid()
+        line_width = 2.0
 
 
 
         ## Figure 2
-        fig_pres = plt.figure(2)        
-        fig_pres.suptitle(filename)
+        fig_pres = plt.figure(1)        
+        fig_pres.suptitle("Powertrain")
 
-        ax7 = fig_pres.add_subplot(211)
-        ax7.plot(data_out['x'], data_out['v_tgt'], ':', label='v_tgt')
-        ax7.plot(data_out['x'], data_out['v_car'], label='v_car')
-        ax7.plot(data_out['x'], data_out['dv'], '--', label='dv')
-        ax7.set_ylabel('Velocity\n'+units)
-        if time_lim is not None: ax7.set_xlim(time_lim)
+        ax7 = fig_pres.add_subplot(211)#add_subplot(211)
+        #ax7.plot(data_out['x'], data_out['brake_value'], label='brake_value')
+        #ax7.plot(data_out['x'], data_out['brake_torque'], label='brake_torque')
+        #ax7.plot(data_out['x'], data_out['force_motor'], label='force_motor')
+        #ax7.plot(data_out['x'], data_out['force_brake'], ':', label='force_brake')
+        #ax7.plot(data_out['x'], data_out['force'], '--', label='force')
+        ax7.plot(data_out['x'], data_out['speed'], '--', label='speed')
+        ax7.set_ylabel('Vehicle Speed /mph')
         leg7 = ax7.legend(loc='upper right', shadow=True)
         plt.grid()
+        ax7.set_xlabel('Something something complete')
 
-        ax8 = fig_pres.add_subplot(212)
-        ax8.plot(data_force['x'], data_force['force'], label='Total')
-        ax8.plot(data_force['x'], data_force['F_motor'], label='Fmotor')
-        ax8.plot(data_force['x'], data_force['F_brake'], label='Fbrake')
-        ax8.set_ylabel('Force\nNewtons')
-        if time_lim is not None: ax8.set_xlim(time_lim)
+        ax8 = fig_pres.add_subplot(212)#add_subplot(211)
+        #ax8.plot(data_out['x'], data_out['brake_value'], label='brake_value')
+        #ax8.plot(data_out['x'], data_out['brake_torque'], label='brake_torque')
+        ax8.plot(data_out['x'], data_out['force_motor']/1000, label='force_motor')
+        ax8.plot(data_out['x'], data_out['force_brake']/1000, ':', label='force_brake')
+        #ax8.plot(data_out['x'], data_out['force'], '--', label='force')
+        #ax8.plot(data_out['x'], data_out['speed'], '--', label='speed')
+        ax8.set_ylabel('Horizontal Force /kN')
         leg8 = ax8.legend(loc='upper right', shadow=True)
         plt.grid()
+        ax8.set_xlabel('Time /s')
 
 
-    print(Fore.YELLOW, Style.BRIGHT)
-    print("Speed Cost:", round(mycar[0]._powertrain_model_array[0]._speed_control.cost, 1))
-    #print("Motor Cost:", round(leaf1._powertrain_model_array[0]._speed_control._motor_controller.cost, 1))
-    #print("Brake Cost:", round(leaf1._powertrain_model_array[0]._speed_control._brake_controller.cost, 1))    
+
 
     print(Fore.RED, Style.BRIGHT)
     print("\n", round((time.time()-time_start),1), "seconds to run")
@@ -297,7 +209,4 @@ if __name__ == "__main__":
     print("\n***end***\n\n")
     print(Style.RESET_ALL)
 
-    if graph:
-        plt.show()
-
-
+    plt.show()

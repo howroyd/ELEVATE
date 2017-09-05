@@ -19,20 +19,25 @@ class ControllerClass(object):
         self._max_i = max_i
         self._name = name
         self._data = dict()
+        self._time_last = 0.0
+        self._dt = 0.01
 
     def update(self, dt, error, rate=None):
+        self._dt = dt - self._time_last
+        self._time_last = dt
+
         self._output_last = self._output
 
         if rate is not None: self.rate_limit = rate
 
-        if (self._dont_update_flag or dt<=0.0):
+        if (self._dont_update_flag or self._dt<=0.0):
             self._dont_update_flag = False
             return
         if self._ki is not 0:
-            self._i += error*dt
+            self._i += error*self._dt
             self._i = self.constrain(self._i*self._ki, self._min_i, self._max_i) / self._ki
         if self._kd is not 0:
-            self._d = (error - self._error)/dt
+            self._d = (error - self._error)/self._dt
             
         self._error = error
 
@@ -47,7 +52,7 @@ class ControllerClass(object):
         self._output = output_capped
 
 
-        self._cost += abs(error)*dt # TODO machine learning on cost function
+        self._cost += abs(error)*self._dt # TODO machine learning on cost function
 
         self._data.update({(self._name+'_p') : self.error_p,
                             (self._name+'_i') : self.error_i,
