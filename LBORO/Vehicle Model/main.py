@@ -11,8 +11,8 @@ display = True
 inpath = "DriveCycles"
 outpath= "Results"
 
-#filename = "nedc_kph"
-filename = "WLTP_kph"
+filename = "nedc_kph"
+#filename = "WLTP_kph"
 #filename = "FTP75_mph"
 #filename = "HWFET_mph"
 #filename = "SFTP_US06_mph"

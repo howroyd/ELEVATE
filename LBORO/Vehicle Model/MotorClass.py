@@ -46,7 +46,7 @@ class MotorClass(ElectricityClass.ElectricalDevice):
         rotation *= self._reduction_ratio
 
         if (rotation > 0.0):
-            mechanical_power = rotation * self._shaft_torque * (1.0/self._mechanical_efficiency) * 1.5  # Supplied by motor # TODO 1.5 bodge
+            mechanical_power = rotation * self._shaft_torque * (1.0/self._mechanical_efficiency)  # Supplied by motor # TODO 1.5 bodge
 
             self.p = min(self._p_max, mechanical_power * (1.0/self._electrical_efficiency)) # Required by motor
             # https://www.precisionmicrodrives.com/tech-blog/2015/08/03/dc-motor-speed-voltage-and-torque-relationships

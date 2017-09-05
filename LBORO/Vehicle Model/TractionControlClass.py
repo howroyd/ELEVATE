@@ -150,7 +150,7 @@ class SpeedControlClass(ControllerClass.ControllerClass):
 
         for ptr in self._wheel_array:
             ptr.brake_parking = parking
-            ptr.brake_value = val
+            ptr.brake_value = -val if val is not None else None
                
         if verbose: 
             if parking: print("parking brake on", end=' ')
