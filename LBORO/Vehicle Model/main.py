@@ -11,7 +11,7 @@ display = True
 inpath = "DriveCycles"
 outpath= "Results"
 
-filename = "nedc_kph"
+#filename = "nedc_kph"
 #filename = "WLTP_kph"
 
 
@@ -21,7 +21,7 @@ filename = "nedc_kph"
 
 
 
-#filename = "bham_lboro_int_mph"
+filename = "bham_lboro_int_mph"
 
 #filename = "parabola_kph"
 #filename = "impulse_kph"
