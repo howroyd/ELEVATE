@@ -11,7 +11,7 @@ display = True
 inpath = "DriveCycles"
 outpath= "Results"
 
-#filename = "nedc_kph"
+filename = "nedc_kph"
 #filename = "WLTP_kph"
 
 
@@ -21,7 +21,7 @@ outpath= "Results"
 
 
 
-filename = "bham_lboro_int_mph"
+#filename = "bham_lboro_int_mph"
 
 #filename = "parabola_kph"
 #filename = "impulse_kph"
@@ -273,29 +273,31 @@ if __name__ == "__main__":
 
         ## Figure 2
         fig_pres = plt.figure(2)        
-        fig_pres.suptitle(filename)
+        #fig_pres.suptitle(filename)
 
-        plt.style.use('grayscale')
+        plt.style.use('presentation')
         
 
         ax7 = fig_pres.add_subplot(111)
-        ax7.plot(data_out['x'], data_out['v_tgt'], ':', label='v_tgt')
-        ax7.plot(data_out['x'], data_out['v_car'], label='v_car')
-        ax7.plot(data_out['x'], data_out['dv'], '--', label='dv')
-        ax7.set_ylabel('Speed /'+units)
+        ax7.plot(data_out['x'], data_out['v_car'], label='Actual Velocity')
+        ax7.plot(data_out['x'], data_out['v_tgt'], '--', label='Target Velocity')
+        #ax7.plot(data_out['x'], data_out['dv'], '--', label='dv')
+        ax7.set_ylabel('Vehicle Velocity /'+units)
         ax7.set_xlabel('Time /s')
         if time_lim is not None: ax7.set_xlim(time_lim)
-        leg7 = ax7.legend(loc='upper center', shadow=True)
+        leg7 = ax7.legend(loc='upper left', shadow=True)
         plt.grid()
 
         #ax8 = fig_pres.add_subplot(212)
         #ax8.plot(data_force['x'], data_force['force'], label='Total')
-        #ax8.plot(data_force['x'], data_force['F_motor'], label='Fmotor')
-        #ax8.plot(data_force['x'], data_force['F_brake'], label='Fbrake')
-        #ax8.set_ylabel('Force\nNewtons')
+        #ax8.plot(data_force['x'], 2*data_force['F_motor']/1000, '--.', label='force_motor')
+        #ax8.plot(data_force['x'], 4*data_force['F_brake']/-1000, ':', label='force_brake')
+        #ax8.set_ylabel('Horizontal Force /kN')
         #if time_lim is not None: ax8.set_xlim(time_lim)
-        #leg8 = ax8.legend(loc='upper right', shadow=True)
+        #leg8 = ax8.legend(loc='upper left', shadow=True)
         #plt.grid()
+
+        fig_pres.tight_layout()
 
 
     print(Fore.YELLOW, Style.BRIGHT)
