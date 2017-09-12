@@ -166,7 +166,7 @@ if __name__ == "__main__":
         data_out = np.genfromtxt(outpath+"/"+"wheel_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
                     names = ['x', 'brake_value', 'brake_torque', 'force_motor', 'force_brake', 'force', 'speed'])
 
-        plt.style.use('grayscale')
+        plt.style.use('presentation')
 
         line_width = 2.0
 
@@ -174,33 +174,33 @@ if __name__ == "__main__":
 
         ## Figure 2
         fig_pres = plt.figure(1)        
-        fig_pres.suptitle("Powertrain")
+        #fig_pres.suptitle("Powertrain")
 
-        ax7 = fig_pres.add_subplot(211)#add_subplot(211)
-        #ax7.plot(data_out['x'], data_out['brake_value'], label='brake_value')
-        #ax7.plot(data_out['x'], data_out['brake_torque'], label='brake_torque')
-        #ax7.plot(data_out['x'], data_out['force_motor'], label='force_motor')
-        #ax7.plot(data_out['x'], data_out['force_brake'], ':', label='force_brake')
-        #ax7.plot(data_out['x'], data_out['force'], '--', label='force')
-        ax7.plot(data_out['x'], data_out['speed'], '--', label='speed')
-        ax7.set_ylabel('Vehicle Speed /mph')
-        leg7 = ax7.legend(loc='upper right', shadow=True)
-        plt.grid()
-        ax7.set_xlabel('Something something complete')
+        #ax7 = fig_pres.add_subplot(211)#add_subplot(211)
+        ##ax7.plot(data_out['x'], data_out['brake_value'], label='brake_value')
+        ##ax7.plot(data_out['x'], data_out['brake_torque'], label='brake_torque')
+        ##ax7.plot(data_out['x'], data_out['force_motor'], label='force_motor')
+        ##ax7.plot(data_out['x'], data_out['force_brake'], ':', label='force_brake')
+        ##ax7.plot(data_out['x'], data_out['force'], '--', label='force')
+        #ax7.plot(data_out['x'], data_out['speed'], '--', label='speed')
+        #ax7.set_ylabel('Vehicle Speed /mph')
+        #leg7 = ax7.legend(loc='upper right', shadow=True)
+        #plt.grid()
+        #ax7.set_xlabel('Something something complete')
 
-        ax8 = fig_pres.add_subplot(212)#add_subplot(211)
+        ax8 = fig_pres.add_subplot(111)#add_subplot(211)
         #ax8.plot(data_out['x'], data_out['brake_value'], label='brake_value')
         #ax8.plot(data_out['x'], data_out['brake_torque'], label='brake_torque')
-        ax8.plot(data_out['x'], data_out['force_motor']/1000, label='force_motor')
-        ax8.plot(data_out['x'], data_out['force_brake']/1000, ':', label='force_brake')
+        ax8.plot(data_out['x'], 2*data_out['force_motor']/1000, label='force_motor')
+        ax8.plot(data_out['x'], 4*data_out['force_brake']/-1000, ':', label='force_brake')
         #ax8.plot(data_out['x'], data_out['force'], '--', label='force')
-        #ax8.plot(data_out['x'], data_out['speed'], '--', label='speed')
-        ax8.set_ylabel('Horizontal Force /kN')
+        ax8.plot(data_out['x'], data_out['speed'], '--', label='speed')
+        ax8.set_ylabel('Horizontal Force on Road /kN\nVehicle Velocity /mph')
         leg8 = ax8.legend(loc='upper right', shadow=True)
         plt.grid()
         ax8.set_xlabel('Time /s')
 
-
+        fig_pres.tight_layout()
 
 
     print(Fore.RED, Style.BRIGHT)
