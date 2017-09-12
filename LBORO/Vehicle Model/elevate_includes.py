@@ -4,6 +4,7 @@ import telnetlib, time, sys, os, datetime, copy
 import matlab.engine
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pylab
+from matplotlib import rcParams
 import numpy as np
 #from TdiLoadbankClass import TdiLoadbank
 from battery_sw import Battery_Model

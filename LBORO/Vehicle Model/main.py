@@ -67,7 +67,7 @@ if __name__ == "__main__":
     dt = 0.01
 
     # RUN SIMULATION
-    for x in np.arange(0.0, 130.0, dt):
+    for x in np.arange(0.0, 180.0, dt):
 
         if x < 30:
             wheel.brake_value = 0
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         data_out = np.genfromtxt(outpath+"/"+"wheel_out"+".csv", delimiter=',', skip_header=1, skip_footer=1,
                     names = ['x', 'brake_value', 'brake_torque', 'force_motor', 'force_brake', 'force', 'speed'])
 
-        plt.style.use('grayscale')
+        plt.style.use('presentation')
 
         line_width = 2.0
 
@@ -142,21 +142,22 @@ if __name__ == "__main__":
 
         ## Figure 2
         fig_pres = plt.figure(1)        
-        fig_pres.suptitle("Wheel")
+        #fig_pres.suptitle("Wheel")
+
 
         ax7 = fig_pres.add_subplot(111)#add_subplot(211)
         #ax7.plot(data_out['x'], data_out['brake_value'], label='brake_value')
         #ax7.plot(data_out['x'], data_out['brake_torque'], label='brake_torque')
-        ax7.plot(data_out['x'], data_out['force_motor']/1000, label='force_motor')
-        ax7.plot(data_out['x'], data_out['force_brake']/1000, ':', label='force_brake')
+        ax7.plot(data_out['x'], data_out['force_motor']/10, label='force_motor')
+        ax7.plot(data_out['x'], data_out['force_brake']/-10, ':', label='force_brake')
         #ax7.plot(data_out['x'], data_out['force'], '--', label='force')
         ax7.plot(data_out['x'], data_out['speed'], '--', label='speed')
-        ax7.set_ylabel('Horizontal Force /kN, Vehicle Speed /mph')
-        leg7 = ax7.legend(loc='upper center', shadow=True)
+        ax7.set_ylabel('Horizontal Force /dN\nTangential Speed /mph')
+        leg7 = ax7.legend(loc='upper right', shadow=True)
         plt.grid()
         ax7.set_xlabel('Time /s')
 
-
+        fig_pres.tight_layout()
 
 
     print(Fore.RED, Style.BRIGHT)
