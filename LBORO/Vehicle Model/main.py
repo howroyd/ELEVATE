@@ -272,18 +272,35 @@ if __name__ == "__main__":
 
         ## Figure 2
         fig_pres = plt.figure(2)        
+        #fig_pres.suptitle(filename)
 
+        plt.style.use('presentation')
         
 
         ax7 = fig_pres.add_subplot(111)
+        ax7.plot(data_out['x'], data_out['v_car'], label='Actual Velocity')
+        ax7.plot(data_out['x'], data_out['v_tgt'], '--', label='Target Velocity')
+        #ax7.plot(data_out['x'], data_out['dv'], '--', label='dv')
+        ax7.set_ylabel('Vehicle Velocity /'+units)
         ax7.set_xlabel('Time /s')
         if time_lim is not None: ax7.set_xlim(time_lim)
+        leg7 = ax7.legend(loc='upper left', shadow=True)
         plt.grid()
 
         #ax8 = fig_pres.add_subplot(212)
         #ax8.plot(data_force['x'], data_force['force'], label='Total')
+        #ax8.plot(data_force['x'], 2*data_force['F_motor']/1000, '--.', label='force_motor')
+        #ax8.plot(data_force['x'], 4*data_force['F_brake']/-1000, ':', label='force_brake')
+        #ax8.set_ylabel('Horizontal Force /kN')
         #if time_lim is not None: ax8.set_xlim(time_lim)
+        #leg8 = ax8.legend(loc='upper left', shadow=True)
         #plt.grid()
+
+        fig_pres.tight_layout()
+
+        rmse = np.sqrt(((data_out['v_car'] - data_out['v_tgt']) ** 2).mean())
+
+        print("RMSE: ", rmse)
 
 
     print(Fore.YELLOW, Style.BRIGHT)

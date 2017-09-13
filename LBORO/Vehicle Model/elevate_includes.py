@@ -2,6 +2,7 @@
 
 import telnetlib, time, sys, os, datetime, copy
 import matlab.engine
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 #from TdiLoadbankClass import TdiLoadbank
