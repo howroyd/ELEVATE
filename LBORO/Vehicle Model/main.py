@@ -11,14 +11,14 @@ display = True
 inpath = "DriveCycles"
 outpath= "Results"
 
-#filename = "nedc_kph"
+filename = "nedc_kph"
 #filename = "WLTP_kph"
 
 
 #filename = "FTP75_mph"
 #filename = "HWFET_mph"
 #filename = "SFTP_US06_mph"
-filename = "bham_lboro_int_mph"
+#filename = "bham_lboro_int_mph"
 #filename = "step_irl_mph"
 
 
@@ -27,8 +27,7 @@ filename = "bham_lboro_int_mph"
 #filename = "step_kph"
 #filename = "sine_kph"
 
-time_lim = None
-#time_lim = [920, 940]
+break_at_pc = 10
 
 def display_init():
     colorama.init()
@@ -62,9 +61,6 @@ def check_units(fname):
 
 # Check the units of the input data file; mph, kph, m/s
 conversion_factor, units = check_units(filename)
-
-time_lim = None
-#time_lim = [920, 940]
 
 time_start = 0.0
 time_init  = 0.0
@@ -116,7 +112,7 @@ if __name__ == "__main__":
     print(datafile.num_lines, 'lines in input file\n')
     _new_data = False
     # RUN SIMULATION
-    while not datafile.finished:
+    while (not datafile.finished) and (datafile.percent_complete <= break_at_pc):
 
         # Update the timer and input data file
         #timer.update()
@@ -171,9 +167,9 @@ if __name__ == "__main__":
         d_ctrl.update()
 
         d_elec_motor.line = [mytime,
-            get(mycar[0], 'battery_v'),
-            get(mycar[0], 'battery_i'),
-            get(mycar[0], 'battery_v')*get(mycar[0], 'battery_i')/1000,
+            get(mycar[0], 'motor_v'),
+            get(mycar[0], 'motor_i'),
+            get(mycar[0], 'motor_p'),
             ]
         d_elec_motor.update()
 
@@ -227,7 +223,7 @@ if __name__ == "__main__":
         ax1.plot(data_out['x'], data_out['v_car'], label='v_car')
         ax1.plot(data_out['x'], data_out['dv'], '--', label='dv')
         ax1.set_ylabel('Velocity\n'+units)
-        if time_lim is not None: ax1.set_xlim(time_lim)
+        #if time_lim is not None: ax1.set_xlim(time_lim)
         leg1 = ax1.legend(loc='upper right', shadow=True)
         plt.grid()
 
@@ -237,7 +233,7 @@ if __name__ == "__main__":
         ax2.plot(data_force['x'], data_force['F_brake'], label='Fbrake')
         ax2.plot(data_force['x'], data_force['F_aero_d'], label='Faero')
         ax2.set_ylabel('Force\nNewtons')
-        if time_lim is not None: ax2.set_xlim(time_lim)
+        #if time_lim is not None: ax2.set_xlim(time_lim)
         leg2 = ax2.legend(loc='upper right', shadow=True)
         plt.grid()
 
@@ -246,7 +242,7 @@ if __name__ == "__main__":
         ax3.plot(data_ctrl['x'], data_ctrl['brake'], label='brake')
         ax3.set_ylabel('Ctrl Sig\n-255 to 255')
         ax3.set_ylim([-300, 300])
-        ax3.set_xlim(time_lim)
+        #if time_lim is not None: ax3.set_xlim(time_lim)
         leg3 = ax3.legend(loc='upper right', shadow=True)
         plt.grid()
 
@@ -256,7 +252,7 @@ if __name__ == "__main__":
         ax5.plot(data_ctrl['x'], data_ctrl['i'], label='i')
         ax5.plot(data_ctrl['x'], data_ctrl['d'], label='d')
         ax5.set_ylabel('Ctrl Sig PID\n-255 to 255')
-        if time_lim is not None: ax5.set_xlim(time_lim)
+        #if time_lim is not None: ax5.set_xlim(time_lim)
         leg5 = ax5.legend(loc='upper right', shadow=True)
         plt.grid()
          
@@ -264,39 +260,39 @@ if __name__ == "__main__":
         ax6.plot(data_elec_motor['x'], data_elec_motor['v'], label='v')
         ax6.plot(data_elec_motor['x'], data_elec_motor['i'], label='i')
         ax6.set_ylabel('Voltage,\ncurrent,\npower')
-        if time_lim is not None: ax6.set_xlim(time_lim)
+        #if time_lim is not None: ax6.set_xlim(time_lim)
         leg6 = ax6.legend(loc='upper right', shadow=True)
         plt.grid()
 
 
 
-        ## Figure 2
-        fig_pres = plt.figure(2)        
-        #fig_pres.suptitle(filename)
+        ### Figure 2
+        #fig_pres = plt.figure(2)        
+        ##fig_pres.suptitle(filename)
 
-        plt.style.use('presentation')
+        #plt.style.use('presentation')
         
 
-        ax7 = fig_pres.add_subplot(111)
-        ax7.plot(data_out['x'], data_out['v_car'], label='Actual Velocity')
-        ax7.plot(data_out['x'], data_out['v_tgt'], '--', label='Target Velocity')
-        #ax7.plot(data_out['x'], data_out['dv'], '--', label='dv')
-        ax7.set_ylabel('Vehicle Velocity /'+units)
-        ax7.set_xlabel('Time /s')
-        if time_lim is not None: ax7.set_xlim(time_lim)
-        leg7 = ax7.legend(loc='upper left', shadow=True)
-        plt.grid()
-
-        #ax8 = fig_pres.add_subplot(212)
-        #ax8.plot(data_force['x'], data_force['force'], label='Total')
-        #ax8.plot(data_force['x'], 2*data_force['F_motor']/1000, '--.', label='force_motor')
-        #ax8.plot(data_force['x'], 4*data_force['F_brake']/-1000, ':', label='force_brake')
-        #ax8.set_ylabel('Horizontal Force /kN')
-        #if time_lim is not None: ax8.set_xlim(time_lim)
-        #leg8 = ax8.legend(loc='upper left', shadow=True)
+        #ax7 = fig_pres.add_subplot(111)
+        #ax7.plot(data_out['x'], data_out['v_car'], label='Actual Velocity')
+        #ax7.plot(data_out['x'], data_out['v_tgt'], '--', label='Target Velocity')
+        ##ax7.plot(data_out['x'], data_out['dv'], '--', label='dv')
+        #ax7.set_ylabel('Vehicle Velocity /'+units)
+        #ax7.set_xlabel('Time /s')
+        ##if time_lim is not None: ax7.set_xlim(time_lim)
+        #leg7 = ax7.legend(loc='upper left', shadow=True)
         #plt.grid()
 
-        fig_pres.tight_layout()
+        ##ax8 = fig_pres.add_subplot(212)
+        ##ax8.plot(data_force['x'], data_force['force'], label='Total')
+        ##ax8.plot(data_force['x'], 2*data_force['F_motor']/1000, '--.', label='force_motor')
+        ##ax8.plot(data_force['x'], 4*data_force['F_brake']/-1000, ':', label='force_brake')
+        ##ax8.set_ylabel('Horizontal Force /kN')
+        ##if time_lim is not None: ax8.set_xlim(time_lim)
+        ##leg8 = ax8.legend(loc='upper left', shadow=True)
+        ##plt.grid()
+
+        #fig_pres.tight_layout()
 
         rmse = np.sqrt(((data_out['v_car'] - data_out['v_tgt']) ** 2).mean())
 
