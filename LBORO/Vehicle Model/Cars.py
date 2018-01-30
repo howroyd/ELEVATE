@@ -30,6 +30,8 @@ class Nissan_Leaf(CarData):
                     brake_diameter=[0.1]*4, # assumed
                     brake_max_torque=[500.0]*4,
                     motor_max_torque=500,#280.0,
+                    motor_max_rpm=10390,
+                    motor_reduction_ratio=7.9377,
                     motor_v_min = 400.0, # assumed
                     motor_v_max=300.0, # assumed
                     motor_i_max=266.0, # assumed

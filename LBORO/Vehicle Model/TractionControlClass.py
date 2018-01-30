@@ -192,7 +192,9 @@ class SpeedControlClass(ControllerClass.ControllerClass):
     @current.setter
     def current(self, value):
         self._current = max(0, value) # Positive numbers only
-
+        for ptr in self._wheel_array:
+            ptr.set_wheel_speed(self._current)
+            
     @property
     def dv(self):
         if self._feed_forward is not None:
