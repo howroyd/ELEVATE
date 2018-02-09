@@ -16,7 +16,7 @@ class error_t(Enum):
 class ElectricalDevice():
     '''DESCRIPTION'''
     # Instance Constructor
-    def __init__(self, kwargs):
+    def __init__(self, **kwargs):
         self._v       = kwargs['v'] if 'v' in kwargs else 0.0
         self._i       = kwargs['i'] if 'i' in kwargs else 0.0
         self._p       = kwargs['p'] if 'p' in kwargs else 0.0

@@ -26,14 +26,19 @@ class Nissan_Leaf(CarData):
                     car_cd=0.29,
                     car_area=0.725,
                     car_mass=1521.0,
-                    wheel_diameter=0.2159,
-                    brake_diameter=[0.1]*4, # assumed
-                    brake_max_torque=[500.0]*4,
+                    wheel_diameter=0.2159*2,
+                    wheel_mass=9.0, # Rough google search
+                    #brake_diameter=[0.1]*4, # assumed
+                    brake_diameter=0.1, # assumed
+                    #brake_max_torque=[500.0]*4,
+                    brake_max_torque=500.0,
+                    motor_rotor_mass=25.0, # Complete guess
+                    motor_rotor_diameter=0.2, # Complete guess
                     motor_max_torque=500,#280.0,
                     motor_max_rpm=10390,
                     motor_reduction_ratio=7.9377,
-                    motor_v_min = 400.0, # assumed
-                    motor_v_max=300.0, # assumed
+                    motor_v_max = 400.0, # assumed
+                    motor_v_min=300.0, # assumed
                     motor_i_max=266.0, # assumed
                     motor_p_max=80000.0 # assumed
                     )
