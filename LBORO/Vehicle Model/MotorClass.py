@@ -6,107 +6,114 @@ import ElectricalManagementClass
 
 class MotorClass(ElectricalDeviceClass.ElectricalDevice, RotatingThingClass.RotatingCylinderClass):
     """description of class"""
-    # Tq = P*(rad/s) (mech)
+    # Tq = P*w (mech)
     # Pe = Vs * I (elec)
     # Pm = Tq * w
-    # Vemf = ki * w (w=rad/s, ki=const)
-    # I = (Vs - Vemf) / R = (Vs - ki*w) / R (R=motor resistance)
-    # Tq = kt * I
-    # kt = ki (for 100% eff) therefor Pe=Pm
+    # Vemf = kme * w (w=rad/s, ki=const)
+    # I = (Vs - Vemf) / R = (Vs - kme*w) / R (R=motor resistance)
+    # Tq = kem * I
+    # kt = kme (for 100% eff) therefor Pe=Pm
 
     # Ideally at stall speed there is no back emf, and at no the no-load speed the back emf is equal to the driving source voltage.
 
     # Instance constructor
-    def __init__(self, **kwargs):
+    def __init__(self, kwargs):
 
-        RotatingThingClass.RotatingCylinderClass.__init__(self,
-                                                            diameter=kwargs['motor_rotor_diameter'],
-                                                            mass=kwargs['motor_rotor_mass'] )
+        _kwargs = dict(diameter=kwargs['motor_rotor_diameter'],
+                mass=kwargs['motor_rotor_mass']
+                )
+        RotatingThingClass.RotatingCylinderClass.__init__(self, _kwargs)
 
         ElectricalDeviceClass.ElectricalDevice.__init__(self)
 
-        self._torque_max  = kwargs['motor_max_torque']
 
         self._ctrl_sig    = ControlBusClass.ControlBusClass('signed')
 
         self._efficiency_elec_to_mech = 0.9
         self._efficiency_mech_to_elec = 0.9
 
-        self._requested_power = 0.0 # TODO power demand or current demand??? Includes inefficiencies
-        self._received_v      = 0.0 # Voltage actually arrived at point of use
-        self._received_i      = 0.0 # Current actually arrived at point of use
-
         self._winding_resistance = 1.0
 
         self._is_generating = False
 
-        self._value = 0 # 0-255
         self._torque_motor = 0.0
-        self._max_torque = kwargs['motor_max_torque']
+        self._torque_max  = kwargs['motor_max_torque']
         self._v_min = kwargs['motor_v_min']
         self._v_max = kwargs['motor_v_max']
         self._i_max = kwargs['motor_i_max']
         self._p_max = kwargs['motor_p_max']
-        self._w_motor_max = kwargs['motor_max_rpm'] / 60.0 / 2.0 / math.pi
         self._w_motor = 0.0
-        self._w_shaft = 0.0
+        self._w_motor_max = self.rpm_to_rads(kwargs['motor_max_rpm'])
         self._reduction_ratio = kwargs['motor_reduction_ratio']
-        return super().__init__(kwargs)
+        return
 
     def update(self, dt):
-        dissipated_power = 0.0
-
         # Dumb system.  May over current battery on regen.  Must handle this higher up and ramp off ctrl sig
-
         # Note; low voltages/currents are handled by PWM
 
-        torque_demand = self._ctrl_sig.decimal * self.torque_max
+        # Update shaft speed
+        # Calculate torque demand
+        # Account for inertia, new torque demand
+        # Calculate current
+        # Calculate torque
+        # Calculate voltage
 
-        if (torque_demand >= 0.0):
-            self._is_generating = False
-        else:
-            self._is_generating = True
-            max_torque = -1.0 * self._efficiency_elec_to_mech * self._i # i must be the highest current that can be accepted by battery
-            torque_demand = max(max_torque, torque_demand) # Override with max current that can be sunk
+        ## Calculate torque demand from control signal
+        # Update for intertia
+        RotatingThingClass.RotatingCylinderClass.update(dt) 
+        self._w_motor = self.speed * self._reduction_ratio
 
-        # Find supply voltage to satisfy torque requirement
-        vs = self._efficiency_elec_to_mech * ( (self._efficiency_elec_to_mech * self._efficiency_mech_to_elec * self.speed) + (torque_demand * self._winding_resistance) )
-        i = ( (vs / ( self._efficiency_elec_to_mech**2 ) ) - self._efficiency_mech_to_elec * self.speed ) / self._winding_resistance
-        tq = self._efficiency_elec_to_mech * i
-        # Above works for motor under power, e.g. accelerating
+        # Calculate how much torque we need to generate
+        shaft_torque_demand = (self._ctrl_sig.decimal * self.torque_max*self._reduction_ratio) + self.inertia_torque_x
+        motor_torque_demand = shaft_torque_demand / self._reduction_ratio
+        motor_torque_demand = self.constrain_plus_minus(motor_torque_demand, self._torque_max)
 
-        self.torque = ( self._efficiency_elec_to_mech * ( vs - ( self._efficiency_mech_to_elec * self.speed ) ) ) / self._winding_resistance
+        # First guess at current
+        i = self.calculate_current_from_torque(motor_torque_demand)
+        i = self.constrain_plus_minus(i, self._i_max)
+        
+        if (self._w_motor > self._w_motor_max):
+            # If motor overspeed, only allow negative current (regen)
+            i = min(i, 0.0)
 
-        self._i = self.torque / self._efficiency_elec_to_mech # Need a while loop to iterate if over current or voltage
-        self._p = self.torque * self.speed
+        motor_torque_out = self.calculate_torque_from_current(i)
 
-        if (torque_demand >= 0.0):
-            self._p *= self._efficiency_elec_to_mech
-        else:
-            self._p *= self._efficiency_mech_to_elec
+        # Calculate supply voltage required
+        Vemf = self._efficiency_mech_to_elec * self._w_motor
+        Vs = (i * self._winding_resistance) + Vemf
 
-        self._v = self._p / self._i
+        if ( Vs > self._v_max ):    
+            # If over-voltage, constrain and recalculate
+            Vs = self._v_max
+            i = (Vs - Vemf) / self._winding_resistance
+            motor_torque_out = self.calculate_torque_from_current(i)
 
-    def calculate_torque(self, i=None, tq=None):
-        if i is None and tq is None:
-            print("Cannot calculate, no values entered!")
-            raise AttributeError
-        elif i is not None:
-            # i is the max current we can sink, therefore generate
-            pass
+        self._v = Vs
+        self._i = i
+        self._torque_motor = motor_torque_out
+        self.torque = motor_torque_out * self._reduction_ratio
+        ElectricalDeviceClass.ElectricalDevice.update(dt)
+
+        dissipated_power = abs(ElectricalDeviceClass.ElectricalDevice.get_p() - RotatingThingClass.RotatingCylinderClass.power)
+
+
+    def calculate_current_from_torque(self, tq):
+        return tq / self._efficiency_elec_to_mech
+
+    def calculate_torque_from_current(self, i):
+        return i * self._efficiency_elec_to_mech
+
+    @staticmethod
+    def constrain_plus_minus(var, constraint):
+        return constraint * (var/abs(var)) if (abs(var) > constraint) else var
 
     @property
-    def shaft_torque(self):
-        return self._torque_shaft
-
-    @property
-    def motor_value(self):
+    def value(self):
         return self._value
-    @motor_value.setter
-    def motor_value(self, value):
-        #value = self._value + 1*(value - self._value)
-        self._value = max(min(value, 255), 0)
+    @value.setter
+    def value(self, value):
+        self._ctrl_sig.value = value
 
     @property
     def is_generating(self):
-        return self._is_generating
+        return bool(self._i < 0)

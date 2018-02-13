@@ -1,15 +1,16 @@
 import math
-from abc import ABCMeta
+from abc import ABCMeta, ABC, abstractmethod
 
-class RotatingThingClass(object):
+class RotatingThingClass(ABC):
     """description of class"""
 
-    def __init__(self, **kwargs):
+    def __init__(self, kwargs):
         self._torque      = 0.0
         self._w           = 0.0
         self._w_last      = 0.0
-        delf._dt          = 0.0
-        self._diameter    = kwargs['diameter'] if 'brake_diameter' in kwargs else None
+        self._p           = 0.0
+        self._dt          = 0.0
+        self._diameter    = kwargs['diameter'] if 'diameter' in kwargs else None
         self._area        = kwargs['area'] if 'area' in kwargs else ((math.pi * (self._diameter / 2.0)**2) if self._diameter is not None else None)
         self._mass        = kwargs['mass'] if 'mass' in kwargs else None
         self._circumference = math.pi * self._diameter if self._diameter is not None else None
@@ -18,6 +19,14 @@ class RotatingThingClass(object):
     def update(self, dt):
         self._dt = dt
         return None
+
+    @staticmethod
+    def rpm_to_rads(rpm):
+        return rpm / 60.0 / 2.0 / math.pi
+
+    @staticmethod 
+    def rads_to_rpm(rads):
+        return rads * 60.0 * 2.0 * math.pi
 
     @property
     def diameter(self):
@@ -34,6 +43,10 @@ class RotatingThingClass(object):
     @property
     def mass(self):
         return self._mass
+
+    @property
+    def power(self):
+        return self._torque * self._w
 
     @property
     def torque(self):
@@ -62,15 +75,7 @@ class RotatingThingClass(object):
     def inertia_x(self):
         ...
 
-    @property
-    @abstractmethod
-    def inertia_y(self):
-        ...
 
-    @property
-    @abstractmethod
-    def inertia_z(self):
-        ...
 
     @property
     def inertia_torque_x(self):
@@ -81,24 +86,24 @@ class RotatingThingClass(object):
 class RotatingDiscClass(RotatingThingClass):
     """description of class"""
 
-    def __init__(self, **kwargs):
-        RotatingThingClass(self, kwargs)
+    def __init__(self, kwargs):
+        RotatingThingClass.__init__(self, kwargs)
         return
 
     @property
-    def inertia_z(self):
+    def inertia_x(self):
         return (self.mass * self.radius**2) / 2.0
 
 class RotatingCylinderClass(RotatingThingClass):
     """description of class"""
 
-    def __init__(self, **kwargs):
-        RotatingThingClass(self, kwargs)
+    def __init__(self, kwargs):
+        RotatingThingClass.__init__(self, kwargs)
         self._length = kwargs['length'] if 'length' in kwargs else None
         return
 
     @property
-    def inertia_z(self):
+    def inertia_x(self):
         return (self.mass * self.radius**2) / 2.0
 
     @ property
@@ -108,13 +113,13 @@ class RotatingCylinderClass(RotatingThingClass):
 class RotatingCylinderShellClass(RotatingThingClass):
     """description of class"""
 
-    def __init__(self, **kwargs):
-        RotatingThingClass(self, kwargs)
+    def __init__(self, kwargs):
+        RotatingThingClass.__init__(self, kwargs)
         self._length = kwargs['length'] if 'length' in kwargs else None
         return
 
     @property
-    def inertia_z(self):
+    def inertia_x(self):
         return self.mass * self.length**2
 
     @ property

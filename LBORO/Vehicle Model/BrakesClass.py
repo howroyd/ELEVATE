@@ -6,7 +6,7 @@ class BrakesClass(RotatingThingClass.RotatingDiscClass):
     """description of class"""
 
     # Instance constructor
-    def __init__(self, **kwargs):
+    def __init__(self, kwargs):
         self._shc_carbon_steel = 502.416
         self._density_carbon_steel = 7850.0
         self._conductivity_to_air_carbon_steel = 36.0
@@ -18,9 +18,14 @@ class BrakesClass(RotatingThingClass.RotatingDiscClass):
 
         _diameter    = kwargs['brake_diameter']
         _area        = math.pi * (_diameter / 2.0)**2
-        _mass        = self._area * self._thickness * self._density_carbon_steel
+        _mass        = _area * self._thickness * self._density_carbon_steel
 
-        super().__init__(self, diameter=kwargs['brake_diameter'], mass=_mass)
+        _kwargs = dict(diameter=kwargs['brake_diameter'],
+                        area=_area,
+                        mass=_mass
+                        )
+
+        RotatingThingClass.RotatingDiscClass.__init__(self, _kwargs)
 
         self._torque_max  = kwargs['brake_max_torque']
 

@@ -8,7 +8,7 @@ class AxleClass(RotatingThingClass.RotatingCylinderClass):
     """description of class"""
 
     # Instance constructor
-    def __init__(self, num_wheels, num_motors=None, **kwargs):
+    def __init__(self, num_wheels, num_motors=None, kwargs):
         if (num_wheels <= 0) or (int(num_wheels) is not num_wheels):
             print("Axle must have a positive integer number of wheels connected")
             raise ValueError

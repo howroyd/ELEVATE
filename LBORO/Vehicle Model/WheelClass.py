@@ -5,10 +5,13 @@ class WheelClass(RotatingThingClass.RotatingCylinderShellClass):
     """description of class"""
 
 # Instance constructor
-    def __init__(self, **kwargs):
+    def __init__(self, kwargs):
         self._brake = BrakesClass.BrakesClass(kwargs)
 
-        super().__init__(self, diameter=kwargs['wheel_diameter'], mass=kwargs['wheel_mass'])
+        _kwargs = dict(diameter=kwargs['wheel_diameter'],
+                mass=kwargs['wheel_mass']
+                )
+        RotatingThingClass.RotatingCylinderShellClass.__init__(self, _kwargs)
 
         self._force = 0.0
 

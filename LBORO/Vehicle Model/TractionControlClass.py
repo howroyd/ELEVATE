@@ -31,7 +31,7 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._battery_array = battery_array
         self._motor_array = motor_array
         self._wheel_array = wheel_array
-        self._brake_array = kwargs['brake_model_array']
+        #self._brake_array = kwargs['brake_model_array']
         self._i = 0.0
         self._d = 0.0
         #self._kp = 10#0.8
@@ -49,7 +49,7 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._k_feed_forward = 5
         self._state = PowertrainState['stopped']
         self._hysteresis = 10
-        return super().__init__(150, 50, -7.5)  # 128, 16, 0
+        return super().__init__(150, 50, -7.5, type='signed')  # 128, 16, 0
         #return super().__init__(15, 0.05, 1)
         #self._speed_controller = ControllerClass.ControllerClass(10, 0.001, 20)
 
@@ -211,8 +211,9 @@ class TractionControlClass(SpeedControlClass):
     """Takes a control signal and drives the brakes/motors"""
     
     def __init__(self, battery_array, motor_array, wheel_array, kwargs):
-        self._brake_controller = ControllerClass.ControllerClass(0.9, 0.1, -0.05, 0, 255)
-        self._motor_controller = ControllerClass.ControllerClass(1.5, 0.1, -0.025, -95, 255)
+        self._brake_controller = ControllerClass.ControllerClass(0.9, 0.1, -0.05, type='unsigned')
+        self._motor_controller = ControllerClass.ControllerClass(1.5, 0.1, -0.025, type='signed')
+        self._motor_controller.min_val = -95
         #self._brake_controller = ControllerClass.ControllerClass(10, 0.6, -0.2, -255, 255)
         #self._motor_controller = ControllerClass.ControllerClass(5, 0.5, -2.0, -255, 255)
         #self._brake_controller.set_i_limits(0,255)

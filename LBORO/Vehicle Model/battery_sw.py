@@ -1,4 +1,3 @@
-import time
 import ElectricalDeviceClass
 
 class Battery_Model(ElectricalDeviceClass.ElectricalDevice):
