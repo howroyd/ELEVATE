@@ -1,20 +1,50 @@
 import math
 from abc import ABCMeta, ABC, abstractmethod
 
-class RotatingThingClass(ABC):
+class RotatingThingData(object):
+    def __init__(self):
+        self._key_torque = 'torque'
+        self._key_speed  = 'speed'
+        self._torque = 0.0
+        self._speed  = 0.0
+
+    @property
+    def data(self):
+        return {self._key_torque : self._torque, self._key_speed : self._speed}
+    @data.setter
+    def data(self, data_dict):
+        self._torque = data_dict.get(self._key_torque)
+        self._speed  = data_dict.get(self._key_speed)
+
+    @property
+    def torque(self):
+        return self._torque
+
+    @property
+    def speed(self):
+        return self._speed
+
+    @property
+    def key_torque(self):
+        return self._key_torque
+
+    @property
+    def key_speed(self):
+        return self._key_speed
+
+class RotatingThingClass(ABC, RotatingThingData):
     """description of class"""
 
-    def __init__(self, kwargs):
-        self._torque      = 0.0
-        self._w           = 0.0
+    def __init__(self, **kwargs):
         self._w_last      = 0.0
         self._p           = 0.0
         self._dt          = 0.0
-        self._diameter    = kwargs['diameter'] if 'diameter' in kwargs else None
-        self._area        = kwargs['area'] if 'area' in kwargs else ((math.pi * (self._diameter / 2.0)**2) if self._diameter is not None else None)
-        self._mass        = kwargs['mass'] if 'mass' in kwargs else None
+        self._diameter    = kwargs.get('diameter')
+        self._area        = kwargs.get('area', (math.pi * (self._diameter / 2.0)**2) if self._diameter is not None else None)
+        self._mass        = kwargs.get('mass')
         self._circumference = math.pi * self._diameter if self._diameter is not None else None
-        return
+        super(ABC, self).__init__()
+        return super(RotatingThingData, self).__init__()
 
     def update(self, dt):
         self._dt = dt
@@ -46,11 +76,8 @@ class RotatingThingClass(ABC):
 
     @property
     def power(self):
-        return self._torque * self._w
+        return self._torque * self._speed
 
-    @property
-    def torque(self):
-        return self._torque
     @torque.setter
     def torque(self, tq):
         self._torque = tq - self.inertia_torque_x
@@ -59,16 +86,13 @@ class RotatingThingClass(ABC):
     def force(self):
         return self._torque * self.radius
 
-    @property
-    def speed(self):
-        return self._w
     def speed(self, rad_sec):
         if (rad_sec < 0.0):
             print("Rotational speed cannot be negative")
             raise ValueError
             return None
-        self._w_last = self._w
-        self._w = rad_sec
+        self._w_last = self._speed
+        self._speed = rad_sec
 
     @property
     @abstractmethod
@@ -79,7 +103,7 @@ class RotatingThingClass(ABC):
 
     @property
     def inertia_torque_x(self):
-        return self.inertia_x * ( self._w - self._w_last ) / self._dt
+        return self.inertia_x * ( self._speed - self._w_last ) / self._dt
 
 
 
@@ -99,7 +123,7 @@ class RotatingCylinderClass(RotatingThingClass):
 
     def __init__(self, kwargs):
         RotatingThingClass.__init__(self, kwargs)
-        self._length = kwargs['length'] if 'length' in kwargs else None
+        self._length = kwargs.get('length')
         return
 
     @property
