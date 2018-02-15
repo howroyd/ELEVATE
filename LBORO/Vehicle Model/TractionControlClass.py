@@ -145,8 +145,8 @@ class SpeedControlClass(ControllerClass.ControllerClass):
 
     def _update_models(self, dt):
         # Update models
-        for ptr in self._battery_array:
-            ptr.update(dt)
+        #for ptr in self._battery_array:
+        #    ptr.update(dt)
         for ptr in self._motor_array:
             ptr.update(dt)
         for ptr in self._wheel_array:
