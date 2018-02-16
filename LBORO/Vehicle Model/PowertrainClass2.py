@@ -13,7 +13,7 @@ import WheelClass
 class PowertrainControllerClass(object):
     def __init__(self):
         self._axle    = AxleClass.AxleClass()
-        self._battery = BatteryClass.Battery_Model()
+        self._battery = BatteryClass.BatteryClass()
         self._bms     = BatteryManagementClass.BatteryManagementClass()
         self._esc     = EscClass.ESC()
         self._motor   = MotorClass.MotorClass()
@@ -31,11 +31,11 @@ class PowertrainControllerClass(object):
         self._motor.data = self._axle.shaft_data
 
         # Get battery availability, pass to BMS & ESC
-        self._bms.set_battery_available(self._battery.battery_data)
-        self._esc.set_battery_available(self._bms.available)
+        self._bms.set_battery_data(self._battery.battery_data)
+        self._esc.set_input_power(self._bms.availability)
         
         # Parse control signal from speed controller
-        ctrl_sig_motor, ctrl_sig_brake = self._parse_control_signal()
+        ctrl_sig_motor, ctrl_sig_brake = self._parse_control_signal() # TODO
 
         # Update independent motor and brake controllers
         self._ctrl_motor.update(dt, ctrl_sig_motor)

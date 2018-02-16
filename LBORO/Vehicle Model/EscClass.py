@@ -1,49 +1,51 @@
+import ControlBusClass
 from Filters import LowPassFilter
-import ElectricityClass
+import ElectricalDeviceClass
 
-class ESC(ElectricityClass.ElectricalDevice):
+class ESC(ElectricalDeviceClass.ElectricalDeviceClass):
     """description of class"""
 
     # Takes in electrical power from battery and converts it to elec power for motor
     # Does not work in reverse to charge battery
 
     # Instance constructor
-    def __init__(self, kwargs):
-        self._value = 0 # 0-255
-        self._v_min = kwargs['esc_v_min'] if 'esc_v_min' in kwargs else kwargs['motor_v_min']
-        self._v_max = kwargs['esc_v_max'] if 'esc_v_max' in kwargs else kwargs['motor_v_max']
-        self._i_max = kwargs['esc_i_max'] if 'esc_i_max' in kwargs else kwargs['motor_i_max']
-        self._p_max = kwargs['esc_p_max'] if 'esc_p_max' in kwargs else kwargs['motor_p_max']
+    def __init__(self, **kwargs):
+        self._ctrl_sig = ControlBusClass.ControlBusClass('signed')
+        self.i_max_to_motor   = kwargs.get('i_max_to_motor')
+        self.i_max_from_motor = kwargs.get('i_max_from_motor')
+        self._p_max = kwargs.get('p_max')
         self._lpf = LowPassFilter(1)
-        self._electrical_efficiency = 0.85
-
-        self._first_iteration = True
-        #self._output = ElectricityClass.Electricity()
+        self._electrical_efficiency = kwargs.get('efficiency', 0.85)
+        self._input_data = ElectricalDeviceClass.ElectricalDeviceClass()
+        self._motor_data = ElectricalDeviceClass.ElectricalDeviceClass()
         return super().__init__(kwargs)
 
     def update(self, dt):
-        if self._first_iteration: self._first_iteration = False
+        current = 0.0
+        if self._ctrl_sig.decimal >= 0.0:
+            current = self._ctrl_sig.decimal * self.i_max_to_motor
         else:
-            # Do the magic
-            
-            pass
+            current = self._ctrl_sig.decimal * self.i_max_from_motor
 
-    def _generate_electricity_class(self):
-        pass
+        # This current value need constraining to battery and motor realtime limits
+
+
+
+
+    def set_input_power(self, availability_dict):
+        self._input_data._v = availability_dict.get('voltage')
+        self._input_data._i_max_in = availability_dict.get('max_charge')
+        self._input_data._i_max_out = availability_dict.get('max_discharge')
+
+    def set_output_power(self, availability_dict):
+        self._motor_data._v = availability_dict.get('voltage')
+        self._motor_data._i_max_in = availability_dict.get('max_current')
+        self._motor_data._i_max_out = availability_dict.get('max_regen')
 
     @property
-    def electricity(self):
-        return self._output
-    @electricity.setter
-    def electricity(self, elec):
-        pass
-
-    @property
-    def electricity_array(self):
-        return None
-    @electricity_array.setter
-    def electricity_array(self, elec):
-        pass
-
-    # def elec_update(kwargs):
-
+    def control_signal(self):
+        return self._ctrl_sig.value
+    @control_signal.setter
+    def control_signal(self, value):
+        self._ctrl_sig.value = value
+        

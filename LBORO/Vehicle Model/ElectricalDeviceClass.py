@@ -26,6 +26,8 @@ class ElectricalDeviceClass(ElectricityClass):
     '''DESCRIPTION'''
     # Instance Constructor
     def __init__(self, **kwargs):
+        self._i_max_in = None
+        self._i_max_out = None
         self._e_in    = 0.0
         self._e_out   = 0.0
         self._e_total = kwargs.get('e_start')
@@ -56,6 +58,9 @@ class ElectricalDeviceClass(ElectricityClass):
         if self._e_total is None:
             raise NotImplementedError
         return self._e_total
+    @energy.setter
+    def energy(self, e):
+        self._e_total = e
 
     @property
     def e_to_empty(self):
