@@ -34,6 +34,10 @@ class ControlBusClass(object):
         if Next is not None:
             self._val_last = last
             self._val = next
+
+    def check_overflow(self, val):
+        new_val = self._val + val
+        return new_val - self.constrain(new_val, self._min, self._max)
         
     @property
     def decimal(self):

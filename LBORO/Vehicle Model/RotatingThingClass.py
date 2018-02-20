@@ -19,6 +19,9 @@ class RotatingThingData(object):
     @property
     def torque(self):
         return self._torque
+    @torque.setter
+    def torque(self, tq):
+        self._torque = tq
 
     @property
     def speed(self):
@@ -78,9 +81,13 @@ class RotatingThingClass(ABC, RotatingThingData):
     def power(self):
         return self._torque * self._speed
 
+    @property
+    def torque(self):
+        return super().torque
+
     @torque.setter
     def torque(self, tq):
-        self._torque = tq - self.inertia_torque_x
+        super(RotatingThingData, self).torque.__set__(tq - self.inertia_torque_x)
 
     @property
     def force(self):

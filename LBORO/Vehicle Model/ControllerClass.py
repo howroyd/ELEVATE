@@ -54,10 +54,6 @@ class ControllerClass(ControlBusClass.ControlBusClass):
         return max(min(val, max_val), min_val)
 
     @property
-    def error(self):
-        return self.error_p + self.error_i + self.error_d
-
-    @property
     def error_p(self):
         return self._error * self._kp
 

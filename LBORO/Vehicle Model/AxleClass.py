@@ -22,32 +22,7 @@ class AxleClass(RotatingThingClass.RotatingCylinderClass):
         return super(RotatingThingClass.RotatingCylinderClass, self).__init__(**_data)
 
     def update(self, dt):
-        for ptr in self._connected_wheels:
-            ptr.speed = self.speed
-        for ptr in self._connected_motors:
-            ptr.speed = self.speed
-
         super().update(dt)
-
-        self.torque = 0.0
-
-        if self.num_motors is not None:
-            torque_in = 0.0
-            for ptr in self._connected_motors:  
-                ptr.torque = self._reduction_gear.convert_backward(torque=(self.torque / self.num_motors)) # TODO assumes even loading
-                ptr.update(dt)
-                torque_in += self._reduction_gear.convert_forward(ptr.torque)
-            self.torque = torque_in
-
-        wheel_torque = 0.0
-        for ptr in self._connected_wheels:
-            # ptr.w = veh speed ## TODO
-            ptr.axle_torque = self.torque / self.num_wheels
-            ptr.update(dt)
-
-            wheel_torque += ptr.torque
-            
-        self.torque = wheel_torque
 
     @property
     def wheel_data(self):
@@ -74,3 +49,12 @@ class AxleClass(RotatingThingClass.RotatingCylinderClass):
         for ptr in self._wheel:
             ptr.torque = self._shaft.torque / len(self._wheels)
             ptr.speed  = self._shaft.speed # As above comment about mud
+
+    @property
+    def rotation_left(self):
+        return self._wheels[0].data
+    
+
+    @property
+    def rotation_right(self):
+        return self._wheels[1].data
