@@ -7,16 +7,22 @@ class ElectricityClass(object):
         self._i = 0.0
 
     @property
-    def data(self):
+    def electricity_data(self):
         return {self._key_voltage : self._v, self._key_current : self._i, self._key_power : self.power}
 
     @property
     def voltage(self):
         return self._v
+    @voltage.setter
+    def voltage(self, v):
+        self._v = v
 
     @property
     def current(self):
         return self._i
+    @current.setter
+    def current(self, i):
+        self._i = i
 
     @property
     def power(self):
@@ -25,11 +31,12 @@ class ElectricityClass(object):
 class ElectricalDeviceClass(ElectricityClass):
     '''DESCRIPTION'''
     # Instance Constructor
-    def __init__(self, **kwargs):
+    def __init__(self, kwargs=dict()):
         self._i_max_in = None
         self._i_max_out = None
         self._e_in    = 0.0
         self._e_out   = 0.0
+
         self._e_total = kwargs.get('e_start')
         self._e_max   = kwargs.get('e_max')
         self._e_min   = kwargs.get('e_min')

@@ -1,32 +1,25 @@
 import time
-import Cars
+import PowertrainClass2
+import AerodynamicsClass
 
 class CarClass(object):
     '''DESCRIPTION'''
 
     # Instance constructor
     def __init__(self, kwargs=None):
-        if (kwargs is not None):
-            self._aero_model = kwargs['aero_model']
-            self._powertrain_model_array = kwargs['powertrain_model_array']
-            self._vehicle_mass = kwargs['car_mass']
-            self._speed = 0.0
-            self._target_speed = 0.0
-            self._feed_forward_speed = None
-            super().__init__()
-        return
+        if (kwargs is None):
+            raise Exception("Must define car data!")
+        else:
+            self._powertrain = PowertrainClass2.PowertrainControllerClass(kwargs)
+            self._aero_model = AerodynamicsClass.AerodynamicsClass(kwargs)
+            self._vehicle_mass = kwargs.get('car_mass')
 
     def update(self, dt):
-        for ptr in self._powertrain_model_array:
-                ptr.current_speed = self.speed
-                ptr.target_speed = self._target_speed
-                if self._feed_forward_speed is not None:
-                    ptr.feed_forward_speed = self._feed_forward_speed
-                ptr.update(dt)
+        self._powertrain.update(dt)
 
         self._aero_model.update(self._speed)
 
-        total_force = sum(ptr.force for ptr in self._powertrain_model_array) - self._aero_model.force
+        total_force = self._powertrain.force - self._aero_model.force
 
         accn = total_force / self._vehicle_mass
         self.speed = self.speed + accn*dt
@@ -34,17 +27,10 @@ class CarClass(object):
 
     @property
     def target_speed(self,):
-        return self._target_speed
+        return self._powertrain.set_speed
     @target_speed.setter
     def target_speed(self, speed):
-        self._target_speed = speed
-
-    @property
-    def feed_forward_speed(self,):
-        return self._feed_forward_speed
-    @feed_forward_speed.setter
-    def feed_forward_speed(self, speed):
-        self._feed_forward_speed = speed
+        self._powertrain.set_speed = speed
 
     @property
     def speed(self):

@@ -16,8 +16,8 @@ class ControllerClass(ControlBusClass.ControlBusClass):
         self._min_i = self.min_val
         self._max_i = self.max_val
 
-    def update(self, dt, error):
-        if (self._dont_update_flag or dt<=0.0):
+    def update(self, dt, error=None):
+        if (self._dont_update_flag or dt<=0.0 or error==None):
             self._dont_update_flag = False
             return
         if self._ki is not 0:
@@ -48,6 +48,8 @@ class ControllerClass(ControlBusClass.ControlBusClass):
     @property
     def cost(self):
         return self._cost
+
+
 
     @staticmethod
     def constrain(val, min_val, max_val):

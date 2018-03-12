@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{536be80e-3cdf-4acd-87db-e25b99033a20}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>WheelClass.py</StartupFile>
+    <StartupFile>main.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>

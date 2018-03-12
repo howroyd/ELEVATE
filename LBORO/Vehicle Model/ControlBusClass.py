@@ -31,7 +31,7 @@ class ControlBusClass(object):
     def value(self, val):
         last = self._val
         next = self.constrain(val, self._min, self._max)
-        if Next is not None:
+        if next is not None:
             self._val_last = last
             self._val = next
 
@@ -56,3 +56,11 @@ class ControlBusClass(object):
     @max_val.setter
     def max_val(self, _max):
         self._max = _max
+
+    @property
+    def at_maximum(self):
+        return True if self._val >= self._max else False
+
+    @property
+    def at_minimum(self):
+        return True if self._val <= self._min else False

@@ -9,7 +9,7 @@ class ESC(ElectricalDeviceClass.ElectricalDeviceClass):
     # Does not work in reverse to charge battery
 
     # Instance constructor
-    def __init__(self, **kwargs):
+    def __init__(self, kwargs):
         self._ctrl_sig = ControlBusClass.ControlBusClass('signed')
         self.i_max_to_motor   = kwargs.get('i_max_to_motor')
         self.i_max_from_motor = kwargs.get('i_max_from_motor')

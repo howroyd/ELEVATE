@@ -1,25 +1,20 @@
 #!/usr/bin/python3
 
-VERSION = 1.0
+VERSION = 2.0
 
 import telnetlib, time, sys, os, datetime, copy
 import matlab.engine
 import matplotlib.pyplot as plt
 import numpy as np
-from TdiLoadbankClass import TdiLoadbank
-from battery_sw import Battery_Model
 from CarClass import CarClass
 from DataInputClass import DataInputClass
 from DataInputClass import Continuous_dt
-from ControllerClass import ControllerClass
 from Cars import Nissan_Leaf
-import threading
 import colorama
 from colorama import Fore, Back, Style
 
-num_cars = 1
 graph = True
-feed_forward = True
+feed_forward = False
 
 filename = "nedc2_short"
 
@@ -45,12 +40,7 @@ if __name__ == "__main__":
     timer    = Continuous_dt(datafile.dt, 50)
     
     # Spawn vehicle(s)
-    mycar = list()
-    for x in range(num_cars):
-        mycar.append(CarClass(Nissan_Leaf().data))
-
-    # Create "pointer" to car 0
-    leaf1 = mycar[0]
+    mycar = CarClass(Nissan_Leaf().data)
     
     print(datafile.num_lines, 'lines in input file\n')
 
@@ -61,36 +51,33 @@ if __name__ == "__main__":
         timer.update()
         datafile.update(timer.sim_time)
 
-        # Update cars
-        for x in mycar:
-            # Update target speed if required
-            if datafile.new_data:
-                x.target_speed = datafile.line[1]/2.23694 # mph to m/s
-                if feed_forward:
-                    
-                    x.feed_forward_speed = datafile.nextline[1]/2.23694 # mph to m/s
-            # Calculate dynamics
-            x.update(timer.dt)
+        # Update car
+        # Update target speed if required
+        if datafile.new_data:
+            mycar.target_speed = datafile.line[1]/2.23694 # mph to m/s
+
+        # Calculate dynamics
+        mycar.update(timer.dt)
 
         # Print to screen the percentage of number of lines completed from the input data file
         if datafile.new_data: print(round(datafile.percent_complete,1),'%',end='\r')
 
         # Output data to save file
         datafile.line = [timer.sim_time]
-        datafile.line = [leaf1.target_speed * 2.23694]
-        datafile.line = [leaf1.speed * 2.23694]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.error]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.error_p]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.error_i]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control.error_d]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_p]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_i]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._motor_controller.error_d]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_p]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_i]
-        datafile.line = [leaf1._powertrain_model_array[0]._speed_control._brake_controller.error_d]
+        datafile.line = [mycar.target_speed * 2.23694]
+        datafile.line = [mycar.speed * 2.23694]
+        datafile.line = [mycar._powertrain._speed_control.error]
+        datafile.line = [mycar._powertrain._speed_control.error_p]
+        datafile.line = [mycar._powertrain._speed_control.error_i]
+        datafile.line = [mycar._powertrain._speed_control.error_d]
+        datafile.line = [mycar._powertrain._speed_control._motor_controller.error]
+        datafile.line = [mycar._powertrain._speed_control._motor_controller.error_p]
+        datafile.line = [mycar._powertrain._speed_control._motor_controller.error_i]
+        datafile.line = [mycar._powertrain._speed_control._motor_controller.error_d]
+        datafile.line = [mycar._powertrain._speed_control._brake_controller.error]
+        datafile.line = [mycar._powertrain._speed_control._brake_controller.error_p]
+        datafile.line = [mycar._powertrain._speed_control._brake_controller.error_i]
+        datafile.line = [mycar._powertrain._speed_control._brake_controller.error_d]
 
     print(end='\r\n')
 

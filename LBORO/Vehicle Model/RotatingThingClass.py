@@ -9,10 +9,11 @@ class RotatingThingData(object):
         self._speed  = 0.0
 
     @property
-    def data(self):
+    def rotational_data(self):
         return {self._key_torque : self._torque, self._key_speed : self._speed}
-    @data.setter
-    def data(self, data_dict):
+    @rotational_data.setter
+    def rotational_data(self, data_dict):
+        print('Setting data', data_dict)
         self._torque = data_dict.get(self._key_torque)
         self._speed  = data_dict.get(self._key_speed)
 
@@ -26,6 +27,9 @@ class RotatingThingData(object):
     @property
     def speed(self):
         return self._speed
+    @speed.setter
+    def speed(self, rad_sec):
+        self._speed = rad_sec
 
     @property
     def key_torque(self):
@@ -38,7 +42,7 @@ class RotatingThingData(object):
 class RotatingThingClass(ABC, RotatingThingData):
     """description of class"""
 
-    def __init__(self, **kwargs):
+    def __init__(self, kwargs):
         self._w_last      = 0.0
         self._p           = 0.0
         self._dt          = 0.0
@@ -84,7 +88,6 @@ class RotatingThingClass(ABC, RotatingThingData):
     @property
     def torque(self):
         return super().torque
-
     @torque.setter
     def torque(self, tq):
         super(RotatingThingData, self).torque.__set__(tq - self.inertia_torque_x)
@@ -93,13 +96,17 @@ class RotatingThingClass(ABC, RotatingThingData):
     def force(self):
         return self._torque * self.radius
 
+    @property
+    def speed(self):
+        return super()._speed
+    @speed.setter
     def speed(self, rad_sec):
         if (rad_sec < 0.0):
             print("Rotational speed cannot be negative")
             raise ValueError
             return None
         self._w_last = self._speed
-        self._speed = rad_sec
+        super(RotatingThingData, self).speed.__set__(rad_sec)
 
     @property
     @abstractmethod

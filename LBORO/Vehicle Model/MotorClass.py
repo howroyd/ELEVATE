@@ -4,7 +4,7 @@ import ControlBusClass
 import ElectricalDeviceClass
 import ElectricalManagementClass
 
-class MotorClass(ElectricalDeviceClass.ElectricalDevice, RotatingThingClass.RotatingCylinderClass):
+class MotorClass(ElectricalDeviceClass.ElectricalDeviceClass, RotatingThingClass.RotatingCylinderClass):
     """description of class"""
     # Tq = P*w (mech)
     # Pe = Vs * I (elec)
@@ -22,10 +22,9 @@ class MotorClass(ElectricalDeviceClass.ElectricalDevice, RotatingThingClass.Rota
         _kwargs = dict(diameter=kwargs['motor_rotor_diameter'],
                 mass=kwargs['motor_rotor_mass']
                 )
-        RotatingThingClass.RotatingCylinderClass.__init__(self, _kwargs)
+        super(RotatingThingClass.RotatingCylinderClass, self).__init__(_kwargs)
 
-        ElectricalDeviceClass.ElectricalDevice.__init__(self)
-
+        super(ElectricalDeviceClass.ElectricalDeviceClass, self).__init__()
 
         self._ctrl_sig    = ControlBusClass.ControlBusClass('signed')
 

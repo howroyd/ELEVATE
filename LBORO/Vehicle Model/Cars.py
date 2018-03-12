@@ -1,10 +1,3 @@
-import BatteryManagementClass
-import PowertrainClass
-import AerodynamicsClass
-import WheelClass
-import MotorClass
-import BrakesClass
-
 class CarData(object):
     _data=dict()
 
@@ -42,16 +35,4 @@ class Nissan_Leaf(CarData):
                     motor_i_max=266.0, # assumed
                     motor_p_max=80000.0 # assumed
                     )
-        #self._data.update(batt_model_array=[battery_sw.Battery_Model(self._data)])
-        self._data.update(batt_model_array=[BatteryManagementClass.BatteryManagementClass(self._data)])
-        self._data.update(aero_model=AerodynamicsClass.AerodynamicsClass(self._data))
-#        self._data.update(brake_model_array=[BrakesClass.BrakesClass(self._data['brake_diameter'][0],self._data['brake_max_torque'][0],self._data)]*4)
-        self._data.update(wheel_model_array=[WheelClass.WheelClass(self._data), # Front left
-                                            WheelClass.WheelClass(self._data),  # Front right
-                                            WheelClass.WheelClass(self._data),  # Rear left
-                                            WheelClass.WheelClass(self._data)]  # Rear right
-                                            )
-        self._data.update(motor_model_array=[MotorClass.MotorClass(self._data)])
-        self._data.update(powertrain_model_array=[PowertrainClass.PowertrainClass([self._data['batt_model_array'][0]],[self._data['motor_model_array'][0]],self._data['wheel_model_array'],self._data)])
-
         super().__init__()
