@@ -1,19 +1,30 @@
+#!/usr/bin/python3
+
+###############################
+###    IMPORT LIBRARIES     ###
+###############################
 import math
 import RotatingThingClass
 import ControlBusClass
 
+
 class BrakesClass(RotatingThingClass.RotatingDiscClass):
-    """description of class"""
+    '''Brake for an electric vehicle wheel'''
+    _shc_carbon_steel                 = 502.416
+    _density_carbon_steel             = 7850.0
+    _conductivity_to_air_carbon_steel = 36.0
+    _temperature_ambient = None
+    _temperature         = None
+    _thickness           = None
+    _torque_max          = None
+    _ctrl_sig            = None
+    _K_J                 = None
 
-    # Instance constructor
+    ###############################
+    ###     INITIALISATION      ###
+    ###############################
     def __init__(self, kwargs):
-        self._shc_carbon_steel = 502.416
-        self._density_carbon_steel = 7850.0
-        self._conductivity_to_air_carbon_steel = 36.0
-
         self._temperature_ambient   = 16.0
-        self._temperature           = self._temperature_ambient
-
         self._thickness   = 0.015
 
         _diameter    = kwargs['brake_diameter']
@@ -31,10 +42,14 @@ class BrakesClass(RotatingThingClass.RotatingDiscClass):
 
         self._ctrl_sig    = ControlBusClass.ControlBusClass('unsigned')
 
-        self._K_J         = 1.0 / ( self._shc_carbon_steel * self.mass)
+        self._K_J         = 1.0 / ( self._shc_carbon_steel * _mass)
 
         return
 
+
+    ###############################
+    ###      UPDATE LOOP        ###
+    ###############################
     def update(self, dt):
         super().update(dt)
 
@@ -50,16 +65,39 @@ class BrakesClass(RotatingThingClass.RotatingDiscClass):
 
         return
 
+
+    ###############################
+    ###        GETTERS          ###
+    ###############################
+
+    # Control signal
     @property
     def value(self):
         return self._ctrl_sig.value
+
+
+    # Maximum torque limit
+    @property
+    def torque_max(self):
+        return self._torque_max
+
+
+    # Brake temperature approximation
+    @property
+    def temperature(self):
+        return self._temperature
+
+
+    ###############################
+    ###        SETTERS          ###
+    ###############################
+
+    # Control signal
     @value.setter
     def value(self, val):
         self._ctrl_sig.value = val
 
-    @property
-    def torque_max(self):
-        return self._torque_max
+    # Maximum torque limit
     @torque_max.setter
     def torque_max(self, tq):
         if (tq < 0.0):
@@ -68,6 +106,9 @@ class BrakesClass(RotatingThingClass.RotatingDiscClass):
             return None
         self._torque_max = tq
 
-    @property
-    def temperature(self):
-        return self._temperature
+
+###############################
+###############################
+######       END         ######
+###############################
+###############################

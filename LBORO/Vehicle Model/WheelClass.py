@@ -1,10 +1,22 @@
+#!/usr/bin/python3
+
+###############################
+###    IMPORT LIBRARIES     ###
+###############################
 import RotatingThingClass
 import BrakesClass
 
 class WheelClass(RotatingThingClass.RotatingCylinderShellClass):
-    """description of class"""
+    '''Wheel class for an electric vehicle'''
+    _brake = None
+    _force = None
+    _axle_torque_in = None
+    _road_drag      = None
+    _vehicle_speed  = None
 
-# Instance constructor
+    ###############################
+    ###     INITIALISATION      ###
+    ###############################
     def __init__(self, kwargs):
         self._brake = BrakesClass.BrakesClass(kwargs)
 
@@ -22,6 +34,10 @@ class WheelClass(RotatingThingClass.RotatingCylinderShellClass):
 
         return
 
+
+    ###############################
+    ###      UPDATE LOOP        ###
+    ###############################
     def update(self, dt):
         self._brake.speed = self.speed
 
@@ -29,7 +45,7 @@ class WheelClass(RotatingThingClass.RotatingCylinderShellClass):
         self._brake.update(dt)
 
         brake_torque = self._brake.torque
-        if elf._brake.speed >= 0.0: brake_torque *= -1.0
+        if self._brake.speed >= 0.0: brake_torque *= -1.0
 
         self.torque = self._axle_torque_in + brake_torque - self._road_drag # todo road drag
 
@@ -38,28 +54,60 @@ class WheelClass(RotatingThingClass.RotatingCylinderShellClass):
         # todo wheel slip
         return
 
+
+    ###############################
+    ###        FEEDBACK         ###
+    ###############################
+    def set_wheel_speed(self, vehicle_speed):
+        self.w = 2.0 * vehicle_speed / self.diameter
+        return None
+
+
+    ###############################
+    ###        GETTERS          ###
+    ###############################
+
+    # Net lateral force
     @property 
     def force(self):
         return self._force
 
-    @property
-    def brake_control_sig(self):
-        return self._brake.value
-    @brake_control_sig.setter
-    def brake_control_sig(self, value):
-        self._brake.value = value
 
+    # Axle torque
+    @property
+    def axle_torque(self):
+        return self._axle_torque_in
+
+
+    # Brake torque
     @property
     def brake_torque(self):
         return self._brake.torque
 
+    # Brake control signal
     @property
-    def axle_torque(self):
-        return self._axle_torque_in
+    def brake_control_sig(self):
+        return self._brake.value
+
+
+    ###############################
+    ###        SETTERS          ###
+    ###############################
+
+    # Axle torque
     @axle_torque.setter
     def axle_torque(self, torque):
         self._axle_torque_in = torque
 
-    def set_wheel_speed(self, vehicle_speed):
-        self.w = 2.0 * vehicle_speed / self.diameter
-        return None
+
+    # Brake control signal
+    @brake_control_sig.setter
+    def brake_control_sig(self, value):
+        self._brake.value = value
+
+
+###############################
+###############################
+######       END         ######
+###############################
+###############################

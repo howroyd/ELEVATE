@@ -1,14 +1,21 @@
+#!/usr/bin/python3
+
+###############################
+###    IMPORT LIBRARIES     ###
+###############################
 import ControlBusClass
 from Filters import LowPassFilter
 import ElectricalDeviceClass
 
 class ESC(ElectricalDeviceClass.ElectricalDeviceClass):
-    """description of class"""
+    '''Electronic speed controller for an induction motor'''
 
     # Takes in electrical power from battery and converts it to elec power for motor
     # Does not work in reverse to charge battery
 
-    # Instance constructor
+    ###############################
+    ###     INITIALISATION      ###
+    ###############################
     def __init__(self, kwargs):
         self._ctrl_sig = ControlBusClass.ControlBusClass('signed')
         self.i_max_to_motor   = kwargs.get('i_max_to_motor')
@@ -20,6 +27,10 @@ class ESC(ElectricalDeviceClass.ElectricalDeviceClass):
         self._motor_data = ElectricalDeviceClass.ElectricalDeviceClass()
         return super().__init__(kwargs)
 
+
+    ###############################
+    ###      UPDATE LOOP        ###
+    ###############################
     def update(self, dt):
         current = 0.0
         if self._ctrl_sig.decimal >= 0.0:

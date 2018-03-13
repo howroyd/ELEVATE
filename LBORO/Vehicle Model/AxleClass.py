@@ -1,3 +1,8 @@
+#!/usr/bin/python3
+
+###############################
+###    IMPORT LIBRARIES     ###
+###############################
 import RotatingThingClass
 import WheelClass
 import MotorClass
@@ -5,9 +10,13 @@ import GeartrainClass
 
 
 class AxleClass(RotatingThingClass.RotatingCylinderClass):
-    """description of class"""
+    """Axle class for an electric vehicle"""
+    _wheels = [ None, None ]
+    _shaft  = None
 
-    # Instance constructor
+    ###############################
+    ###     INITIALISATION      ###
+    ###############################
     def __init__(self):
 
         _data = { 'length' : 1.5,
@@ -21,12 +30,43 @@ class AxleClass(RotatingThingClass.RotatingCylinderClass):
 
         return super(RotatingThingClass.RotatingCylinderClass, self).__init__(_data)
 
+
+    ###############################
+    ###      UPDATE LOOP        ###
+    ###############################
     def update(self, dt):
         super().update(dt)
 
+
+    ###############################
+    ###        GETTERS          ###
+    ###############################
+
+    # Wheel rotational data
     @property
     def wheel_data(self):
         return self._wheels
+
+    @property
+    def rotation_left(self):
+        return self._wheels[0].data
+   
+    @property
+    def rotation_right(self):
+        return self._wheels[1].data
+
+
+    # Shaft rotational data
+    @property
+    def shaft_data(self):
+        return self._shaft
+
+
+    ###############################
+    ###        SETTERS          ###
+    ###############################
+ 
+    # Wheel rotational data   
     @wheel_data.setter
     def wheel_data(self, new_data):
         self._wheels = new_data # Todo error checking here
@@ -40,9 +80,7 @@ class AxleClass(RotatingThingClass.RotatingCylinderClass):
         self._shaft.torque = total_torque # This isn't true, may not be 5050, think stuck in mud
         self._shaft.speed  = total_speed / counter
 
-    @property
-    def shaft_data(self):
-        return self._shaft
+    # Shaft rotational data
     @shaft_data.setter
     def shaft_data(self, new_data):
         self._shaft = new_data # Todo error checking here
@@ -50,11 +88,9 @@ class AxleClass(RotatingThingClass.RotatingCylinderClass):
             ptr.torque = self._shaft.torque / len(self._wheels)
             ptr.speed  = self._shaft.speed # As above comment about mud
 
-    @property
-    def rotation_left(self):
-        return self._wheels[0].data
-    
 
-    @property
-    def rotation_right(self):
-        return self._wheels[1].data
+###############################
+###############################
+######       END         ######
+###############################
+###############################

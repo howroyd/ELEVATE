@@ -1,3 +1,8 @@
+#!/usr/bin/python3
+
+###############################
+###    IMPORT LIBRARIES     ###
+###############################
 import math
 import RotatingThingClass
 import ControlBusClass
@@ -5,7 +10,7 @@ import ElectricalDeviceClass
 import ElectricalManagementClass
 
 class MotorClass(ElectricalDeviceClass.ElectricalDeviceClass, RotatingThingClass.RotatingCylinderClass):
-    """description of class"""
+    '''Motor for an electric vehicle'''
     # Tq = P*w (mech)
     # Pe = Vs * I (elec)
     # Pm = Tq * w
@@ -16,7 +21,24 @@ class MotorClass(ElectricalDeviceClass.ElectricalDeviceClass, RotatingThingClass
 
     # Ideally at stall speed there is no back emf, and at no the no-load speed the back emf is equal to the driving source voltage.
 
-    # Instance constructor
+    _ctrl_sig                = None
+    _efficiency_elec_to_mech = 0.9
+    _efficiency_mech_to_elec = 0.9
+    _winding_resistance      = 1.0
+    _is_generating           = False
+    _torque_motor            = 0.0
+    _torque_max              = None
+    _v_min                   = None
+    _v_max                   = None
+    _i_max                   = None
+    _p_max                   = None
+    _w_motor                 = 0.0
+    _w_motor_max             = None
+    _reduction_ratio         = None
+
+    ###############################
+    ###     INITIALISATION      ###
+    ###############################
     def __init__(self, kwargs):
 
         _kwargs = dict(diameter=kwargs['motor_rotor_diameter'],
@@ -28,24 +50,19 @@ class MotorClass(ElectricalDeviceClass.ElectricalDeviceClass, RotatingThingClass
 
         self._ctrl_sig    = ControlBusClass.ControlBusClass('signed')
 
-        self._efficiency_elec_to_mech = 0.9
-        self._efficiency_mech_to_elec = 0.9
-
-        self._winding_resistance = 1.0
-
-        self._is_generating = False
-
-        self._torque_motor = 0.0
         self._torque_max  = kwargs['motor_max_torque']
         self._v_min = kwargs['motor_v_min']
         self._v_max = kwargs['motor_v_max']
         self._i_max = kwargs['motor_i_max']
         self._p_max = kwargs['motor_p_max']
-        self._w_motor = 0.0
         self._w_motor_max = self.rpm_to_rads(kwargs['motor_max_rpm'])
         self._reduction_ratio = kwargs['motor_reduction_ratio']
         return
 
+
+    ###############################
+    ###      UPDATE LOOP        ###
+    ###############################
     def update(self, dt):
         # Dumb system.  May over current battery on regen.  Must handle this higher up and ramp off ctrl sig
         # Note; low voltages/currents are handled by PWM
@@ -96,23 +113,55 @@ class MotorClass(ElectricalDeviceClass.ElectricalDeviceClass, RotatingThingClass
         dissipated_power = abs(ElectricalDeviceClass.ElectricalDevice.get_p() - RotatingThingClass.RotatingCylinderClass.power)
 
 
+    ###############################
+    ###         CURRENT         ###
+    ###############################
     def calculate_current_from_torque(self, tq):
         return tq / self._efficiency_elec_to_mech
 
+
+    ###############################
+    ###         TORQUE          ###
+    ###############################
     def calculate_torque_from_current(self, i):
         return i * self._efficiency_elec_to_mech
 
+
+    ###############################
+    ###  SYMMETRIC CONSTRAINT   ###
+    ###############################
     @staticmethod
     def constrain_plus_minus(var, constraint):
         return constraint * (var/abs(var)) if (abs(var) > constraint) else var
 
+
+    ###############################
+    ###        GETTERS          ###
+    ###############################
+
+    # Control signal (raw)
     @property
     def value(self):
         return self._value
+
+    # Binary logic for if in regen mode
+    @property
+    def is_generating(self):
+        return bool(self._i < 0)
+
+
+    ###############################
+    ###        SETTERS          ###
+    ###############################
+ 
+    # Control signal (raw)
     @value.setter
     def value(self, value):
         self._ctrl_sig.value = value
 
-    @property
-    def is_generating(self):
-        return bool(self._i < 0)
+
+###############################
+###############################
+######       END         ######
+###############################
+###############################

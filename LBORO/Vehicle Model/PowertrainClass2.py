@@ -1,3 +1,8 @@
+#!/usr/bin/python3
+
+###############################
+###    IMPORT LIBRARIES     ###
+###############################
 import AxleClass
 import BatteryClass
 import BatteryManagementClass
@@ -8,9 +13,23 @@ import EscClass
 import MotorClass
 import WheelClass
 
-# Powertrain controller
 
 class PowertrainControllerClass(object):
+    '''Electric vehicle powertrain class'''
+    _axle  = None
+    _bms   = None
+    _esc   = None
+    _motor = None
+    _wheel = [None, None, None, None]
+    _ctrl_speed = None
+    _ctrl_motor = None
+    _ctrl_brake = None
+    _speed_set  = None
+    _speed_now  = None
+
+    ###############################
+    ###     INITIALISATION      ###
+    ###############################
     def __init__(self, kwargs):
         self._axle    = AxleClass.AxleClass()
         self._battery = BatteryClass.BatteryClass(dict(i_max_charge=(kwargs.get('batt_p_max')*0.5/kwargs.get('batt_v_min')),
@@ -27,9 +46,13 @@ class PowertrainControllerClass(object):
         self._ctrl_speed = ControllerClass.ControllerClass(1, 0.01, 0.002, 'signed')
         self._ctrl_motor = ControllerClass.ControllerClass(1, 0.01, 0.002, 'unsigned')
         self._ctrl_brake = ControllerClass.ControllerClass(1, 0.01, 0.002, 'unsigned')
-        self._speed_set = 0.0
-        self._speed_now = 0.0
+        self._speed_target = 0.0
+        self._speed        = 0.0
 
+
+    ###############################
+    ###      UPDATE LOOP        ###
+    ###############################
     def update(self, dt):
         # Get wheel speeds and torques, pass to axle then motor
         self._axle.wheel_data = [self._wheel[0].rotational_data, self._wheel[1].rotational_data]
@@ -67,9 +90,13 @@ class PowertrainControllerClass(object):
         self._motor.update(dt)
         for ptr in self._wheel:
             ptr.update(dt)
-        
+
+
+    ###############################
+    ###     CONTROL DECODER     ###
+    ###############################        
     def _parse_control_signal(self, dt):
-        dv = self._speed_set - self._speed_now
+        dv = self._speed_target - self._speed
         self._ctrl_speed.update(dt, dv)
 
         if self._ctrl_speed.value <= 0.0:
@@ -95,22 +122,102 @@ class PowertrainControllerClass(object):
                 self._ctrl_motor.update(dt)
 
 
-    @property
-    def set_speed(self):
-        return self._speed_set
-    @set_speed.setter
-    def set_speed(self, speed):
-        self._speed_set = speed
+    ###############################
+    ###        GETTERS          ###
+    ###############################
 
+    # Actual vehicle speed
     @property
     def vehicle_speed(self):
         return self._speed_now
-    @vehicle_speed.setter
-    def vehicle_speed(self, speed):
-        self._speed_now = speed
-        for ptr in self._wheel:
-            ptr._wheel.set_wheel_speed = speed
-    
+
+    # Target speed
+    @property
+    def target_speed(self):
+        return self._speed_target
+
+
+    # Road Friction Drag
+    @property
+    def road_drag(self):
+        return sum(ptr.road_drag for ptr in self._wheel)
+
+    # Powertrain Force
     @property
     def force(self):
-        return sum(ptr.force for ptr in self._wheel)  # TODO minus road drag
+        return sum(ptr.force for ptr in self._wheel)
+
+
+    # Speed Controller PID
+    @property
+    def speed_ctrl_pid(self):
+        return self._ctrl_speed.pid_data
+
+    # Motor Controller PID
+    @property
+    def motor_ctrl_pid(self):
+        return self._ctrl_motor.pid_data
+
+    # Brake Controller PID
+    @property
+    def brake_ctrl_pid(self):
+        return self._ctrl_brake.pid_data
+
+
+    # Motor Rotational
+    @property
+    def motor_rotation(self):
+        return self._motor.rotational_data
+
+    # Axle Rotation
+    @property
+    def axle_rotation(self):
+        return self._axle.rotational_data
+
+    # Wheel Rotational
+    @property
+    def wheel_rotation(self):
+        return [ self._wheel[0].rotational_data,
+                    self._wheel[1].rotational_data,
+                    self._wheel[2].rotational_data,
+                    self._wheel[3].rotational_data ]
+
+
+    # Battery Electricity
+    @property
+    def battery_electricity(self):
+        return self._battery.electricity_data
+
+    # ESC Electricity
+    @property
+    def esc_electricity(self):
+        return self._esc.electricity_data
+
+    # Motor Electricity
+    @property
+    def motor_electricity(self):
+        return self._motor.electricity_data
+
+
+    ###############################
+    ###        SETTERS          ###
+    ###############################
+
+    # Actual vehicle speed
+    @vehicle_speed.setter
+    def vehicle_speed(self, speed):
+        self._speed = speed
+        for ptr in self._wheel:
+            ptr._wheel.set_wheel_speed = speed
+
+    # Target speed
+    @target_speed.setter
+    def target_speed(self, speed):
+        self._speed_target = speed
+    
+
+###############################
+###############################
+######       END         ######
+###############################
+###############################
