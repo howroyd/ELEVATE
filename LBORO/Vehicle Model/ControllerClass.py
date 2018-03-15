@@ -7,19 +7,19 @@ import ControlBusClass
 
 class ControllerClass(ControlBusClass.ControlBusClass):
     '''PID controller'''
-    _key_p = 'p'
-    _key_i = 'i'
-    _key_d = 'd'
-    _kp = None
-    _ki = None
-    _kd = None
-    _i = 0.0
-    _d = 0.0
-    _error = 0.0
+    _key_p            = 'p'
+    _key_i            = 'i'
+    _key_d            = 'd'
+    _kp               = None
+    _ki               = None
+    _kd               = None
+    _i                = 0.0
+    _d                = 0.0
+    _error            = 0.0
     _dont_update_flag = True
-    _cost = 0.0
-    _min_i = None
-    _max_i = None
+    _cost             = 0.0
+    _min_i            = None
+    _max_i            = None
 
     ###############################
     ###     INITIALISATION      ###

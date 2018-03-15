@@ -20,7 +20,7 @@ class PowertrainControllerClass(object):
     _bms   = None
     _esc   = None
     _motor = None
-    _wheel = [None, None, None, None]
+    _wheel = [ None, None, None, None ]
     _ctrl_speed = None
     _ctrl_motor = None
     _ctrl_brake = None
