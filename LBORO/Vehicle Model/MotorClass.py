@@ -4,7 +4,7 @@
 ###    IMPORT LIBRARIES     ###
 ###############################
 import math
-from RotatingThingClass import RotatingCylinderClass
+from RotatingThingClass import RotatingCylinderClass, rpm_to_rads
 from ElectricalDeviceClass import ElectricalDeviceClass
 import ControlBusClass
 
@@ -54,7 +54,7 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
         self._v_max = kwargs['motor_v_max']
         self._i_max = kwargs['motor_i_max']
         self._p_max = kwargs['motor_p_max']
-        self._w_motor_max = self.rpm_to_rads(kwargs['motor_max_rpm'])
+        self._w_motor_max = rpm_to_rads(kwargs['motor_max_rpm'])
         self._reduction_ratio = kwargs['motor_reduction_ratio']
         return
 

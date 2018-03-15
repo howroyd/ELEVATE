@@ -12,12 +12,10 @@ from abc import ABCMeta, ABC, abstractmethod
 ###############################
 
 # Convert rpm to radians/sec
-@staticmethod
 def rpm_to_rads(rpm:'Revolutions per minute') -> 'Radians/second':
     return rpm / 60.0 / 2.0 / math.pi
 
 # Convert radians/sec to rpm
-@staticmethod 
 def rads_to_rpm(rads:'Radians/second') -> 'Revolutions per minute':
     return rads * 60.0 * 2.0 * math.pi
 

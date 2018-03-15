@@ -5,12 +5,10 @@
 ###############################
 
 # Convert kWh to Joules
-@staticmethod
 def kwh_to_joules(kwh:'kilowatt hours') -> 'joules':
     return kwh * 3.6e+6
     
 # Convert Joules to kWh
-@staticmethod
 def joules_to_kwh(joules:'joules') -> 'kilowatt hours':
     return joules / 3.6e+6
 

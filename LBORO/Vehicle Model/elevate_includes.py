@@ -17,10 +17,7 @@ import numpy as np
 import colorama
 
 # User libraries
-from AerodynamicsClass import AerodynamicsClass
-from BatteryManagementClass import BatteryManagementClass
 from CarClass import CarClass
-import Cars
 from DataInputClass import DataIoClass, Continuous_dt
 
 
@@ -29,12 +26,10 @@ from DataInputClass import DataIoClass, Continuous_dt
 ###############################
 
 # Convert mph to m/s
-@staticmethod
 def mph_to_ms(mph:'mph') -> 'm/s':
     return mph / 2.23694
 
 # Constrain
-@staticmethod
 def constrain(val, _min, _max):
     return min(_max, max(_min, val))
 
@@ -52,7 +47,7 @@ class Display(object):
         print("\nELEVATE (ELEctrochemical Vehicle Advanced TEchnology)")
 
         if version is not None:
-            print("Hardware Simulation Model Version", VERSION)
+            print("Hardware Simulation Model Version", version)
         else:
             print("Hardware Simulation Model")
 

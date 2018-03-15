@@ -4,8 +4,8 @@
 ###    IMPORT LIBRARIES     ###
 ###############################
 import time
-from PowertrainClass2 import PowertrainControllerClass
 from AerodynamicsClass import AerodynamicsClass
+from PowertrainClass2 import PowertrainControllerClass
 
 
 class CarClass(object):

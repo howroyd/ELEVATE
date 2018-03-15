@@ -5,18 +5,8 @@ VERSION = 2.1
 ###############################
 ###    IMPORT LIBRARIES     ###
 ###############################
-import telnetlib, time, sys, os, datetime, copy
-import matlab.engine
-import matplotlib.pyplot as plt
-import numpy as np
-from CarClass import CarClass
-from DataInputClass import DataInputClass
-from DataInputClass import Continuous_dt
+from elevate_includes import *
 from Cars import Nissan_Leaf
-import colorama
-from colorama import Fore, Back, Style
-from elevate_includes import Display as Display, mph_to_ms
-
 
 ###############################
 ###     LOCAL VARIABLES     ###
@@ -52,7 +42,7 @@ if __name__ == "__main__":
     #print(eng.sqrt(4.0))
     #eng.quit()
     
-    datafile = DataInputClass(filename+".tsv")
+    datafile = DataIoClass(filename+".tsv")
     timer    = Continuous_dt(datafile.dt, 50)
 
     # Spawn vehicle(s)

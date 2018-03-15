@@ -3,8 +3,7 @@
 ###############################
 ###    IMPORT LIBRARIES     ###
 ###############################
-from elevate_includes import constrain
-from ControlBusClass import ControlBusClass
+from ControlBusClass import ControlBusClass, constrain
 
 class ControllerClass(ControlBusClass):
     '''PID controller'''

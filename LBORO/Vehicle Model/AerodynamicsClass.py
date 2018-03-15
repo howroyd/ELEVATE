@@ -26,7 +26,7 @@ class AerodynamicsClass(object):
     ###        GETTERS          ###
     ###############################
     @property 
-    def force(self) -> double:
+    def force(self):
         return self._force_drag_profile + self._force_drag_dynamic
 
 

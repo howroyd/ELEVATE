@@ -4,7 +4,16 @@
 ###    IMPORT LIBRARIES     ###
 ###############################
 import math
-from elevate_includes import constrain
+
+
+###############################
+###    UTILITY FUNCTIONS    ###
+###############################
+
+# Constrain
+def constrain(val, _min, _max):
+    return min(_max, max(_min, val))
+
 
 class ControlBusClass(object):
     '''Data handler for a PID controller'''

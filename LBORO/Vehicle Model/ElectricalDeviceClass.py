@@ -7,18 +7,21 @@ from ElectricityClass import ElectricityClass
 
 class ElectricalDeviceClass(ElectricityClass):
     '''Base class describing an electrial device'''
-    _i_max_in = None
+    _i_max_in  = None
     _i_max_out = None
-    _e_in    = 0.0
-    _e_out   = 0.0
-    _e_total = kwargs.get('e_start')
-    _e_max   = kwargs.get('e_max')
-    _e_min   = kwargs.get('e_min')
+    _e_in      = 0.0
+    _e_out     = 0.0
+    _e_total   = None
+    _e_max     = None
+    _e_min     = None
 
     ###############################
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, kwargs=dict()):
+        self._e_total   = kwargs.get('e_start')
+        self._e_max     = kwargs.get('e_max')
+        self._e_min     = kwargs.get('e_min')
         return super().__init__()
 
 

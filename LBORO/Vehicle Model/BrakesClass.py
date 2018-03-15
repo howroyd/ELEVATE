@@ -8,7 +8,7 @@ from RotatingThingClass import RotatingDiscClass
 from ControlBusClass import ControlBusClass
 
 
-class BrakesClass(RotatingThingClass.RotatingDiscClass):
+class BrakesClass(RotatingDiscClass):
     '''Brake for an electric vehicle wheel'''
     _shc_carbon_steel                 = 502.416
     _density_carbon_steel             = 7850.0

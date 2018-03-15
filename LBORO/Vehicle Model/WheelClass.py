@@ -23,7 +23,7 @@ class WheelClass(RotatingCylinderShellClass):
         _kwargs = dict(diameter=kwargs['wheel_diameter'],
                 mass=kwargs['wheel_mass']
                 )
-        RotatingThingClass.RotatingCylinderShellClass.__init__(self, _kwargs)
+        RotatingCylinderShellClass.__init__(self, _kwargs)
 
         self._force = 0.0
 
