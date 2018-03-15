@@ -14,20 +14,14 @@ import matplotlib.pyplot as plt
 
 # Python libraries
 import numpy as np
-import threading
 import colorama
-from colorama import Fore, Back, Style
-import random
 
 # User libraries
-#from TdiLoadbankClass import TdiLoadbank
-from battery_sw import Battery_Model
+from AerodynamicsClass import AerodynamicsClass
+from BatteryManagementClass import BatteryManagementClass
 from CarClass import CarClass
-from DataInputClass import DataInputClass, DataOutputClass
-from DataInputClass import Continuous_dt
-from ControllerClass import ControllerClass
-from Cars import Nissan_Leaf
-from Filters import LowPassFilter
+import Cars
+from DataInputClass import DataIoClass, Continuous_dt
 
 
 ###############################
@@ -39,6 +33,11 @@ from Filters import LowPassFilter
 def mph_to_ms(mph:'mph') -> 'm/s':
     return mph / 2.23694
 
+# Constrain
+@staticmethod
+def constrain(val, _min, _max):
+    return min(_max, max(_min, val))
+
 
 class Display(object):
     '''Print to screen wrapper'''
@@ -49,7 +48,7 @@ class Display(object):
     def __init__(self, version=None):
         colorama.init()
         self.ver = version
-        print(Fore.GREEN, Style.BRIGHT)
+        print(colorama.Fore.GREEN, colorama.Style.BRIGHT)
         print("\nELEVATE (ELEctrochemical Vehicle Advanced TEchnology)")
 
         if version is not None:
@@ -59,7 +58,7 @@ class Display(object):
 
         print("Simon Howroyd", datetime.date.today().year)
         print("Loughborough University")
-        print(Style.RESET_ALL)
+        print(colorama.Style.RESET_ALL)
         print(sys.version, '\n')
 
     ###############################

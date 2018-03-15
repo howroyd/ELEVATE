@@ -4,8 +4,8 @@
 ###    IMPORT LIBRARIES     ###
 ###############################
 import time
-import PowertrainClass2
-import AerodynamicsClass
+from PowertrainClass2 import PowertrainControllerClass
+from AerodynamicsClass import AerodynamicsClass
 
 
 class CarClass(object):
@@ -22,8 +22,8 @@ class CarClass(object):
         if (kwargs is None):
             raise Exception("Must define car data!")
         else:
-            self._powertrain = PowertrainClass2.PowertrainControllerClass(kwargs)
-            self._aero_model = AerodynamicsClass.AerodynamicsClass(kwargs)
+            self._powertrain   = PowertrainControllerClass(kwargs)
+            self._aero_model   = AerodynamicsClass(kwargs)
             self._vehicle_mass = kwargs.get('car_mass')
 
     ###############################

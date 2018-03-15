@@ -1,9 +1,5 @@
 #!/usr/bin/python3
 
-###############################
-###    IMPORT LIBRARIES     ###
-###############################
-
 class LowPassFilter(object):
     '''Basic low pass filter'''
     _last = 0.0

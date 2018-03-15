@@ -3,9 +3,10 @@
 ###############################
 ###    IMPORT LIBRARIES     ###
 ###############################
-import ElectricalDeviceClass
+from ElectricityClass import kwh_to_joules
+from ElectricalDeviceClass import ElectricalDeviceClass
 
-class BatteryClass(ElectricalDeviceClass.ElectricalDeviceClass):
+class BatteryClass(ElectricalDeviceClass):
     '''Battery for an electric vehicle'''
     _v_min           = None
     _v_max           = None
@@ -17,13 +18,13 @@ class BatteryClass(ElectricalDeviceClass.ElectricalDeviceClass):
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, kwargs):
-        self._v_min = kwargs.get('v_min')
-        self._v_max = kwargs.get('v_max')
-        self._i_max_charge = kwargs.get('i_max_charge')
+        self._v_min           = kwargs.get('v_min')
+        self._v_max           = kwargs.get('v_max')
+        self._i_max_charge    = kwargs.get('i_max_charge')
         self._i_max_discharge = kwargs.get('i_max_discharge')
-        self._p_max = kwargs.get('p_max')
+        self._p_max           = kwargs.get('p_max')
 
-        batt_e_max = self.kwh_to_joules(kwargs.get('batt_kwh'))
+        batt_e_max            = kwh_to_joules(kwargs.get('batt_kwh'))
 
         return super().__init__(dict(e_min=0.0, e_max=batt_e_max, e_start=batt_e_max))
 

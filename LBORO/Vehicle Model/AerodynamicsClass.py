@@ -1,8 +1,5 @@
 #!/usr/bin/python3
 
-###############################
-###    IMPORT LIBRARIES     ###
-###############################
 class AerodynamicsClass(object):
     '''Calculate aerodynamic drag for a vehicle'''
     _force_drag_profile = 0.0

@@ -67,7 +67,7 @@ class Continuous_dt(object):
 
 
 
-class DataInputClass(object):
+class DataIoClass(object):
     '''Class to fetch timestamped data from file and save data to another file'''
     _file_in       = None
     _file_out      = None

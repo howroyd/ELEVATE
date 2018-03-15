@@ -3,13 +3,9 @@
 ###############################
 ###    IMPORT LIBRARIES     ###
 ###############################
-import RotatingThingClass
-import WheelClass
-import MotorClass
-import GeartrainClass
+from RotatingThingClass import RotatingCylinderClass, RotatingThingData
 
-
-class AxleClass(RotatingThingClass.RotatingCylinderClass):
+class AxleClass(RotatingCylinderClass):
     """Axle class for an electric vehicle"""
     _wheels = [ None, None ]
     _shaft  = None
@@ -23,12 +19,12 @@ class AxleClass(RotatingThingClass.RotatingCylinderClass):
                     'diameter' : 0.03,
                     'mass' : 5.0 }
 
-        self._wheels = [ RotatingThingClass.RotatingThingData(),
-                            RotatingThingClass.RotatingThingData() ]
+        self._wheels = [ RotatingThingData(),
+                            RotatingThingData() ]
 
-        self._shaft = RotatingThingClass.RotatingThingData()
+        self._shaft = RotatingThingData()
 
-        return super(RotatingThingClass.RotatingCylinderClass, self).__init__(_data)
+        return super(RotatingCylinderClass, self).__init__(_data)
 
 
     ###############################

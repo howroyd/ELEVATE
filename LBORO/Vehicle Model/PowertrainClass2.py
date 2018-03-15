@@ -3,15 +3,13 @@
 ###############################
 ###    IMPORT LIBRARIES     ###
 ###############################
-import AxleClass
-import BatteryClass
-import BatteryManagementClass
-import ControlBusClass
-import ControllerClass
-import ElectricityClass
-import EscClass
-import MotorClass
-import WheelClass
+from AxleClass import AxleClass
+from BatteryClass import BatteryClass
+from BatteryManagementClass import BatteryManagementClass
+from ControllerClass import ControllerClass
+from EscClass import ESC
+from MotorClass import MotorClass
+from WheelClass import WheelClass
 
 
 class PowertrainControllerClass(object):
@@ -31,21 +29,21 @@ class PowertrainControllerClass(object):
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, kwargs):
-        self._axle    = AxleClass.AxleClass()
-        self._battery = BatteryClass.BatteryClass(dict(i_max_charge=(kwargs.get('batt_p_max')*0.5/kwargs.get('batt_v_min')),
+        self._axle    = AxleClass()
+        self._battery = BatteryClass(dict(i_max_charge=(kwargs.get('batt_p_max')*0.5/kwargs.get('batt_v_min')),
                                                     i_max_discharge=kwargs.get('batt_i_max'),
                                                     p_max=kwargs.get('batt_p_max'),
                                                     batt_kwh=kwargs.get('batt_kwh')))
-        self._bms     = BatteryManagementClass.BatteryManagementClass(kwargs)
-        self._esc     = EscClass.ESC(kwargs)
-        self._motor   = MotorClass.MotorClass(kwargs)
-        self._wheel   = [ WheelClass.WheelClass(kwargs),   # FL
-                          WheelClass.WheelClass(kwargs),   # FR
-                          WheelClass.WheelClass(kwargs),   # RL
-                          WheelClass.WheelClass(kwargs) ]  # RR
-        self._ctrl_speed = ControllerClass.ControllerClass(1, 0.01, 0.002, 'signed')
-        self._ctrl_motor = ControllerClass.ControllerClass(1, 0.01, 0.002, 'unsigned')
-        self._ctrl_brake = ControllerClass.ControllerClass(1, 0.01, 0.002, 'unsigned')
+        self._bms     = BatteryManagementClass(kwargs)
+        self._esc     = ESC(kwargs)
+        self._motor   = MotorClass(kwargs)
+        self._wheel   = [ WheelClass(kwargs),   # FL
+                          WheelClass(kwargs),   # FR
+                          WheelClass(kwargs),   # RL
+                          WheelClass(kwargs) ]  # RR
+        self._ctrl_speed = ControllerClass(1, 0.01, 0.002, 'signed')
+        self._ctrl_motor = ControllerClass(1, 0.01, 0.002, 'unsigned')
+        self._ctrl_brake = ControllerClass(1, 0.01, 0.002, 'unsigned')
         self._speed_target = 0.0
         self._speed        = 0.0
 

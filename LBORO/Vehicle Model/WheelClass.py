@@ -3,10 +3,10 @@
 ###############################
 ###    IMPORT LIBRARIES     ###
 ###############################
-import RotatingThingClass
-import BrakesClass
+from RotatingThingClass import RotatingCylinderShellClass
+from BrakesClass import BrakesClass
 
-class WheelClass(RotatingThingClass.RotatingCylinderShellClass):
+class WheelClass(RotatingCylinderShellClass):
     '''Wheel class for an electric vehicle'''
     _brake = None
     _force = None
@@ -18,7 +18,7 @@ class WheelClass(RotatingThingClass.RotatingCylinderShellClass):
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, kwargs):
-        self._brake = BrakesClass.BrakesClass(kwargs)
+        self._brake = BrakesClass(kwargs)
 
         _kwargs = dict(diameter=kwargs['wheel_diameter'],
                 mass=kwargs['wheel_mass']

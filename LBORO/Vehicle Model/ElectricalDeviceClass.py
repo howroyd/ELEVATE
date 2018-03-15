@@ -3,9 +3,9 @@
 ###############################
 ###    IMPORT LIBRARIES     ###
 ###############################
-import ElectricityClass
+from ElectricityClass import ElectricityClass
 
-class ElectricalDeviceClass(ElectricityClass.ElectricityClass):
+class ElectricalDeviceClass(ElectricityClass):
     '''Base class describing an electrial device'''
     _i_max_in = None
     _i_max_out = None

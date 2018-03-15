@@ -3,9 +3,9 @@
 ###############################
 ###    IMPORT LIBRARIES     ###
 ###############################
-import ControlBusClass
-from Filters import LowPassFilter
 import ElectricalDeviceClass
+from Filters import LowPassFilter
+import ControlBusClass
 
 class ESC(ElectricalDeviceClass.ElectricalDeviceClass):
     '''Electronic speed controller for an induction motor'''

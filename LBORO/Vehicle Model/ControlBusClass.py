@@ -4,6 +4,7 @@
 ###    IMPORT LIBRARIES     ###
 ###############################
 import math
+from elevate_includes import constrain
 
 class ControlBusClass(object):
     '''Data handler for a PID controller'''
@@ -30,19 +31,11 @@ class ControlBusClass(object):
 
 
     ###############################
-    ###        CONSTRAIN        ###
-    ###############################
-    @staticmethod
-    def constrain(val, _min, _max):
-        return min(_max, max(_min, val))
-
-
-    ###############################
     ###        OVERFLOW         ###
     ###############################
     def check_overflow(self, val):
         new_val = self._val + val
-        return new_val - self.constrain(new_val, self._min, self._max)
+        return new_val - constrain(new_val, self._min, self._max)
 
 
     ###############################
@@ -96,7 +89,7 @@ class ControlBusClass(object):
     @value.setter
     def value(self, val):
         last = self._val
-        next = self.constrain(val, self._min, self._max)
+        next = constrain(val, self._min, self._max)
         if next is not None:
             self._val_last = last
             self._val = next

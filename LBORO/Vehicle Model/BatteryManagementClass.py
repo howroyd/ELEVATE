@@ -3,10 +3,10 @@
 ###############################
 ###    IMPORT LIBRARIES     ###
 ###############################
-import ElectricalDeviceClass
-import BatteryClass
+from ElectricityClass import kwh_to_joules
+from ElectricalDeviceClass import ElectricalDeviceClass
 
-class BatteryManagementClass(ElectricalDeviceClass.ElectricalDeviceClass):
+class BatteryManagementClass(ElectricalDeviceClass):
     '''Battery management class for an electric vehicle powerpack'''
     _i_max_charge    = None
     _i_max_discharge = None
@@ -18,15 +18,15 @@ class BatteryManagementClass(ElectricalDeviceClass.ElectricalDeviceClass):
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, kwargs):
-        self._i_max_charge = kwargs.get('i_max_charge')
+        self._i_max_charge    = kwargs.get('i_max_charge')
         self._i_max_discharge = kwargs.get('i_max_discharge')
-        self._p_max = kwargs.get('p_max')
+        self._p_max           = kwargs.get('p_max')
 
-        batt_e_max = self.kwh_to_joules(kwargs.get('batt_kwh'))
+        batt_e_max            = kwh_to_joules(kwargs.get('batt_kwh'))
 
-        _data  = dict(e_min=0.0, e_max=batt_e_max, e_start=batt_e_max)
+        _data                 = dict(e_min=0.0, e_max=batt_e_max, e_start=batt_e_max)
 
-        self._battery_data = ElectricalDeviceClass.ElectricalDeviceClass(_data)
+        self._battery_data    = ElectricalDeviceClass(_data)
 
         super().__init__(_data)
 

@@ -4,12 +4,11 @@
 ###    IMPORT LIBRARIES     ###
 ###############################
 import math
-import RotatingThingClass
+from RotatingThingClass import RotatingCylinderClass
+from ElectricalDeviceClass import ElectricalDeviceClass
 import ControlBusClass
-import ElectricalDeviceClass
-import ElectricalManagementClass
 
-class MotorClass(ElectricalDeviceClass.ElectricalDeviceClass, RotatingThingClass.RotatingCylinderClass):
+class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
     '''Motor for an electric vehicle'''
     # Tq = P*w (mech)
     # Pe = Vs * I (elec)
@@ -44,9 +43,9 @@ class MotorClass(ElectricalDeviceClass.ElectricalDeviceClass, RotatingThingClass
         _kwargs = dict(diameter=kwargs['motor_rotor_diameter'],
                 mass=kwargs['motor_rotor_mass']
                 )
-        super(RotatingThingClass.RotatingCylinderClass, self).__init__(_kwargs)
+        super(RotatingCylinderClass, self).__init__(_kwargs)
 
-        super(ElectricalDeviceClass.ElectricalDeviceClass, self).__init__()
+        super(ElectricalDeviceClass, self).__init__()
 
         self._ctrl_sig    = ControlBusClass.ControlBusClass('signed')
 
@@ -108,9 +107,9 @@ class MotorClass(ElectricalDeviceClass.ElectricalDeviceClass, RotatingThingClass
         self._i = i
         self._torque_motor = motor_torque_out
         self.torque = motor_torque_out * self._reduction_ratio
-        ElectricalDeviceClass.ElectricalDevice.update(dt)
+        ElectricalDevice.update(dt)
 
-        dissipated_power = abs(ElectricalDeviceClass.ElectricalDevice.get_p() - RotatingThingClass.RotatingCylinderClass.power)
+        dissipated_power = abs(ElectricalDevice.get_p() - RotatingThingClass.RotatingCylinderClass.power)
 
 
     ###############################

@@ -4,8 +4,8 @@
 ###    IMPORT LIBRARIES     ###
 ###############################
 import math
-import RotatingThingClass
-import ControlBusClass
+from RotatingThingClass import RotatingDiscClass
+from ControlBusClass import ControlBusClass
 
 
 class BrakesClass(RotatingThingClass.RotatingDiscClass):
@@ -36,11 +36,11 @@ class BrakesClass(RotatingThingClass.RotatingDiscClass):
                         mass=_mass
                         )
 
-        RotatingThingClass.RotatingDiscClass.__init__(self, _kwargs)
+        RotatingDiscClass.__init__(self, _kwargs)
 
         self._torque_max  = kwargs['brake_max_torque']
 
-        self._ctrl_sig    = ControlBusClass.ControlBusClass('unsigned')
+        self._ctrl_sig    = ControlBusClass('unsigned')
 
         self._K_J         = 1.0 / ( self._shc_carbon_steel * _mass)
 
