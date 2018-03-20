@@ -29,6 +29,10 @@ from DataInputClass import DataIoClass, Continuous_dt
 def mph_to_ms(mph:'mph') -> 'm/s':
     return mph / 2.23694
 
+# Convert m/s to mph
+def ms_to_mph(ms:'m/s') -> 'mph':
+    return ms * 2.23694
+
 # Constrain
 def constrain(val, _min, _max):
     return min(_max, max(_min, val))
@@ -75,6 +79,24 @@ class Display(object):
     def disp_feed_forward(self, bin_val):
         if bin_val:
             print("\nFeed forward control enabled\n")
+
+    ###############################
+    ###          COST           ###
+    ###############################
+    def disp_cost(self, cost):
+        print(colorama.Fore.YELLOW, colorama.Style.BRIGHT)
+        print(cost)
+        print('\n')
+        print(colorama.Style.RESET_ALL)
+
+    ###############################
+    ###          TIME           ###
+    ###############################
+    def disp_time(self, _time):
+        print(colorama.Fore.RED, colorama.Style.BRIGHT)
+        print(_time)
+        print('\n')
+        print(colorama.Style.RESET_ALL)
 
 
 ###############################

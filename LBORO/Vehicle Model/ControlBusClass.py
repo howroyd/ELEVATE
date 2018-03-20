@@ -35,8 +35,8 @@ class ControlBusClass(object):
             print("Please specify constraint method")
             raise NotImplementedError
 
-        self._min = -127 if ('signed' in type) else 0
-        self._max = 128 if ('signed' in type) else 255
+        self._min = 0 if ('unsigned' in type) else -127
+        self._max = 255 if ('unsigned' in type) else 128
 
 
     ###############################
@@ -59,7 +59,7 @@ class ControlBusClass(object):
     # Control signal (decimal)
     @property
     def decimal(self):
-        return self._value / self._max
+        return self._val / self._max
 
 
     # Delta of the control signal

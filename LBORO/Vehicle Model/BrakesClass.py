@@ -5,7 +5,7 @@
 ###############################
 import math
 from RotatingThingClass import RotatingDiscClass
-from ControlBusClass import ControlBusClass
+from ControlBusClass import ControlBusClass, constrain
 
 
 class BrakesClass(RotatingDiscClass):
@@ -53,12 +53,14 @@ class BrakesClass(RotatingDiscClass):
     def update(self, dt):
         super().update(dt)
 
-        self.torque = self._ctrl_sig.decimal * self.torque_max
+        self.torque = -1.0 * self._ctrl_sig.decimal * self.torque_max
 
-        power_gained = self.torque * self.w
+        self._torque = constrain(self._torque_max, -1.0*self.torque_max, 0.0)
+
+        power_gained = self.torque * self.speed
         energy_gained = power_gained * dt
 
-        power_lost = self._conductivity_to_air_carbon_steel * ( 2.0 * self.area ) * ( self._temperature_ambient - self._temperature ) * -1.0
+        power_lost = self._conductivity_to_air_carbon_steel * ( 2.0 * self.area ) * ( self._temperature_ambient - self._temperature ) * - 1.0
         energy_lost = power_lost * dt
         
         self._temperature += (self._K_J * (energy_gained-energy_lost))
@@ -87,6 +89,11 @@ class BrakesClass(RotatingDiscClass):
     def temperature(self):
         return self._temperature
 
+    # Brake temperature approximation
+    @property
+    def temperature_amb(self):
+        return self._temperature_ambient
+
 
     ###############################
     ###        SETTERS          ###
@@ -106,6 +113,16 @@ class BrakesClass(RotatingDiscClass):
             return None
         self._torque_max = tq
 
+
+    # Brake temperature approximation
+    @temperature.setter
+    def temperature(self, temp):
+        self._temperature = temp
+
+    # Brake temperature approximation
+    @temperature_amb.setter
+    def temperature_amb(self, temp_amb):
+        self._temperature_amb = temp_amb
 
 ###############################
 ###############################

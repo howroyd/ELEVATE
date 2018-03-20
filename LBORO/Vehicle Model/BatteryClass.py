@@ -6,6 +6,7 @@
 from ElectricityClass import kwh_to_joules
 from ElectricalDeviceClass import ElectricalDeviceClass
 
+
 class BatteryClass(ElectricalDeviceClass):
     '''Battery for an electric vehicle'''
     _v_min           = None

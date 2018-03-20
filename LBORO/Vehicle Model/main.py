@@ -82,23 +82,43 @@ if __name__ == "__main__":
         ###      UPDATE SAVE        ###
         ###############################
         datafile.line = [timer.sim_time]
-        datafile.line = [mycar.target_speed * 2.23694]
-        datafile.line = [mycar.speed * 2.23694]
-        datafile.line = [mycar._powertrain._speed_control.error]
-        datafile.line = [mycar._powertrain._speed_control.error_p]
-        datafile.line = [mycar._powertrain._speed_control.error_i]
-        datafile.line = [mycar._powertrain._speed_control.error_d]
-        datafile.line = [mycar._powertrain._speed_control._motor_controller.error]
-        datafile.line = [mycar._powertrain._speed_control._motor_controller.error_p]
-        datafile.line = [mycar._powertrain._speed_control._motor_controller.error_i]
-        datafile.line = [mycar._powertrain._speed_control._motor_controller.error_d]
-        datafile.line = [mycar._powertrain._speed_control._brake_controller.error]
-        datafile.line = [mycar._powertrain._speed_control._brake_controller.error_p]
-        datafile.line = [mycar._powertrain._speed_control._brake_controller.error_i]
-        datafile.line = [mycar._powertrain._speed_control._brake_controller.error_d]
+
+        datafile.line = [ms_to_mph(mycar.target_speed)]
+        datafile.line = [ms_to_mph(mycar.speed)]
+
+        datafile.line = [mycar.speed_ctrl_pid.get('p')]
+        datafile.line = [mycar.speed_ctrl_pid.get('i')]
+        datafile.line = [mycar.speed_ctrl_pid.get('d')]
+
+        datafile.line = [mycar.motor_ctrl_pid.get('p')]
+        datafile.line = [mycar.motor_ctrl_pid.get('i')]
+        datafile.line = [mycar.motor_ctrl_pid.get('d')]
+
+        datafile.line = [mycar.brake_ctrl_pid.get('p')]
+        datafile.line = [mycar.brake_ctrl_pid.get('i')]
+        datafile.line = [mycar.brake_ctrl_pid.get('d')]
+
+        datafile.line = [mycar.battery_electricity.get('voltage')]
+        datafile.line = [mycar.esc_electricity.get('voltage')]
+        datafile.line = [mycar.motor_electricity.get('voltage')]
+
+        datafile.line = [mycar.battery_electricity.get('current')]
+        datafile.line = [mycar.esc_electricity.get('current')]
+        datafile.line = [mycar.motor_electricity.get('current')]
+
+        datafile.line = [mycar.motor_rotation.get('torque')]
+        datafile.line = [mycar.axle_rotation.get('torque')]
+        datafile.line = [mycar.wheel_rotation[0].get('torque')]
+        datafile.line = [mycar.wheel_rotation[2].get('torque')]
+
+        datafile.line = [mycar.motor_rotation.get('speed')]
+        datafile.line = [mycar.axle_rotation.get('speed')]
+        datafile.line = [mycar.wheel_rotation[0].get('speed')]
+        datafile.line = [mycar.wheel_rotation[2].get('speed')]
 
     disp.disp(None, end='\r\n')
 
+    disp.disp("Finished!\n\n")
 
     ###############################
     ###     COMPILE GRAPHS      ###
@@ -107,7 +127,16 @@ if __name__ == "__main__":
 
         # Get data from saved datafile
         data_out = np.genfromtxt(filename+"_out.csv", delimiter=',', skip_header=1, skip_footer=1,
-                    names = ['x', 'v_set', 'v_true', 'speedE', 'speedP', 'speedI', 'speedD', 'motorE', 'motorP', 'motorI', 'motorD', 'brakeE', 'brakeP', 'brakeI', 'brakeD'])
+                    names = [   'x',
+                                'v_set', 'v_true',
+                                'speedP', 'speedI', 'speedD',
+                                'motorP', 'motorI', 'motorD',
+                                'brakeP', 'brakeI', 'brakeD',
+                                'batt_v', 'esc_v',  'motor_v',
+                                'batt_i', 'esc_i',  'motor_i',
+                                'tq_m',   'tq_ax',  'tq_w0',   'tq_w2',
+                                'w_m',    'w_ax',   'w_w0',    'w_w2'
+                            ])
 
         ###############################
         ###        FIGURE 1         ###
@@ -128,7 +157,7 @@ if __name__ == "__main__":
         ###    FIG 1, SUBPLOT 2     ###
         ###############################
         ax2 = fig.add_subplot(412)
-        ax2.plot(data_out['x'], data_out['speedE'], label='speedE')
+        ax2.plot(data_out['x'], data_out['speedP']+data_out['speedI']+data_out['speedD'], label='speedE')
         ax2.plot(data_out['x'], data_out['speedP'], label='speedP')
         ax2.plot(data_out['x'], data_out['speedI'], label='speedI')
         ax2.plot(data_out['x'], data_out['speedD'], label='speedD')
@@ -140,7 +169,7 @@ if __name__ == "__main__":
         ###    FIG 1, SUBPLOT 3     ###
         ###############################
         ax3 = fig.add_subplot(413)
-        ax3.plot(data_out['x'], data_out['motorE'], label='motorE')
+        ax3.plot(data_out['x'], data_out['motorP']+data_out['motorI']+data_out['motorD'], label='motorE')
         ax3.plot(data_out['x'], data_out['motorP'], label='motorP')
         ax3.plot(data_out['x'], data_out['motorI'], label='motorI')
         ax3.plot(data_out['x'], data_out['motorD'], label='motorD')
@@ -152,8 +181,8 @@ if __name__ == "__main__":
         ###    FIG 1, SUBPLOT 4     ###
         ###############################
         ax4 = fig.add_subplot(414)
-        ax4.plot(data_out['x'], data_out['brakeE'], label='brakeE')
-        ax4.plot(data_out['x'], data_out['brakeE'], label='brakeE')
+        ax4.plot(data_out['x'], data_out['brakeP']+data_out['brakeI']+data_out['brakeD'], label='brakeE')
+        ax4.plot(data_out['x'], data_out['brakeP'], label='brakeP')
         ax4.plot(data_out['x'], data_out['brakeI'], label='brakeI')
         ax4.plot(data_out['x'], data_out['brakeD'], label='brakeD')
         ax4.set_ylabel('Brake Ctrl \n 0-255')
@@ -163,22 +192,73 @@ if __name__ == "__main__":
         # Fig 1 x-Axis Label
         ax4.set_xlabel('Time /s')
 
+
+        ###############################
+        ###        FIGURE 2         ###
+        ###############################
+        fig2 = plt.figure()
+
+        ###############################
+        ###    FIG 2, SUBPLOT 1     ###
+        ###############################
+        ax1 = fig2.add_subplot(411)
+        ax1.plot(data_out['x'], data_out['batt_v'], label='batt_v')
+        ax1.plot(data_out['x'], data_out['esc_v'], label='esc_v')
+        ax1.plot(data_out['x'], data_out['motor_v'], label='motor_v')
+        ax1.set_ylabel('Voltage')
+        ax1.set_ylim([0, 400])
+        leg1 = ax1.legend(loc='upper right', shadow=True)
+
+        ###############################
+        ###    FIG 2, SUBPLOT 2     ###
+        ###############################
+        ax2 = fig2.add_subplot(412)
+        ax2.plot(data_out['x'], data_out['batt_v'], label='batt_v')
+        ax2.plot(data_out['x'], data_out['esc_i'], label='esc_i')
+        ax2.plot(data_out['x'], data_out['motor_i'], label='motor_i')
+        ax2.set_ylabel('Current')
+        ax2.set_ylim([0, 300])
+        leg2 = ax2.legend(loc='upper right', shadow=True)
+
+        ###############################
+        ###    FIG 2, SUBPLOT 3     ###
+        ###############################
+        ax3 = fig2.add_subplot(413)
+        ax3.plot(data_out['x'], data_out['tq_m'], label='tq_m')
+        ax3.plot(data_out['x'], data_out['tq_ax'], label='tq_ax')
+        ax3.plot(data_out['x'], data_out['tq_w0'], label='tq_w0')
+        ax3.plot(data_out['x'], data_out['tq_w2'], label='tq_w2')
+        ax3.set_ylabel('Torque')
+        #ax3.set_ylim([0, 300])
+        leg3 = ax3.legend(loc='upper right', shadow=True)
+
+        ###############################
+        ###    FIG 2, SUBPLOT 4     ###
+        ###############################
+        ax4 = fig2.add_subplot(414)
+        ax4.plot(data_out['x'], data_out['w_m'], label='w_m')
+        ax4.plot(data_out['x'], data_out['w_ax'], label='w_ax')
+        ax4.plot(data_out['x'], data_out['w_w0'], label='w_w0')
+        ax4.plot(data_out['x'], data_out['w_w2'], label='w_w2')
+        ax4.set_ylabel('Angular Speed')
+        #ax4.set_ylim([-260, 260])
+        leg4 = ax4.legend(loc='upper right', shadow=True)
+        
+        # Fig 1 x-Axis Label
+        ax4.set_xlabel('Time /s')
+
+
     ###############################
     ###       SHOW COSTS        ###
     ###############################
-    print(Fore.YELLOW, Style.BRIGHT)
-    print("Speed Cost:", round(leaf1._powertrain_model_array[0]._speed_control.cost, 1))
-    print("Motor Cost:", round(leaf1._powertrain_model_array[0]._speed_control._motor_controller.cost, 1))
-    print("Brake Cost:", round(leaf1._powertrain_model_array[0]._speed_control._brake_controller.cost, 1))    
+    #disp.disp_cost("Speed Cost:", round(leaf1._powertrain_model_array[0]._speed_control.cost, 1))
+    #disp.disp_cost("Motor Cost:", round(leaf1._powertrain_model_array[0]._speed_control._motor_controller.cost, 1))
+    #disp.disp_cost("Brake Cost:", round(leaf1._powertrain_model_array[0]._speed_control._brake_controller.cost, 1))    
 
     ###############################
     ###       SHOW TIME         ###
     ###############################
-    print(Fore.RED, Style.BRIGHT)
-    print("\n", round((time.time()-time_start),1), "seconds to run")
-    print(Fore.RED, Style.DIM)
-    print("\n***end***\n\n")
-    print(Style.RESET_ALL)
+    disp.disp_time(("\n", round((time.time()-time_start),1), "seconds to run"))
 
     ###############################
     ###       SHOW GRAPH        ###

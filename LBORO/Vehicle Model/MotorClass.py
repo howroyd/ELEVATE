@@ -34,6 +34,8 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
     _w_motor                 = 0.0
     _w_motor_max             = None
     _reduction_ratio         = None
+    _v_in                    = None
+    _i_in                    = None
 
     ###############################
     ###     INITIALISATION      ###
@@ -56,6 +58,7 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
         self._p_max = kwargs['motor_p_max']
         self._w_motor_max = rpm_to_rads(kwargs['motor_max_rpm'])
         self._reduction_ratio = kwargs['motor_reduction_ratio']
+        
         return
 
 
@@ -75,20 +78,13 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
 
         ## Calculate torque demand from control signal
         # Update for intertia
-        RotatingThingClass.RotatingCylinderClass.update(dt) 
+        super(RotatingCylinderClass, self).update(dt) 
         self._w_motor = self.speed * self._reduction_ratio
 
-        # Calculate how much torque we need to generate
-        shaft_torque_demand = (self._ctrl_sig.decimal * self.torque_max*self._reduction_ratio) + self.inertia_torque_x
-        motor_torque_demand = shaft_torque_demand / self._reduction_ratio
-        motor_torque_demand = self.constrain_plus_minus(motor_torque_demand, self._torque_max)
+        i = self._i_in
 
-        # First guess at current
-        i = self.calculate_current_from_torque(motor_torque_demand)
-        i = self.constrain_plus_minus(i, self._i_max)
-        
+        # If motor overspeed, only allow negative current (regen)
         if (self._w_motor > self._w_motor_max):
-            # If motor overspeed, only allow negative current (regen)
             i = min(i, 0.0)
 
         motor_torque_out = self.calculate_torque_from_current(i)
@@ -107,10 +103,57 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
         self._i = i
         self._torque_motor = motor_torque_out
         self.torque = motor_torque_out * self._reduction_ratio
+        super(ElectricalDeviceClass, self).update(dt)
+
+        dissipated_power = abs(super(ElectricalDeviceClass, self).power - super(RotatingCylinderClass, self).power)
+
+
+    ###############################
+    ###     OLD UPDATE LOOP     ###
+    ###############################
+    def old_update(self, dt):
+        # Dumb system.  May over current battery on regen.  Must handle this higher up and ramp off ctrl sig
+        # Note; low voltages/currents are handled by PWM
+
+        # Update shaft speed
+        # Calculate torque demand
+        # Account for inertia, new torque demand
+        # Calculate current
+        # Calculate torque
+        # Calculate voltage
+
+        ## Calculate torque demand from control signal
+        # Update for intertia
+        RotatingThingClass.RotatingCylinderClass.update(dt) 
+        self._w_motor = self.speed * self._reduction_ratio
+
+        motor_torque_out = self.calculate_torque_from_current(self._i_in)
+
+        # Calculate supply voltage required
+        Vemf = self._efficiency_mech_to_elec * self._w_motor
+        Vs = (self._i_in * self._winding_resistance) + Vemf
+
+        if ( Vs > self._v_max ):    
+            # If over-voltage, constrain and recalculate
+            Vs = self._v_max
+            self._i_in = (Vs - Vemf) / self._winding_resistance
+            motor_torque_out = self.calculate_torque_from_current(self._i_in)
+
+        self._v = Vs
+        self._i = self._i_in
+        self._torque_motor = motor_torque_out
+        self.torque = motor_torque_out * self._reduction_ratio
         ElectricalDevice.update(dt)
 
         dissipated_power = abs(ElectricalDevice.get_p() - RotatingThingClass.RotatingCylinderClass.power)
 
+
+    ###############################
+    ###       ELECTRICITY       ###
+    ###############################
+    def set_electricity(self, voltage, current):
+        self._v_in            = voltage
+        self._i_in            = current    
 
     ###############################
     ###         CURRENT         ###

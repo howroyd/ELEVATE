@@ -4,7 +4,7 @@
 ###    IMPORT LIBRARIES     ###
 ###############################
 import math
-from abc import ABCMeta, ABC, abstractmethod
+import abc
 
 
 ###############################
@@ -71,7 +71,6 @@ class RotatingThingData(object):
     # Interesting rotational object data
     @rotational_data.setter
     def rotational_data(self, data_dict):
-        print('Setting data', data_dict)
         self._torque = data_dict.get(self._key_torque)
         self._speed  = data_dict.get(self._key_speed)
 
@@ -93,7 +92,7 @@ class RotatingThingData(object):
 ###############################
 
 
-class RotatingThingClass(ABC, RotatingThingData):
+class RotatingThingClass(abc.ABC, RotatingThingData):
     '''Abstract base class describing the mechanics of a basic rotating object'''
     _w_last        = 0.0
     _p             = 0.0
@@ -112,7 +111,7 @@ class RotatingThingClass(ABC, RotatingThingData):
         self._mass          = kwargs.get('mass')
         self._circumference = math.pi * self._diameter if self._diameter is not None else None
 
-        super(ABC, self).__init__()
+        super(abc.ABC, self).__init__()
 
         return super(RotatingThingData, self).__init__()
 
@@ -152,33 +151,33 @@ class RotatingThingClass(ABC, RotatingThingData):
     # Mechanical power
     @property
     def power(self):
-        return self._torque * self._speed
+        return self.torque * self.speed
 
     # Torque
-    @property
-    def torque(self):
-        return super().torque
+#    @property
+#    def torque(self):
+#        return super(RotatingThingClass, self).torque
 
     # Angular speed
-    @property
-    def speed(self):
-        return super()._speed
+    #@property
+    #def speed(self):
+    #    return super(RotatingThingClass, self).speed
 
     # Force
     @property
     def force(self):
-        return self._torque * self.radius
+        return self.torque * self.radius
 
     # Moment of inertia (x axis) [ABSTRACT]
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def inertia_x(self):
-        ...
+        return 'Should never reach here'
 
     # Inertial torque
     @property
     def inertia_torque_x(self):
-        return self.inertia_x * ( self._speed - self._w_last ) / self._dt
+        return self.inertia_x * ( self.speed - self._w_last ) / self._dt
 
 
     ###############################
@@ -186,19 +185,19 @@ class RotatingThingClass(ABC, RotatingThingData):
     ###############################
 
     # Torque
-    @torque.setter
+    @RotatingThingData.torque.setter
     def torque(self, tq):
-        super(RotatingThingData, self).torque.__set__(tq - self.inertia_torque_x)
+        self._torque = tq - self.inertia_torque_x
 
     # Angular speed
-    @speed.setter
+    @RotatingThingData.speed.setter
     def speed(self, rad_sec):
         if (rad_sec < 0.0):
             print("Rotational speed cannot be negative")
             raise ValueError
             return None
         self._w_last = self._speed
-        super(RotatingThingData, self).speed.__set__(rad_sec)
+        self._speed = rad_sec
 
 
 ###############################
@@ -215,8 +214,7 @@ class RotatingDiscClass(RotatingThingClass):
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, kwargs):
-        RotatingThingClass.__init__(self, kwargs)
-        return
+        return super().__init__(kwargs)
 
 
     ###############################
@@ -242,9 +240,8 @@ class RotatingCylinderClass(RotatingThingClass):
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, kwargs):
-        RotatingThingClass.__init__(self, kwargs)
         self._length = kwargs.get('length')
-        return
+        return super().__init__(kwargs)
 
 
     ###############################
@@ -277,9 +274,8 @@ class RotatingCylinderShellClass(RotatingThingClass):
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, kwargs):
-        RotatingThingClass.__init__(self, kwargs)
         self._length = kwargs['length'] if 'length' in kwargs else None
-        return
+        return super().__init__(kwargs)
 
 
     ###############################

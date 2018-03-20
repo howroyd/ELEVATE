@@ -34,8 +34,9 @@ class BatteryManagementClass(ElectricalDeviceClass):
     ###############################
     ###      UPDATE LOOP        ###
     ###############################
-    def update(dt):
+    def update(self, dt):
         self._dt_last = dt
+        super().update(dt)
 
 
     ###############################

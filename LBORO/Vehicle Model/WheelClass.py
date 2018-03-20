@@ -6,6 +6,7 @@
 from RotatingThingClass import RotatingCylinderShellClass
 from BrakesClass import BrakesClass
 
+
 class WheelClass(RotatingCylinderShellClass):
     '''Wheel class for an electric vehicle'''
     _brake = None
@@ -21,7 +22,8 @@ class WheelClass(RotatingCylinderShellClass):
         self._brake = BrakesClass(kwargs)
 
         _kwargs = dict(diameter=kwargs['wheel_diameter'],
-                mass=kwargs['wheel_mass']
+                mass=kwargs['wheel_mass'],
+                length=kwargs['wheel_width']
                 )
         RotatingCylinderShellClass.__init__(self, _kwargs)
 
@@ -42,10 +44,13 @@ class WheelClass(RotatingCylinderShellClass):
         self._brake.speed = self.speed
 
         super().update(dt)
+
+        self._brake.temperature = self._brake.temperature_amb
+
         self._brake.update(dt)
 
         brake_torque = self._brake.torque
-        if self._brake.speed >= 0.0: brake_torque *= -1.0
+        #if self._brake.speed >= 0.0: brake_torque *= -1.0
 
         self.torque = self._axle_torque_in + brake_torque - self._road_drag # todo road drag
 

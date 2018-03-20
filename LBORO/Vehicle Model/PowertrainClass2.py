@@ -33,7 +33,10 @@ class PowertrainControllerClass(object):
         self._battery = BatteryClass(dict(i_max_charge=(kwargs.get('batt_p_max')*0.5/kwargs.get('batt_v_min')),
                                                     i_max_discharge=kwargs.get('batt_i_max'),
                                                     p_max=kwargs.get('batt_p_max'),
-                                                    batt_kwh=kwargs.get('batt_kwh')))
+                                                    batt_kwh=kwargs.get('batt_kwh'),
+                                                    v_min=kwargs.get('batt_v_min'),
+                                                    v_max=kwargs.get('batt_v_max'),
+                                                    ))
         self._bms     = BatteryManagementClass(kwargs)
         self._esc     = ESC(kwargs)
         self._motor   = MotorClass(kwargs)
@@ -43,7 +46,7 @@ class PowertrainControllerClass(object):
                           WheelClass(kwargs) ]  # RR
         self._ctrl_speed = ControllerClass(1, 0.01, 0.002, 'signed')
         self._ctrl_motor = ControllerClass(1, 0.01, 0.002, 'unsigned')
-        self._ctrl_brake = ControllerClass(1, 0.01, 0.002, 'unsigned')
+        self._ctrl_brake = ControllerClass(0.1, 0, 0, 'unsigned')
         self._speed_target = 0.0
         self._speed        = 0.0
 
@@ -71,12 +74,12 @@ class PowertrainControllerClass(object):
             ptr.brake_control_sig = self._ctrl_brake.value
 
         # Give (or receive) electricity to (or from) motor
-        self._motor.exchange_electricity(self._esc.output)
+        self._motor.set_electricity(self._esc.voltage, self._esc.current)
 
         # Update axle torque and speed, pass to drive wheels
-        self._axle.data = self._motor.data
-        self._wheel[2].axle_torque = self._axle.wheel_data[0]
-        self._wheel[3].axle_torque = self._axle.wheel_data[1]
+        self._axle.rotational_data = self._motor.rotational_data
+        self._wheel[2].rotational_data = self._axle.wheel_data[0]
+        self._wheel[3].rotational_data = self._axle.wheel_data[1]
 
         # Update time dependancies (energy calcs)
         self._axle.update(dt)
@@ -103,14 +106,14 @@ class PowertrainControllerClass(object):
 
             if self._ctrl_motor.at_minimum:
                 # Motor fully off or in full regen, apply brakes
-                self._ctrl_brake.update(dt, -1.0 * self._ctrl_speed.value)
+                self._ctrl_brake.update(dt, -1.0*self._ctrl_speed.value)
             else:
                 # In regen or coasting, no brakes applied
                 self._ctrl_brake.reset()
                 self._ctrl_brake.update(dt)
         else:
             # Trying to accelerate
-            self._ctrl_brake.update(dt, -1.0 * self._ctrl_speed.value)
+            self._ctrl_brake.update(dt, -1.0*self._ctrl_speed.value)
 
             if self._ctrl_brake.at_minimum:
                 # Brake fully off, power motor

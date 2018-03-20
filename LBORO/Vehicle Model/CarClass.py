@@ -13,7 +13,7 @@ class CarClass(object):
     _powertrain   = None
     _aero_model   = None
     _vehicle_mass = None
-    _speed = None
+    _speed = 0.0
 
     ###############################
     ###     INITIALISATION      ###
@@ -114,17 +114,17 @@ class CarClass(object):
     # Battery Electricity
     @property
     def battery_electricity(self):
-        return self._powertrain.battery_elec
+        return self._powertrain.battery_electricity
 
     # ESC Electricity
     @property
     def esc_electricity(self):
-        return self._powertrain.esc_elec
+        return self._powertrain.esc_electricity
 
     # Motor Electricity
     @property
     def motor_electricity(self):
-        return self._powertrain.motor_elec
+        return self._powertrain.motor_electricity
 
 
     ###############################

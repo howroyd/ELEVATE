@@ -5,6 +5,7 @@
 ###############################
 from ControlBusClass import ControlBusClass, constrain
 
+
 class ControllerClass(ControlBusClass):
     '''PID controller'''
     _key_p            = 'p'
@@ -83,7 +84,7 @@ class ControllerClass(ControlBusClass):
     # PID Data
     @property
     def pid_data(self):
-        return {self._key_p : self._error_p, self._key_i : self._error_i, self._key_d : self.error_d}
+        return {self._key_p : self.error_p, self._key_i : self.error_i, self._key_d : self.error_d}
 
     # Cost Function Data
     @property

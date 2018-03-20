@@ -21,6 +21,7 @@ class Nissan_Leaf(CarData):
                     car_mass=1521.0,
                     wheel_diameter=0.2159*2,
                     wheel_mass=9.0, # Rough google search
+                    wheel_width=0.3, # APPROX
                     #brake_diameter=[0.1]*4, # assumed
                     brake_diameter=0.1, # assumed
                     #brake_max_torque=[500.0]*4,

@@ -25,8 +25,8 @@ class ESC(ElectricalDeviceClass.ElectricalDeviceClass):
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, kwargs):
-        self.i_max_to_motor   = kwargs.get('i_max_to_motor')
-        self.i_max_from_motor = kwargs.get('i_max_from_motor')
+        self.i_max_to_motor   = kwargs.get('motor_i_max')
+        self.i_max_from_motor = kwargs.get('motor_i_max')
         self._p_max = kwargs.get('p_max')
         self._electrical_efficiency = kwargs.get('efficiency', 0.85)
         return super().__init__(kwargs)
@@ -42,7 +42,12 @@ class ESC(ElectricalDeviceClass.ElectricalDeviceClass):
         else:
             current = self._ctrl_sig.decimal * self.i_max_from_motor
 
+        self.v = self._input_data._v
+        self.i = current
+
         # This current value needs constraining to battery and motor realtime limits
+        
+        ### TODO ###
 
 
     ###############################
