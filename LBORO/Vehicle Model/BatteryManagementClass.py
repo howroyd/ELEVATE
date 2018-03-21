@@ -26,8 +26,6 @@ class BatteryManagementClass(ElectricalDeviceClass):
 
         _data                 = dict(e_min=0.0, e_max=batt_e_max, e_start=batt_e_max)
 
-        self._battery_data    = ElectricalDeviceClass(_data)
-
         super().__init__(_data)
 
 
@@ -43,8 +41,8 @@ class BatteryManagementClass(ElectricalDeviceClass):
     ###   FORCE BATTERY ELEC    ###
     ###############################
     def set_battery_data(self, battery_dict):
-        self._battery_data.voltage = battery_dict.get('voltage')
-        self._battery_data.energy = battery_dict.get('energy')
+        self.voltage = battery_dict.get('voltage')
+        self.energy = battery_dict.get('energy')
 
 
     ###############################
@@ -57,7 +55,7 @@ class BatteryManagementClass(ElectricalDeviceClass):
         if self._i_max_out is not None: return self._i_max_out
         try:
             max_remainder = (self.e_to_empty / self._dt_last) / self.voltage
-            return min(max_remainder, self._i_max_discharge, self._p_max / self._battery_data.voltage)
+            return min(max_remainder, self._i_max_discharge, self._p_max / self.voltage)
         except ZeroDivisionError:
             return 0.0
 
@@ -67,7 +65,7 @@ class BatteryManagementClass(ElectricalDeviceClass):
         if self._i_max_in is not None: return self._i_max_in
         try:
             max_remainder = (self.e_to_full / self._dt_last) / self.voltage
-            return min(max_remainder, self._i_max_charge, self._p_max / self._battery_data.voltage)
+            return min(max_remainder, self._i_max_charge, self._p_max / self.voltage)
         except ZeroDivisionError:
             return 0.0
 

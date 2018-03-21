@@ -29,14 +29,18 @@ class PowertrainControllerClass(object):
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, kwargs):
-        self._axle    = AxleClass()
-        self._battery = BatteryClass(dict(i_max_charge=(kwargs.get('batt_p_max')*0.5/kwargs.get('batt_v_min')),
+
+        kwargs.update(dict(i_max_charge=(kwargs.get('batt_p_max')*0.5/kwargs.get('batt_v_min')),
                                                     i_max_discharge=kwargs.get('batt_i_max'),
                                                     p_max=kwargs.get('batt_p_max'),
                                                     batt_kwh=kwargs.get('batt_kwh'),
                                                     v_min=kwargs.get('batt_v_min'),
                                                     v_max=kwargs.get('batt_v_max'),
                                                     ))
+
+
+        self._axle    = AxleClass()
+        self._battery = BatteryClass(kwargs)
         self._bms     = BatteryManagementClass(kwargs)
         self._esc     = ESC(kwargs)
         self._motor   = MotorClass(kwargs)
@@ -50,6 +54,9 @@ class PowertrainControllerClass(object):
         self._speed_target = 0.0
         self._speed        = 0.0
 
+        self._bms.set_battery_data(self._battery.battery_data)
+        self._esc.set_input_power(self._bms.availability)
+
 
     ###############################
     ###      UPDATE LOOP        ###
@@ -61,13 +68,13 @@ class PowertrainControllerClass(object):
 
         # Get battery availability, pass to BMS & ESC
         self._bms.set_battery_data(self._battery.battery_data)
-        self._esc.set_input_power(self._bms.availability)
         
         # Parse control signal from speed controller
         self._parse_control_signal(dt)
     
         # Send motor control signal to ESC
         self._esc.control_signal = self._ctrl_motor.value
+        self._esc.set_input_power(self._bms.availability)
 
         # Send brake control signal to wheels
         for ptr in self._wheel:
@@ -75,6 +82,12 @@ class PowertrainControllerClass(object):
 
         # Give (or receive) electricity to (or from) motor
         self._motor.set_electricity(self._esc.voltage, self._esc.current)
+
+        # Calculate voltage boost in ESC to charge battery if in regen
+
+
+        self._bms.current = self._esc.current
+        self._battery.current = self._bms.current
 
         # Update axle torque and speed, pass to drive wheels
         self._axle.rotational_data = self._motor.rotational_data
@@ -91,7 +104,7 @@ class PowertrainControllerClass(object):
         self._motor.update(dt)
         for ptr in self._wheel:
             ptr.update(dt)
-
+        print(self._motor.voltage, self._motor.current, self._motor.speed, self._motor.torque)
 
     ###############################
     ###     CONTROL DECODER     ###
@@ -209,7 +222,7 @@ class PowertrainControllerClass(object):
     def vehicle_speed(self, speed):
         self._speed = speed
         for ptr in self._wheel:
-            ptr._wheel.set_wheel_speed = speed
+            ptr.set_wheel_speed(speed)
 
     # Target speed
     @target_speed.setter

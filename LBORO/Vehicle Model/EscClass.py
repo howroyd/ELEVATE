@@ -18,7 +18,6 @@ class ESC(ElectricalDeviceClass.ElectricalDeviceClass):
     _lpf                   = LowPassFilter(1)
     _electrical_efficiency = None
     _input_data            = ElectricalDeviceClass.ElectricalDeviceClass()
-    _motor_data            = ElectricalDeviceClass.ElectricalDeviceClass()
 
 
     ###############################
@@ -36,14 +35,7 @@ class ESC(ElectricalDeviceClass.ElectricalDeviceClass):
     ###      UPDATE LOOP        ###
     ###############################
     def update(self, dt):
-        current = 0.0
-        if self._ctrl_sig.decimal >= 0.0:
-            current = self._ctrl_sig.decimal * self.i_max_to_motor
-        else:
-            current = self._ctrl_sig.decimal * self.i_max_from_motor
-
-        self.v = self._input_data._v
-        self.i = current
+        super().update(dt)
 
         # This current value needs constraining to battery and motor realtime limits
         
@@ -71,15 +63,17 @@ class ESC(ElectricalDeviceClass.ElectricalDeviceClass):
 
     # Input power
     def set_input_power(self, availability_dict):
-        self._input_data._v = availability_dict.get('voltage')
-        self._input_data._i_max_in = availability_dict.get('max_charge')
-        self._input_data._i_max_out = availability_dict.get('max_discharge')
+        self.voltage = availability_dict.get('voltage')
 
-    # Output power
-    def set_output_power(self, availability_dict):
-        self._motor_data._v = availability_dict.get('voltage')
-        self._motor_data._i_max_in = availability_dict.get('max_current')
-        self._motor_data._i_max_out = availability_dict.get('max_regen')
+        current = 0.0
+        if self._ctrl_sig.decimal >= 0.0:
+            current = self._ctrl_sig.decimal * self.i_max_to_motor
+            current = min(current, availability_dict.get('max_discharge'), self.i_max_to_motor)
+        else:
+            current = self._ctrl_sig.decimal * self.i_max_from_motor
+            current = max(current, availability_dict.get('max_charge'), self.i_max_from_motor)
+
+        self.current = current
 
 
 ###############################

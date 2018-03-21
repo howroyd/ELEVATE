@@ -6,7 +6,6 @@
 import math
 from RotatingThingClass import RotatingCylinderClass, rpm_to_rads
 from ElectricalDeviceClass import ElectricalDeviceClass
-import ControlBusClass
 
 class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
     '''Motor for an electric vehicle'''
@@ -49,8 +48,6 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
 
         super(ElectricalDeviceClass, self).__init__()
 
-        self._ctrl_sig    = ControlBusClass.ControlBusClass('signed')
-
         self._torque_max  = kwargs['motor_max_torque']
         self._v_min = kwargs['motor_v_min']
         self._v_max = kwargs['motor_v_max']
@@ -81,26 +78,26 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
         super(RotatingCylinderClass, self).update(dt) 
         self._w_motor = self.speed * self._reduction_ratio
 
-        i = self._i_in
-
         # If motor overspeed, only allow negative current (regen)
         if (self._w_motor > self._w_motor_max):
-            i = min(i, 0.0)
+            self.current = min(self.current, 0.0)
 
-        motor_torque_out = self.calculate_torque_from_current(i)
+        motor_torque_out = self.calculate_torque_from_current(self.current)
 
-        # Calculate supply voltage required
-        Vemf = self._efficiency_mech_to_elec * self._w_motor
-        Vs = (i * self._winding_resistance) + Vemf
+        if self.is_generating:
+            # Calculate supply voltage produced
+            Vemf = self._efficiency_mech_to_elec * self._w_motor
+            Vs = (self.current * self._winding_resistance) + Vemf
 
-        if ( Vs > self._v_max ):    
-            # If over-voltage, constrain and recalculate
-            Vs = self._v_max
-            i = (Vs - Vemf) / self._winding_resistance
-            motor_torque_out = self.calculate_torque_from_current(i)
+            if ( Vs > self._v_max ):    
+                # If over-voltage, constrain and recalculate
+                Vs = self._v_max
+                self.current = (Vs - Vemf) / self._winding_resistance
+                motor_torque_out = self.calculate_torque_from_current(self.current)
 
-        self._v = Vs
-        self._i = i
+            self.voltage = Vs
+            print("regen: ", self.voltage, self.current)
+
         self._torque_motor = motor_torque_out
         self.torque = motor_torque_out * self._reduction_ratio
         super(ElectricalDeviceClass, self).update(dt)
@@ -152,8 +149,8 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
     ###       ELECTRICITY       ###
     ###############################
     def set_electricity(self, voltage, current):
-        self._v_in            = voltage
-        self._i_in            = current    
+        self.voltage            = voltage
+        self.current            = current    
 
     ###############################
     ###         CURRENT         ###
@@ -181,25 +178,10 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
     ###        GETTERS          ###
     ###############################
 
-    # Control signal (raw)
-    @property
-    def value(self):
-        return self._value
-
     # Binary logic for if in regen mode
     @property
     def is_generating(self):
         return bool(self._i < 0)
-
-
-    ###############################
-    ###        SETTERS          ###
-    ###############################
- 
-    # Control signal (raw)
-    @value.setter
-    def value(self, value):
-        self._ctrl_sig.value = value
 
 
 ###############################

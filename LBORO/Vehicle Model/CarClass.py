@@ -30,6 +30,7 @@ class CarClass(object):
     ###      UPDATE LOOP        ###
     ###############################
     def update(self, dt):
+        self._powertrain.vehicle_speed = self.speed
         self._powertrain.update(dt)
 
         self._aero_model.update(self._speed)

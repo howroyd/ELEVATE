@@ -57,6 +57,12 @@ class ElectricityClass(object):
     ###        SETTERS          ###
     ###############################
 
+    # Data strcture of important data
+    @electricity_data.setter
+    def electricity_data(self, data_dict):
+        self.voltage = data_dict.get(self._key_voltage)
+        self.current = data_dict.get(self._key_current)
+
     # Voltage
     @voltage.setter
     def voltage(self, v):
