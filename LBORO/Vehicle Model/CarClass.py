@@ -35,6 +35,8 @@ class CarClass(object):
 
         self._aero_model.update(self._speed)
 
+        #print(self._powertrain.force, self._aero_model.force)
+
         total_force = self._powertrain.force - self._aero_model.force
 
         accn = total_force / self._vehicle_mass
@@ -110,6 +112,11 @@ class CarClass(object):
     @property
     def wheel_rotation(self):
         return self._powertrain.wheel_rotation
+
+    # Brake Rotational
+    @property
+    def brake_rotation(self):
+        return self._powertrain.brake_rotation
 
 
     # Battery Electricity

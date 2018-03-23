@@ -48,9 +48,9 @@ class PowertrainControllerClass(object):
                           WheelClass(kwargs),   # FR
                           WheelClass(kwargs),   # RL
                           WheelClass(kwargs) ]  # RR
-        self._ctrl_speed = ControllerClass(1, 0.01, 0.002, 'signed')
-        self._ctrl_motor = ControllerClass(1, 0.01, 0.002, 'unsigned')
-        self._ctrl_brake = ControllerClass(0.1, 0, 0, 'unsigned')
+        self._ctrl_speed = ControllerClass(10, 0, -1, 'signed')
+        self._ctrl_motor = ControllerClass(1, 0, 0.0, 'unsigned')
+        self._ctrl_brake = ControllerClass(1, 0, 0.0, 'unsigned')
         self._speed_target = 0.0
         self._speed        = 0.0
 
@@ -62,9 +62,10 @@ class PowertrainControllerClass(object):
     ###      UPDATE LOOP        ###
     ###############################
     def update(self, dt):
+
         # Get wheel speeds and torques, pass to axle then motor
         self._axle.wheel_data = [self._wheel[0].rotational_data, self._wheel[1].rotational_data]
-        self._motor.rotational_data = self._axle.rotational_data
+        self._motor.rotational_data = self._axle.shaft_data.rotational_data
 
         # Get battery availability, pass to BMS & ESC
         self._bms.set_battery_data(self._battery.battery_data)
@@ -84,15 +85,13 @@ class PowertrainControllerClass(object):
         self._motor.set_electricity(self._esc.voltage, self._esc.current)
 
         # Calculate voltage boost in ESC to charge battery if in regen
-
-
         self._bms.current = self._esc.current
         self._battery.current = self._bms.current
 
         # Update axle torque and speed, pass to drive wheels
-        self._axle.rotational_data = self._motor.rotational_data
-        self._wheel[2].rotational_data = self._axle.wheel_data[0]
-        self._wheel[3].rotational_data = self._axle.wheel_data[1]
+        self._axle.shaft_data = self._motor.rotational_data
+        self._wheel[0].axle_data = self._axle.rotation_left
+        self._wheel[1].axle_data = self._axle.rotation_right
 
         # Update time dependancies (energy calcs)
         self._axle.update(dt)
@@ -104,7 +103,8 @@ class PowertrainControllerClass(object):
         self._motor.update(dt)
         for ptr in self._wheel:
             ptr.update(dt)
-        print(self._motor.voltage, self._motor.current, self._motor.speed, self._motor.torque)
+
+
 
     ###############################
     ###     CONTROL DECODER     ###
@@ -195,6 +195,14 @@ class PowertrainControllerClass(object):
                     self._wheel[1].rotational_data,
                     self._wheel[2].rotational_data,
                     self._wheel[3].rotational_data ]
+
+    # Brake Rotational
+    @property
+    def brake_rotation(self):
+        return [ self._wheel[0].brake_rotational,
+                    self._wheel[1].brake_rotational,
+                    self._wheel[2].brake_rotational,
+                    self._wheel[3].brake_rotational ]
 
 
     # Battery Electricity

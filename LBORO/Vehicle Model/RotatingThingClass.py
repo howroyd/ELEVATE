@@ -13,11 +13,11 @@ import abc
 
 # Convert rpm to radians/sec
 def rpm_to_rads(rpm:'Revolutions per minute') -> 'Radians/second':
-    return rpm / 60.0 / 2.0 / math.pi
+    return rpm / 60.0 * (2.0 * math.pi)
 
 # Convert radians/sec to rpm
 def rads_to_rpm(rads:'Radians/second') -> 'Revolutions per minute':
-    return rads * 60.0 * 2.0 * math.pi
+    return rads * 60.0 / (2.0 * math.pi)
 
 
 class RotatingThingData(object):
@@ -121,6 +121,7 @@ class RotatingThingClass(abc.ABC, RotatingThingData):
     ###############################
     def update(self, dt):
         self._dt = dt
+        self.torque -=  self.inertia_torque_x
         return None
 
 
@@ -177,7 +178,10 @@ class RotatingThingClass(abc.ABC, RotatingThingData):
     # Inertial torque
     @property
     def inertia_torque_x(self):
-        return self.inertia_x * ( self.speed - self._w_last ) / self._dt
+        try:
+            return self.inertia_x * ( self.speed - self._w_last ) / self._dt
+        except ZeroDivisionError:
+            return 0.0
 
 
     ###############################
@@ -187,7 +191,7 @@ class RotatingThingClass(abc.ABC, RotatingThingData):
     # Torque
     @RotatingThingData.torque.setter
     def torque(self, tq):
-        self._torque = tq - self.inertia_torque_x
+        self._torque = tq
 
     # Angular speed
     @RotatingThingData.speed.setter

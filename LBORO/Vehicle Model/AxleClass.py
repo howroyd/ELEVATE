@@ -45,11 +45,11 @@ class AxleClass(RotatingCylinderClass):
 
     @property
     def rotation_left(self):
-        return self._wheels[0].data
+        return self._wheels[0].rotational_data
    
     @property
     def rotation_right(self):
-        return self._wheels[1].data
+        return self._wheels[1].rotational_data
 
 
     # Shaft rotational data
@@ -65,24 +65,26 @@ class AxleClass(RotatingCylinderClass):
     # Wheel rotational data   
     @wheel_data.setter
     def wheel_data(self, new_data):
-        self._wheels = new_data # Todo error checking here
+        if len(new_data) is not len(self._wheels):
+            raise IndexError("Unable to set axle wheel data, length mismatch")
+
         total_torque = 0.0
         total_speed = 0.0
         counter = 0
-        for ptr in self._wheels:
-            total_torque += ptr.get('torque')
-            total_speed += ptr.get('speed')
-            counter += 1
+        for x in range(len(self._wheels)):
+            self._wheels[x].speed  = new_data[x].get('speed')
+            self._wheels[x].torque = new_data[x].get('torque')
+            total_torque          += self._wheels[x].speed
+            total_speed           += self._wheels[x].torque
         self._shaft.torque = total_torque # This isn't true, may not be 5050, think stuck in mud
-        self._shaft.speed  = total_speed / counter
+        self._shaft.speed  = total_speed / len(self._wheels)
 
     # Shaft rotational data
     @shaft_data.setter
     def shaft_data(self, new_data):
-        self._shaft = new_data # Todo error checking here
-        for ptr in self._wheels:
-            ptr.torque = self._shaft.torque / len(self._wheels)
-            ptr.speed  = self._shaft.speed # As above comment about mud
+        for x in range(len(self._wheels)):
+            self._wheels[x].speed  = new_data.get('speed')
+            self._wheels[x].torque = new_data.get('torque') / len(self._wheels)
 
 
 ###############################

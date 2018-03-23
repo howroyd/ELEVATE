@@ -36,7 +36,7 @@ class BrakesClass(RotatingDiscClass):
                         mass=_mass
                         )
 
-        RotatingDiscClass.__init__(self, _kwargs)
+        super().__init__(_kwargs)
 
         self._torque_max  = kwargs['brake_max_torque']
 
@@ -53,9 +53,7 @@ class BrakesClass(RotatingDiscClass):
     def update(self, dt):
         super().update(dt)
 
-        self.torque = -1.0 * self._ctrl_sig.decimal * self.torque_max
 
-        self._torque = constrain(self._torque_max, -1.0*self.torque_max, 0.0)
 
         power_gained = self.torque * self.speed
         energy_gained = power_gained * dt
@@ -103,6 +101,11 @@ class BrakesClass(RotatingDiscClass):
     @value.setter
     def value(self, val):
         self._ctrl_sig.value = val
+
+        self.torque = -1.0 * self._ctrl_sig.decimal * self.torque_max
+
+        self._torque = constrain(self._torque, -1.0*self.torque_max, 0.0)
+
 
     # Maximum torque limit
     @torque_max.setter

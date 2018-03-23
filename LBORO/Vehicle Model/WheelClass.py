@@ -3,7 +3,7 @@
 ###############################
 ###    IMPORT LIBRARIES     ###
 ###############################
-from RotatingThingClass import RotatingCylinderShellClass
+from RotatingThingClass import RotatingCylinderShellClass, RotatingThingData
 from BrakesClass import BrakesClass
 
 
@@ -29,7 +29,7 @@ class WheelClass(RotatingCylinderShellClass):
 
         self._force = 0.0
 
-        self._axle_torque_in = 0.0
+        self._axle = RotatingThingData()
 
         self._road_drag = 0.0
         self._vehicle_speed = 0.0
@@ -49,10 +49,9 @@ class WheelClass(RotatingCylinderShellClass):
 
         self._brake.update(dt)
 
-        brake_torque = self._brake.torque
         #if self._brake.speed >= 0.0: brake_torque *= -1.0
 
-        self.torque = self._axle_torque_in + brake_torque - self._road_drag # todo road drag
+        self.torque = self._axle.torque + self._brake.torque - self._road_drag # todo road drag
 
         self._force = self.torque / self.radius
 
@@ -64,8 +63,8 @@ class WheelClass(RotatingCylinderShellClass):
     ###        FEEDBACK         ###
     ###############################
     def set_wheel_speed(self, vehicle_speed):
-        self.w = 2.0 * vehicle_speed / self.diameter
-        return None
+        self.speed = 2.0 * vehicle_speed / self.diameter
+        return self.speed
 
 
     ###############################
@@ -80,9 +79,14 @@ class WheelClass(RotatingCylinderShellClass):
 
     # Axle torque
     @property
-    def axle_torque(self):
-        return self._axle_torque_in
+    def axle_data(self):
+        return self.self._axle
 
+
+    # Brake Rotational
+    @property
+    def brake_rotational(self):
+        return self._brake.rotational_data
 
     # Brake torque
     @property
@@ -100,9 +104,9 @@ class WheelClass(RotatingCylinderShellClass):
     ###############################
 
     # Axle torque
-    @axle_torque.setter
-    def axle_torque(self, torque):
-        self._axle_torque_in = torque
+    @axle_data.setter
+    def axle_data(self, data_dict):
+        self._axle.rotational_data = data_dict
 
 
     # Brake control signal

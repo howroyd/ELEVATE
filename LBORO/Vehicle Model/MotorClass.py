@@ -75,31 +75,9 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
 
         ## Calculate torque demand from control signal
         # Update for intertia
-        super(RotatingCylinderClass, self).update(dt) 
         self._w_motor = self.speed * self._reduction_ratio
+        super(RotatingCylinderClass, self).update(dt) 
 
-        # If motor overspeed, only allow negative current (regen)
-        if (self._w_motor > self._w_motor_max):
-            self.current = min(self.current, 0.0)
-
-        motor_torque_out = self.calculate_torque_from_current(self.current)
-
-        if self.is_generating:
-            # Calculate supply voltage produced
-            Vemf = self._efficiency_mech_to_elec * self._w_motor
-            Vs = (self.current * self._winding_resistance) + Vemf
-
-            if ( Vs > self._v_max ):    
-                # If over-voltage, constrain and recalculate
-                Vs = self._v_max
-                self.current = (Vs - Vemf) / self._winding_resistance
-                motor_torque_out = self.calculate_torque_from_current(self.current)
-
-            self.voltage = Vs
-            print("regen: ", self.voltage, self.current)
-
-        self._torque_motor = motor_torque_out
-        self.torque = motor_torque_out * self._reduction_ratio
         super(ElectricalDeviceClass, self).update(dt)
 
         dissipated_power = abs(super(ElectricalDeviceClass, self).power - super(RotatingCylinderClass, self).power)
@@ -150,7 +128,34 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
     ###############################
     def set_electricity(self, voltage, current):
         self.voltage            = voltage
-        self.current            = current    
+        self.current            = current
+
+        # If motor overspeed, only allow negative current (regen)
+        if (self._w_motor > self._w_motor_max):
+            print("Motor overspeed! ", self._w_motor_max, self._w_motor)
+            #self.current = min(self.current, 0.0)
+
+        motor_torque_out = self.calculate_torque_from_current(self.current)
+
+        if self.is_generating:
+            # Calculate supply voltage produced
+            Vemf = self._efficiency_mech_to_elec * self._w_motor
+            Vs = (self.current * self._winding_resistance) + Vemf
+
+            if ( Vs > self._v_max ):    
+                # If over-voltage, constrain and recalculate
+                Vs = self._v_max
+                self.current = (Vs - Vemf) / self._winding_resistance
+                motor_torque_out = self.calculate_torque_from_current(self.current)
+
+            self.voltage = Vs
+            print("regen: ", self.voltage, self.current)
+
+        self._torque_motor = motor_torque_out
+        self.torque = motor_torque_out * self._reduction_ratio
+
+
+
 
     ###############################
     ###         CURRENT         ###

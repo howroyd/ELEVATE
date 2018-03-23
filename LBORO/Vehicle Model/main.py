@@ -110,11 +110,15 @@ if __name__ == "__main__":
         datafile.line = [mycar.axle_rotation.get('torque')]
         datafile.line = [mycar.wheel_rotation[0].get('torque')]
         datafile.line = [mycar.wheel_rotation[2].get('torque')]
+        datafile.line = [mycar.brake_rotation[0].get('torque')]
+        datafile.line = [mycar.brake_rotation[2].get('torque')]
 
-        datafile.line = [mycar.motor_rotation.get('speed')]
-        datafile.line = [mycar.axle_rotation.get('speed')]
-        datafile.line = [mycar.wheel_rotation[0].get('speed')]
-        datafile.line = [mycar.wheel_rotation[2].get('speed')]
+        datafile.line = [rads_to_rpm(mycar.motor_rotation.get('speed'))]
+        datafile.line = [rads_to_rpm(mycar.axle_rotation.get('speed'))]
+        datafile.line = [rads_to_rpm(mycar.wheel_rotation[0].get('speed'))]
+        datafile.line = [rads_to_rpm(mycar.wheel_rotation[2].get('speed'))]
+        datafile.line = [rads_to_rpm(mycar.brake_rotation[0].get('speed'))]
+        datafile.line = [rads_to_rpm(mycar.brake_rotation[2].get('speed'))]
 
     disp.disp(None, end='\r\n')
 
@@ -134,9 +138,12 @@ if __name__ == "__main__":
                                 'brakeP', 'brakeI', 'brakeD',
                                 'batt_v', 'esc_v',  'motor_v',
                                 'batt_i', 'esc_i',  'motor_i',
-                                'tq_m',   'tq_ax',  'tq_w0',   'tq_w2',
-                                'w_m',    'w_ax',   'w_w0',    'w_w2'
+                                'tq_m',   'tq_ax',  'tq_w0',   'tq_w2', 'tq_b0', 'tq_b2',
+                                'w_m',    'w_ax',   'w_w0',    'w_w2',  'w_b0',  'w_b2'
                             ])
+
+        timestamp = data_out['x']
+        timestamp /= 60 # Convert seconds to minutes
 
         ###############################
         ###        FIGURE 1         ###
@@ -147,50 +154,51 @@ if __name__ == "__main__":
         ###    FIG 1, SUBPLOT 1     ###
         ###############################
         ax1 = fig.add_subplot(411)
-        ax1.plot(data_out['x'], data_out['v_set'], label='v_set')
-        ax1.plot(data_out['x'], data_out['v_true'], label='v_true')
+        ax1.plot(timestamp, data_out['v_set'], label='v_set')
+        ax1.plot(timestamp, data_out['v_true'], label='v_true')
         ax1.set_ylabel('Mph')
         ax1.set_ylim([0, 60])
+        ax1.grid(True)
         leg1 = ax1.legend(loc='upper right', shadow=True)
 
         ###############################
         ###    FIG 1, SUBPLOT 2     ###
         ###############################
         ax2 = fig.add_subplot(412)
-        ax2.plot(data_out['x'], data_out['speedP']+data_out['speedI']+data_out['speedD'], label='speedE')
-        ax2.plot(data_out['x'], data_out['speedP'], label='speedP')
-        ax2.plot(data_out['x'], data_out['speedI'], label='speedI')
-        ax2.plot(data_out['x'], data_out['speedD'], label='speedD')
+        ax2.plot(timestamp, data_out['speedP']+data_out['speedI']+data_out['speedD'], label='speedE')
+        ax2.plot(timestamp, data_out['speedP'], label='speedP')
+        ax2.plot(timestamp, data_out['speedI'], label='speedI')
+        ax2.plot(timestamp, data_out['speedD'], label='speedD')
         ax2.set_ylabel('Speed Ctrl \n 0-255')
-        ax2.set_ylim([-260, 260])
+        #ax2.set_ylim([-260, 260])
         leg2 = ax2.legend(loc='upper right', shadow=True)
 
         ###############################
         ###    FIG 1, SUBPLOT 3     ###
         ###############################
         ax3 = fig.add_subplot(413)
-        ax3.plot(data_out['x'], data_out['motorP']+data_out['motorI']+data_out['motorD'], label='motorE')
-        ax3.plot(data_out['x'], data_out['motorP'], label='motorP')
-        ax3.plot(data_out['x'], data_out['motorI'], label='motorI')
-        ax3.plot(data_out['x'], data_out['motorD'], label='motorD')
+        ax3.plot(timestamp, data_out['motorP']+data_out['motorI']+data_out['motorD'], label='motorE')
+        ax3.plot(timestamp, data_out['motorP'], label='motorP')
+        ax3.plot(timestamp, data_out['motorI'], label='motorI')
+        ax3.plot(timestamp, data_out['motorD'], label='motorD')
         ax3.set_ylabel('Motor Ctrl \n 0-255')
-        ax3.set_ylim([-260, 260])
+        #ax3.set_ylim([-260, 260])
         leg3 = ax3.legend(loc='upper right', shadow=True)
 
         ###############################
         ###    FIG 1, SUBPLOT 4     ###
         ###############################
         ax4 = fig.add_subplot(414)
-        ax4.plot(data_out['x'], data_out['brakeP']+data_out['brakeI']+data_out['brakeD'], label='brakeE')
-        ax4.plot(data_out['x'], data_out['brakeP'], label='brakeP')
-        ax4.plot(data_out['x'], data_out['brakeI'], label='brakeI')
-        ax4.plot(data_out['x'], data_out['brakeD'], label='brakeD')
+        ax4.plot(timestamp, data_out['brakeP']+data_out['brakeI']+data_out['brakeD'], label='brakeE')
+        ax4.plot(timestamp, data_out['brakeP'], label='brakeP')
+        ax4.plot(timestamp, data_out['brakeI'], label='brakeI')
+        ax4.plot(timestamp, data_out['brakeD'], label='brakeD')
         ax4.set_ylabel('Brake Ctrl \n 0-255')
-        ax4.set_ylim([-260, 260])
+        #ax4.set_ylim([-260, 260])
         leg4 = ax4.legend(loc='upper right', shadow=True)
         
         # Fig 1 x-Axis Label
-        ax4.set_xlabel('Time /s')
+        ax4.set_xlabel('Time /mins')
 
 
         ###############################
@@ -202,32 +210,34 @@ if __name__ == "__main__":
         ###    FIG 2, SUBPLOT 1     ###
         ###############################
         ax1 = fig2.add_subplot(411)
-        ax1.plot(data_out['x'], data_out['batt_v'], label='batt_v')
-        ax1.plot(data_out['x'], data_out['esc_v'], label='esc_v')
-        ax1.plot(data_out['x'], data_out['motor_v'], label='motor_v')
+        ax1.plot(timestamp, data_out['batt_v'], label='batt_v')
+        ax1.plot(timestamp, data_out['esc_v'], label='esc_v')
+        ax1.plot(timestamp, data_out['motor_v'], label='motor_v')
         ax1.set_ylabel('Voltage')
-        ax1.set_ylim([0, 400])
+        ax1.set_ylim([300, 400])
+        ax1.grid(True)
         leg1 = ax1.legend(loc='upper right', shadow=True)
 
         ###############################
         ###    FIG 2, SUBPLOT 2     ###
         ###############################
         ax2 = fig2.add_subplot(412)
-        ax2.plot(data_out['x'], data_out['batt_v'], label='batt_v')
-        ax2.plot(data_out['x'], data_out['esc_i'], label='esc_i')
-        ax2.plot(data_out['x'], data_out['motor_i'], label='motor_i')
+        ax2.plot(timestamp, data_out['batt_i'], label='batt_i')
+        ax2.plot(timestamp, data_out['esc_i'], label='esc_i')
+        ax2.plot(timestamp, data_out['motor_i'], label='motor_i')
         ax2.set_ylabel('Current')
         ax2.set_ylim([0, 300])
+        ax2.grid(True)
         leg2 = ax2.legend(loc='upper right', shadow=True)
 
         ###############################
         ###    FIG 2, SUBPLOT 3     ###
         ###############################
         ax3 = fig2.add_subplot(413)
-        ax3.plot(data_out['x'], data_out['tq_m'], label='tq_m')
-        ax3.plot(data_out['x'], data_out['tq_ax'], label='tq_ax')
-        ax3.plot(data_out['x'], data_out['tq_w0'], label='tq_w0')
-        ax3.plot(data_out['x'], data_out['tq_w2'], label='tq_w2')
+        ax3.plot(timestamp, data_out['tq_m'], label='tq_m')
+        #ax3.plot(timestamp, data_out['tq_ax'], label='tq_ax')
+        ax3.plot(timestamp, data_out['tq_w0'], label='tq_w0')
+        ax3.plot(timestamp, data_out['tq_b0'], label='tq_b0')
         ax3.set_ylabel('Torque')
         #ax3.set_ylim([0, 300])
         leg3 = ax3.legend(loc='upper right', shadow=True)
@@ -236,16 +246,16 @@ if __name__ == "__main__":
         ###    FIG 2, SUBPLOT 4     ###
         ###############################
         ax4 = fig2.add_subplot(414)
-        ax4.plot(data_out['x'], data_out['w_m'], label='w_m')
-        ax4.plot(data_out['x'], data_out['w_ax'], label='w_ax')
-        ax4.plot(data_out['x'], data_out['w_w0'], label='w_w0')
-        ax4.plot(data_out['x'], data_out['w_w2'], label='w_w2')
-        ax4.set_ylabel('Angular Speed')
+        ax4.plot(timestamp, data_out['w_m'], label='w_m')
+        #ax4.plot(timestamp, data_out['w_ax'], label='w_ax')
+        ax4.plot(timestamp, data_out['w_w0'], label='w_w0')
+        ax4.plot(timestamp, data_out['w_b0'], label='w_b0')
+        ax4.set_ylabel('RPM')
         #ax4.set_ylim([-260, 260])
         leg4 = ax4.legend(loc='upper right', shadow=True)
         
         # Fig 1 x-Axis Label
-        ax4.set_xlabel('Time /s')
+        ax4.set_xlabel('Time /mins')
 
 
     ###############################
