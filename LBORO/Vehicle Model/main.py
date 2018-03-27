@@ -57,7 +57,7 @@ if __name__ == "__main__":
     brake = BrakesClass(car._data.get('wheel_diameter'), car._data.get('brake_max_torque')[0], kwargs=dict())
     wheel = WheelClass(brake, kwargs={'wheel_diameter':car._data.get('wheel_diameter') , 'car_mass':car._data.get('car_mass')/4})
     
-    # Construct the output data buffers
+    # Construct the output data bufferst
     d_wheel      = DataOutputClass(outpath+"/"+"wheel")
 
     wheel.brake_parking = False
