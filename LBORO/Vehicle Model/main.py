@@ -30,7 +30,7 @@ inpath = "DriveCycles"
 outpath= "Results"
 
 # Real world analysis
-filename = "bham_lboro_int_kph"
+#filename = "bham_lboro_int_kph"
 
 # Drive cycle analysis
 #filename = "FTP_mph"
@@ -40,7 +40,7 @@ filename = "bham_lboro_int_kph"
 # Robustness Analysis
 #filename = "parabola_kph"
 #filename = "impulse_kph"
-#filename = "step_kph"
+filename = "step_kph"
 #filename = "sine_kph"
 #filename = "sine_fast_kph" # =SIN((A1)/20-PI()/2)*50+50
 
