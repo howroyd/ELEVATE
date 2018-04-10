@@ -30,7 +30,6 @@ class CarClass(object):
     ###      UPDATE LOOP        ###
     ###############################
     def update(self, dt):
-        self._powertrain.vehicle_speed = self.speed
         self._powertrain.update(dt)
 
         self._aero_model.update(self._speed)
@@ -40,7 +39,8 @@ class CarClass(object):
         total_force = self._powertrain.force - self._aero_model.force
 
         accn = total_force / self._vehicle_mass
-        self.speed = self.speed + accn*dt
+        self.speed += accn*dt
+        self._powertrain.vehicle_speed = self.speed
         return
 
 
@@ -84,15 +84,24 @@ class CarClass(object):
 
     # Speed Controller PID
     @property
+    def speed_ctrl_error(self):
+        return self._powertrain.speed_ctrl_error
+    @property
     def speed_ctrl_pid(self):
         return self._powertrain.speed_ctrl_pid
 
     # Motor Controller PID
     @property
+    def motor_ctrl_error(self):
+        return self._powertrain.motor_ctrl_error
+    @property
     def motor_ctrl_pid(self):
         return self._powertrain.motor_ctrl_pid
 
     # Brake Controller PID
+    @property
+    def brake_ctrl_error(self):
+        return self._powertrain.brake_ctrl_error
     @property
     def brake_ctrl_pid(self):
         return self._powertrain.brake_ctrl_pid
@@ -133,6 +142,12 @@ class CarClass(object):
     @property
     def motor_electricity(self):
         return self._powertrain.motor_electricity
+
+
+    # Powertrain Controller Mode
+    @property
+    def powertrain_mode(self):
+        return self._powertrain.controller_mode
 
 
     ###############################

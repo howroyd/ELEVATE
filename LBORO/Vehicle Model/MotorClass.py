@@ -20,8 +20,8 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
     # Ideally at stall speed there is no back emf, and at no the no-load speed the back emf is equal to the driving source voltage.
 
     _ctrl_sig                = None
-    _efficiency_elec_to_mech = 0.9
-    _efficiency_mech_to_elec = 0.9
+    _efficiency_elec_to_mech = 0.85
+    _efficiency_mech_to_elec = 0.7
     _winding_resistance      = 1.0
     _is_generating           = False
     _torque_motor            = 0.0
@@ -76,7 +76,7 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
         ## Calculate torque demand from control signal
         # Update for intertia
         self._w_motor = self.speed * self._reduction_ratio
-        super(RotatingCylinderClass, self).update(dt) 
+        super(RotatingCylinderClass, self).update(dt)
 
         super(ElectricalDeviceClass, self).update(dt)
 
@@ -129,39 +129,39 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
     def set_electricity(self, voltage, current):
         self.voltage            = voltage
         self.current            = current
+        self._w_motor           = self.speed * self._reduction_ratio
 
         # If motor overspeed, only allow negative current (regen)
         if (self._w_motor > self._w_motor_max):
-            print("Motor overspeed! ", self._w_motor_max, self._w_motor)
+            pass
+            #print("Motor overspeed! w=", round(self._w_motor_max), round(self._w_motor))
             #self.current = min(self.current, 0.0)
 
-        motor_torque_out = self.calculate_torque_from_current(self.current)
+        motor_torque_out        = self.calculate_torque_from_current(self.current)
 
         if self.is_generating:
             # Calculate supply voltage produced
             Vemf = self._efficiency_mech_to_elec * self._w_motor
-            Vs = (self.current * self._winding_resistance) + Vemf
+            Vs   = (self.current * self._winding_resistance) + Vemf
 
             if ( Vs > self._v_max ):    
                 # If over-voltage, constrain and recalculate
                 Vs = self._v_max
-                self.current = (Vs - Vemf) / self._winding_resistance
+                self.current     = (Vs - Vemf) / self._winding_resistance
                 motor_torque_out = self.calculate_torque_from_current(self.current)
 
             self.voltage = Vs
             print("regen: ", self.voltage, self.current)
 
-        self._torque_motor = motor_torque_out
-        self.torque = motor_torque_out * self._reduction_ratio
-
-
+        self._torque_motor       = motor_torque_out
+        self.torque              = motor_torque_out * self._reduction_ratio
 
 
     ###############################
     ###         CURRENT         ###
     ###############################
     def calculate_current_from_torque(self, tq):
-        return tq / self._efficiency_elec_to_mech
+        return tq * self._efficiency_mech_to_elec
 
 
     ###############################
@@ -177,6 +177,16 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
     @staticmethod
     def constrain_plus_minus(var, constraint):
         return constraint * (var/abs(var)) if (abs(var) > constraint) else var
+
+
+    ###############################
+    ###        FEEDBACK         ###
+    ###############################
+    def shaft_speed_feedback(self, shaft_speed):
+        self.speed    = shaft_speed
+        self.speed    = shaft_speed # HACK TO FORCE w_last
+        self._w_motor = self.speed * self._reduction_ratio
+        return self.speed
 
 
     ###############################

@@ -5,7 +5,7 @@
 ###############################
 from RotatingThingClass import RotatingCylinderClass, RotatingThingData
 
-class AxleClass(RotatingCylinderClass):
+class AxleClass(object):#RotatingCylinderClass):
     """Axle class for an electric vehicle"""
     _wheels = [ None, None ]
     _shaft  = None
@@ -15,23 +15,36 @@ class AxleClass(RotatingCylinderClass):
     ###############################
     def __init__(self):
 
-        _data = { 'length' : 1.5,
+        _data = { 'length'     : 1.5,
                     'diameter' : 0.03,
-                    'mass' : 5.0 }
+                    'mass'     : 5.0 }
 
         self._wheels = [ RotatingThingData(),
                             RotatingThingData() ]
 
         self._shaft = RotatingThingData()
 
-        return super(RotatingCylinderClass, self).__init__(_data)
+        return #super(RotatingCylinderClass, self).__init__(_data)
 
 
     ###############################
     ###      UPDATE LOOP        ###
     ###############################
     def update(self, dt):
-        super().update(dt)
+        pass #super().update(dt)
+
+
+    ###############################
+    ###        FEEDBACK         ###
+    ###############################
+    def wheel_speed_feedback(self, wheel_speed_0, wheel_speed_1):
+        self._wheels[0].speed = wheel_speed_0
+        self._wheels[0].speed = wheel_speed_0
+        self._wheels[1].speed = wheel_speed_1
+        self._wheels[1].speed = wheel_speed_1
+        self._shaft.speed     = (wheel_speed_0 + wheel_speed_1) / 2.0
+        self._shaft.speed     = self._shaft.speed
+        return self._shaft.speed
 
 
     ###############################
@@ -66,7 +79,7 @@ class AxleClass(RotatingCylinderClass):
     @wheel_data.setter
     def wheel_data(self, new_data):
         if len(new_data) is not len(self._wheels):
-            raise IndexError("Unable to set axle wheel data, length mismatch")
+            raise IndexError("Unable to set axle wheel data, length mismatch in num wheels")
 
         total_torque = 0.0
         total_speed = 0.0

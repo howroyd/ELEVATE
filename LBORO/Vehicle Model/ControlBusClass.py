@@ -27,16 +27,16 @@ class ControlBusClass(object):
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, type):
-        if ('signed' in type):
-            self._data_type = "signed"
-        elif ('unsigned' in type):
-            self._data_type = "unsigned"
+        if (type is "signed"):
+            self._data_type = type
+        elif (type is "unsigned"):
+            self._data_type = type
         else:
             print("Please specify constraint method")
             raise NotImplementedError
 
-        self._min = 0 if ('unsigned' in type) else -127
-        self._max = 255 if ('unsigned' in type) else 128
+        self._min = 0   if (type is "unsigned") else -127
+        self._max = 255 if (type is "unsigned") else 128
 
 
     ###############################

@@ -24,6 +24,8 @@ class PowertrainControllerClass(object):
     _ctrl_brake = None
     _speed_set  = None
     _speed_now  = None
+    _mode       = None
+    _car_mass   = None
 
     ###############################
     ###     INITIALISATION      ###
@@ -48,11 +50,12 @@ class PowertrainControllerClass(object):
                           WheelClass(kwargs),   # FR
                           WheelClass(kwargs),   # RL
                           WheelClass(kwargs) ]  # RR
-        self._ctrl_speed = ControllerClass(10, 0, -1, 'signed')
-        self._ctrl_motor = ControllerClass(1, 0, 0.0, 'unsigned')
-        self._ctrl_brake = ControllerClass(1, 0, 0.0, 'unsigned')
+        self._ctrl_speed = ControllerClass(40, 4, -1, "signed")
+        self._ctrl_motor = ControllerClass(1, 0, 0.0, "unsigned")
+        self._ctrl_brake = ControllerClass(1, 0, 0.0, "unsigned")
         self._speed_target = 0.0
         self._speed        = 0.0
+        self._car_mass     = kwargs.get('car_mass')
 
         self._bms.set_battery_data(self._battery.battery_data)
         self._esc.set_input_power(self._bms.availability)
@@ -64,8 +67,8 @@ class PowertrainControllerClass(object):
     def update(self, dt):
 
         # Get wheel speeds and torques, pass to axle then motor
-        self._axle.wheel_data = [self._wheel[0].rotational_data, self._wheel[1].rotational_data]
-        self._motor.rotational_data = self._axle.shaft_data.rotational_data
+        #self._axle.wheel_data       = [ self._wheel[0].rotational_data, self._wheel[1].rotational_data ]
+        #self._motor.rotational_data = self._axle.shaft_data.rotational_data
 
         # Get battery availability, pass to BMS & ESC
         self._bms.set_battery_data(self._battery.battery_data)
@@ -74,35 +77,34 @@ class PowertrainControllerClass(object):
         self._parse_control_signal(dt)
     
         # Send motor control signal to ESC
-        self._esc.control_signal = self._ctrl_motor.value
+        self._esc.control_signal    = self._ctrl_motor.value
         self._esc.set_input_power(self._bms.availability)
 
         # Send brake control signal to wheels
         for ptr in self._wheel:
-            ptr.brake_control_sig = self._ctrl_brake.value
+            ptr.brake_control_sig   = self._ctrl_brake.value
 
         # Give (or receive) electricity to (or from) motor
         self._motor.set_electricity(self._esc.voltage, self._esc.current)
 
         # Calculate voltage boost in ESC to charge battery if in regen
-        self._bms.current = self._esc.current
-        self._battery.current = self._bms.current
+        self._bms.current           = self._esc.current
+        self._battery.current       = self._bms.current
 
         # Update axle torque and speed, pass to drive wheels
-        self._axle.shaft_data = self._motor.rotational_data
-        self._wheel[0].axle_data = self._axle.rotation_left
-        self._wheel[1].axle_data = self._axle.rotation_right
-
-        # Update time dependancies (energy calcs)
-        self._axle.update(dt)
-        self._battery.update(dt)
-        self._bms.update(dt)
-        self._ctrl_brake.update(dt)
-        self._ctrl_motor.update(dt)
-        self._esc.update(dt)
         self._motor.update(dt)
+        self._axle.shaft_data       = self._motor.rotational_data
+        self._axle.update(dt)
+        self._wheel[0].axle_data    = self._axle.wheel_data[0].rotational_data
+        self._wheel[1].axle_data    = self._axle.wheel_data[1].rotational_data
         for ptr in self._wheel:
             ptr.update(dt)
+
+        # Update time dependancies (energy calcs)
+        self._battery.update(dt)
+        self._bms.update(dt)
+        self._esc.update(dt)
+
 
 
 
@@ -110,20 +112,24 @@ class PowertrainControllerClass(object):
     ###     CONTROL DECODER     ###
     ###############################        
     def _parse_control_signal(self, dt):
-        dv = self._speed_target - self._speed
+        dv = self.target_speed - self.vehicle_speed
         self._ctrl_speed.update(dt, dv)
 
+        mode = 0.0
+
         if self._ctrl_speed.value <= 0.0:
-            # Trying to decellerate
+            # Trying to decelerate
             self._ctrl_motor.update(dt, self._ctrl_speed.value)
 
             if self._ctrl_motor.at_minimum:
                 # Motor fully off or in full regen, apply brakes
                 self._ctrl_brake.update(dt, -1.0*self._ctrl_speed.value)
+                mode = 1.0
             else:
                 # In regen or coasting, no brakes applied
                 self._ctrl_brake.reset()
                 self._ctrl_brake.update(dt)
+                mode = 2.0
         else:
             # Trying to accelerate
             self._ctrl_brake.update(dt, -1.0*self._ctrl_speed.value)
@@ -131,9 +137,13 @@ class PowertrainControllerClass(object):
             if self._ctrl_brake.at_minimum:
                 # Brake fully off, power motor
                 self._ctrl_motor.update(dt, self._ctrl_speed.value)
+                mode = 3.0
             else:
                 # Brake on but trying to speed up
                 self._ctrl_motor.update(dt)
+                mode = 4.0
+
+        self._mode = mode
 
 
     ###############################
@@ -143,7 +153,7 @@ class PowertrainControllerClass(object):
     # Actual vehicle speed
     @property
     def vehicle_speed(self):
-        return self._speed_now
+        return self._speed
 
     # Target speed
     @property
@@ -164,15 +174,24 @@ class PowertrainControllerClass(object):
 
     # Speed Controller PID
     @property
+    def speed_ctrl_error(self):
+        return self._ctrl_speed.value
+    @property
     def speed_ctrl_pid(self):
         return self._ctrl_speed.pid_data
 
     # Motor Controller PID
     @property
+    def motor_ctrl_error(self):
+        return self._ctrl_motor.value
+    @property
     def motor_ctrl_pid(self):
         return self._ctrl_motor.pid_data
 
     # Brake Controller PID
+    @property
+    def brake_ctrl_error(self):
+        return self._ctrl_brake.value
     @property
     def brake_ctrl_pid(self):
         return self._ctrl_brake.pid_data
@@ -186,7 +205,7 @@ class PowertrainControllerClass(object):
     # Axle Rotation
     @property
     def axle_rotation(self):
-        return self._axle.rotational_data
+        return self._axle.shaft_data.rotational_data
 
     # Wheel Rotational
     @property
@@ -221,6 +240,12 @@ class PowertrainControllerClass(object):
         return self._motor.electricity_data
 
 
+    # Controller Mode
+    @property
+    def controller_mode(self):
+        return self._mode
+
+
     ###############################
     ###        SETTERS          ###
     ###############################
@@ -230,7 +255,9 @@ class PowertrainControllerClass(object):
     def vehicle_speed(self, speed):
         self._speed = speed
         for ptr in self._wheel:
-            ptr.set_wheel_speed(speed)
+            ptr.vehicle_speed_feedback(speed)
+        self._axle.wheel_speed_feedback(self._wheel[0].speed, self._wheel[1].speed) 
+        self._motor.shaft_speed_feedback(self._axle.shaft_data.speed)
 
     # Target speed
     @target_speed.setter

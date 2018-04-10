@@ -70,6 +70,7 @@ class ESC(ElectricalDeviceClass.ElectricalDeviceClass):
             current = self._ctrl_sig.decimal * self.i_max_to_motor
             current = min(current, availability_dict.get('max_discharge'), self.i_max_to_motor)
         else:
+            #current = 0.0
             current = self._ctrl_sig.decimal * self.i_max_from_motor
             current = max(current, availability_dict.get('max_charge'), self.i_max_from_motor)
 

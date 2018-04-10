@@ -41,8 +41,6 @@ class WheelClass(RotatingCylinderShellClass):
     ###      UPDATE LOOP        ###
     ###############################
     def update(self, dt):
-        self._brake.speed = self.speed
-
         super().update(dt)
 
         self._brake.temperature = self._brake.temperature_amb
@@ -62,8 +60,11 @@ class WheelClass(RotatingCylinderShellClass):
     ###############################
     ###        FEEDBACK         ###
     ###############################
-    def set_wheel_speed(self, vehicle_speed):
+    def vehicle_speed_feedback(self, vehicle_speed):
         self.speed = 2.0 * vehicle_speed / self.diameter
+        self.speed = self.speed # HACK TO FORCE w_last
+        self._brake.speed = self.speed
+        self._brake.speed = self.speed
         return self.speed
 
 

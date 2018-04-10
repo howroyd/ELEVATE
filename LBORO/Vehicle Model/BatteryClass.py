@@ -27,7 +27,11 @@ class BatteryClass(ElectricalDeviceClass):
 
         batt_e_max            = kwh_to_joules(kwargs.get('batt_kwh'))
 
-        return super().__init__(dict(e_min=0.0, e_max=batt_e_max, e_start=batt_e_max))
+        batt_e_min            = 0.0
+
+        _e_start = ((batt_e_max - batt_e_min) * kwargs.get('batt_soc') / 100.0) + batt_e_min
+
+        return super().__init__(dict(e_min=batt_e_min, e_max=batt_e_max, e_start=_e_start))
 
 
     ###############################
