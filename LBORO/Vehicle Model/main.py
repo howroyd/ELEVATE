@@ -59,7 +59,7 @@ if __name__ == "__main__":
     ###############################
     ###    BEGIN SIMULATION     ###
     ###############################
-    while not datafile.finished:# and timer.sim_time<(9*60):
+    while not datafile.finished and timer.sim_time<(5*60):
 
 
         ###############################
