@@ -14,6 +14,7 @@ class WheelClass(RotatingCylinderShellClass):
     _axle_torque_in = None
     _road_drag      = None
     _vehicle_speed  = None
+    _odometer = 0.0
 
     ###############################
     ###     INITIALISATION      ###
@@ -53,6 +54,8 @@ class WheelClass(RotatingCylinderShellClass):
 
         self._force = self.torque / self.radius
 
+        self._odometer += self.speed * self.radius * dt
+
         # todo wheel slip
         return
 
@@ -76,6 +79,12 @@ class WheelClass(RotatingCylinderShellClass):
     @property 
     def force(self):
         return self._force
+
+
+    # Odometer
+    @property 
+    def odometer(self):
+        return self._odometer
 
 
     # Axle torque

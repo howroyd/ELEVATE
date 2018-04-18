@@ -8,7 +8,7 @@
 import telnetlib, time, sys, os, datetime, copy
 
 # Matlab libraries
-import matlab.engine
+#import matlab.engine
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -64,8 +64,8 @@ class Display(object):
     ###############################
     ###     INITIALISATION      ###
     ###############################
-    def disp(self, my_string, end='\n'):
-        print(my_string, end=end)
+    def disp(self, *my_string:str, end='\n'):
+        print(str(my_string), end=end)
 
     ###############################
     ###     INITIALISATION      ###

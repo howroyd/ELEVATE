@@ -12,6 +12,7 @@ VERSION = 2.1
 ###############################
 from elevate_includes import *
 from Cars import Nissan_Leaf
+from ElectricityClass import joules_to_kwh
 
 ###############################
 ###     LOCAL VARIABLES     ###
@@ -53,13 +54,14 @@ if __name__ == "__main__":
     # Spawn vehicle(s)
     mycar = CarClass(Nissan_Leaf().data)
     
-    disp.disp((datafile.num_lines, 'lines in input file\n'))
+    disp.disp(datafile.num_lines, ' lines in input file\n')
 
+    disp.disp("SoC at start ",     round(mycar.battery_electricity.get('soc')*100.0,1), '%\n')
 
     ###############################
     ###    BEGIN SIMULATION     ###
     ###############################
-    while not datafile.finished and timer.sim_time<(5*60):
+    while not datafile.finished:# and timer.sim_time<(5*60):
 
 
         ###############################
@@ -68,7 +70,7 @@ if __name__ == "__main__":
         timer.update()
         datafile.update(timer.sim_time)
         if datafile.new_data:
-            disp.disp((round(datafile.percent_complete,1),'%'),end='\r')
+            disp.disp(round(datafile.percent_complete,1),'%',end='\r')
 
         ###############################
         ###    SET VEHICLE SPEED    ###
@@ -135,7 +137,22 @@ if __name__ == "__main__":
 
     disp.disp(None, end='\r\n')
 
+
+    odometer = mycar.odometer/1000.0
+    odometerW= mycar.odometer_wheels/1000.0
+    soc      = mycar.battery_electricity.get('soc')*100.0
+    kwh_out  = joules_to_kwh(mycar.battery_electricity.get('total_energy_out'))
+    kwh_in   = joules_to_kwh(mycar.battery_electricity.get('total_energy_in'))
+
+    disp.disp("Odometer ",         round(odometer,1), "km\n")
+    disp.disp("Odometer (wheels)", round(odometerW,1), "km\n")
+    disp.disp("Soc at end ",       round(soc,1), "%\n")
+    disp.disp("Total energy out ", round(kwh_out, 1), "kWh\n\n")
+    disp.disp("Total energy in ",  round(kwh_in, 1),  "kWh\n\n")
+    disp.disp("Efficiency ",       round(100.0*kwh_out/odometer,1), "kWh/100km\n")
+
     disp.disp("Finished!\n\n")
+
 
     ###############################
     ###     COMPILE GRAPHS      ###

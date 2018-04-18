@@ -10,6 +10,7 @@ from ControllerClass import ControllerClass
 from EscClass import ESC
 from MotorClass import MotorClass
 from WheelClass import WheelClass
+from statistics import mean
 
 
 class PowertrainControllerClass(object):
@@ -214,6 +215,14 @@ class PowertrainControllerClass(object):
                     self._wheel[1].rotational_data,
                     self._wheel[2].rotational_data,
                     self._wheel[3].rotational_data ]
+    # Odometer
+    @property
+    def odometer(self):
+        return  mean([ self._wheel[0].odometer,
+                    self._wheel[1].odometer,
+                    self._wheel[2].odometer,
+                    self._wheel[3].odometer ])
+
 
     # Brake Rotational
     @property
@@ -227,7 +236,7 @@ class PowertrainControllerClass(object):
     # Battery Electricity
     @property
     def battery_electricity(self):
-        return self._battery.electricity_data
+        return self._battery.battery_data
 
     # ESC Electricity
     @property

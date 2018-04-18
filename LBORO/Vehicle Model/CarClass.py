@@ -13,7 +13,8 @@ class CarClass(object):
     _powertrain   = None
     _aero_model   = None
     _vehicle_mass = None
-    _speed = 0.0
+    _speed        = 0.0
+    _odometer     = 0.0
 
     ###############################
     ###     INITIALISATION      ###
@@ -41,6 +42,8 @@ class CarClass(object):
         accn = total_force / self._vehicle_mass
         self.speed += accn*dt
         self._powertrain.vehicle_speed = self.speed
+
+        self._odometer += self.speed*dt
         return
 
 
@@ -64,6 +67,10 @@ class CarClass(object):
     @property
     def target_speed(self,):
         return self._powertrain.target_speed
+
+    @property
+    def odometer(self):
+        return self._odometer
 
 
     # Aerodynamic Load
@@ -121,6 +128,10 @@ class CarClass(object):
     @property
     def wheel_rotation(self):
         return self._powertrain.wheel_rotation
+    @property
+    def odometer_wheels(self):
+        return self._powertrain.odometer
+
 
     # Brake Rotational
     @property
