@@ -54,9 +54,11 @@ if __name__ == "__main__":
     # Spawn vehicle(s)
     mycar = CarClass(Nissan_Leaf().data)
     
-    disp.disp(datafile.num_lines, ' lines in input file\n')
+    disp.disp(datafile.num_lines, " lines in input file")
 
     disp.disp("SoC at start ",     round(mycar.battery_electricity.get('soc')*100.0,1), '%\n')
+
+    progress = progressbar.ProgressBar().start()
 
     ###############################
     ###    BEGIN SIMULATION     ###
@@ -70,7 +72,12 @@ if __name__ == "__main__":
         timer.update()
         datafile.update(timer.sim_time)
         if datafile.new_data:
-            disp.disp(round(datafile.percent_complete,1),'%',end='\r')
+            progress.update(round(datafile.percent_complete,1))
+
+            #if datafile.finished:
+            #    disp.disp("100%", end="\n\n")
+            #else:
+            #    disp.disp(round(datafile.percent_complete,1),"%",end="\r")
 
         ###############################
         ###    SET VEHICLE SPEED    ###
@@ -135,7 +142,8 @@ if __name__ == "__main__":
         datafile.line = [ rads_to_rpm(mycar.brake_rotation[0].get('speed')) ]
         datafile.line = [ rads_to_rpm(mycar.brake_rotation[2].get('speed')) ]
 
-    disp.disp(None, end='\r\n')
+    progress.finish()
+    disp.disp("", end='\r\n')
 
 
     odometer = mycar.odometer/1000.0
@@ -144,14 +152,14 @@ if __name__ == "__main__":
     kwh_out  = joules_to_kwh(mycar.battery_electricity.get('total_energy_out'))
     kwh_in   = joules_to_kwh(mycar.battery_electricity.get('total_energy_in'))
 
-    disp.disp("Odometer ",         round(odometer,1), "km\n")
-    disp.disp("Odometer (wheels)", round(odometerW,1), "km\n")
-    disp.disp("Soc at end ",       round(soc,1), "%\n")
-    disp.disp("Total energy out ", round(kwh_out, 1), "kWh\n\n")
-    disp.disp("Total energy in ",  round(kwh_in, 1),  "kWh\n\n")
-    disp.disp("Efficiency ",       round(100.0*kwh_out/odometer,1), "kWh/100km\n")
+    disp.disp("Odometer ",         round(odometer,1), "km")
+    disp.disp("Odometer (wheels)", round(odometerW,1), "km")
+    disp.disp("Soc at end ",       round(soc,1), "%")
+    disp.disp("Total energy out ", round(kwh_out, 1), "kWh")
+    disp.disp("Total energy in ",  round(kwh_in, 1),  "kWh")
+    disp.disp("Efficiency ",       round(100.0*kwh_out/odometer,1), "kWh/100km")
 
-    disp.disp("Finished!\n\n")
+    disp.disp("\n\nFinished!\n\n")
 
 
     ###############################

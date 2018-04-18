@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 # Python libraries
 import numpy as np
 import colorama
+import progressbar
 
 # User libraries
 from CarClass import CarClass
@@ -64,15 +65,16 @@ class Display(object):
     ###############################
     ###     INITIALISATION      ###
     ###############################
-    def disp(self, *my_string:str, end='\n'):
-        print(str(my_string), end=end)
+    def disp(self, *my_string:str, end="\n"):
+        for x in my_string:
+            print(x, end='')
+        print(end, end='')
 
     ###############################
     ###     INITIALISATION      ###
     ###############################
     def disp_testfile(self, filename):
         print("\nTest file", filename)
-        print('\n')
 
     ###############################
     ###     INITIALISATION      ###
