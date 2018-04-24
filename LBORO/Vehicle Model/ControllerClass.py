@@ -1,6 +1,6 @@
-class ControllerClass(object):
-    """description of class"""
+#!/usr/bin/python3
 
+<<<<<<< HEAD
     def __init__(self, kP, kI, kD, min_val=-255, max_val=255, min_i=-255, max_i=255, rate=None, name="controller"):
         self._kp = kP
         self._ki = kI
@@ -36,10 +36,57 @@ class ControllerClass(object):
         if self._ki is not 0:
             self._i += error*self._dt
             self._i = self.constrain(self._i*self._ki, self._min_i, self._max_i) / self._ki
+=======
+###############################
+###    IMPORT LIBRARIES     ###
+###############################
+from ControlBusClass import ControlBusClass, constrain
+
+
+class ControllerClass(ControlBusClass):
+    '''PID controller'''
+    _key_p            = 'p'
+    _key_i            = 'i'
+    _key_d            = 'd'
+    _kp               = None
+    _ki               = None
+    _kd               = None
+    _i                = 0.0
+    _d                = 0.0
+    _error            = 0.0
+    _dont_update_flag = True
+    _cost             = 0.0
+    _min_i            = None
+    _max_i            = None
+
+    ###############################
+    ###     INITIALISATION      ###
+    ###############################
+    def __init__(self, kP, kI, kD, type):
+        self._kp = kP
+        self._ki = kI
+        self._kd = kD
+        super().__init__(type)
+        self._min_i = self.min_val
+        self._max_i = self.max_val
+
+
+    ###############################
+    ###      UPDATE LOOP        ###
+    ###############################
+    def update(self, dt, error=None):
+        if (self._dont_update_flag or dt<=0.0 or error==None):
+            self._dont_update_flag = False
+            return
+        if self._ki is not 0:
+            self._i += error*dt
+            self._i = constrain(self._i*self._ki, self._min_i, self._max_i) / self._ki
+>>>>>>> linking_overhaul
         if self._kd is not 0:
             self._d = (error - self._error)/self._dt
             
         self._error = error
+<<<<<<< HEAD
 
         output_capped = self.constrain(self.error_p + self.error_i + self.error_d, self._min_val, self._max_val)
 
@@ -60,22 +107,44 @@ class ControllerClass(object):
                             (self._name+'_error') : self.error,
                             (self._name+'_cost') : self._cost
         })
+=======
+        #self._cost += abs(error)*dt # TODO machine learning on cost function
+
+        self.value = self.error_p + self.error_i + self.error_d
+>>>>>>> linking_overhaul
 
         return
 
+
+    ###############################
+    ###     INTEGRAL LIMITS     ###
+    ###############################
     def set_i_limits(self, min_i, max_i):
         self._min_i = min_i
         self._max_i = max_i
 
+<<<<<<< HEAD
     def anti_wind_up(self):
         self._i = 0.0
 
+=======
+    ###############################
+    ###         WIND UP         ###
+    ###############################
+    def anti_wind_up(self):
+        self._i = 0.0
+
+    ###############################
+    ###          RESET          ###
+    ###############################
+>>>>>>> linking_overhaul
     def reset(self):
         self._i = 0.0
         self._d = 0.0
         self._error = 0.0
         self._dont_update_flag = True
 
+<<<<<<< HEAD
     @property
     def data(self):
         return self._data
@@ -83,29 +152,46 @@ class ControllerClass(object):
     @property
     def cost(self):
         return self._cost
+=======
+>>>>>>> linking_overhaul
 
-    @staticmethod
-    def constrain(val, min_val, max_val):
-        return max(min(val, max_val), min_val)
+    ###############################
+    ###        GETTERS          ###
+    ###############################
 
+    # PID Data
     @property
+<<<<<<< HEAD
     def error(self):
         return self._output
 
     @property
     def error_last(self):
         return self._output_last
+=======
+    def pid_data(self):
+        return {self._key_p : self.error_p, self._key_i : self.error_i, self._key_d : self.error_d}
+>>>>>>> linking_overhaul
 
+    # Cost Function Data
+    @property
+    def cost(self):
+        return self._cost
+
+    # Proportional Error
     @property
     def error_p(self):
-        return self.constrain(self._error * self._kp, self._min_val, self._max_val)
+        return self._error * self._kp
 
+    # Integral Error
     @property
     def error_i(self):
-        return self.constrain(self._i * self._ki, self._min_i, self._max_i)
+        return self._i * self._ki
 
+    # Derivative Error
     @property
     def error_d(self):
+<<<<<<< HEAD
         return -1.0 * self._d * self._kd
 
     @property
@@ -114,3 +200,13 @@ class ControllerClass(object):
     @rate_limit.setter
     def rate_limit(self, rate):
         self._rate_limit = abs(rate) if rate is not None else None
+=======
+        return self._d * self._kd
+
+
+###############################
+###############################
+######       END         ######
+###############################
+###############################
+>>>>>>> linking_overhaul
