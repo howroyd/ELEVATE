@@ -26,6 +26,7 @@ feed_forward = False
 ###   TEST DATAFILE NAME    ###
 ###############################
 filename     = "nedc2_short"
+#filename     = "realcycle_kph"
 
 
 ###############################
@@ -63,7 +64,7 @@ if __name__ == "__main__":
     ###############################
     ###    BEGIN SIMULATION     ###
     ###############################
-    while not datafile.finished:# and timer.sim_time<(5*60):
+    while not datafile.finished and timer.sim_time<(10*60):
 
 
         ###############################
@@ -184,6 +185,10 @@ if __name__ == "__main__":
         timestamp = data_out['x']
         timestamp /= 60 # Convert seconds to minutes
 
+        xlim = False
+        #xlim = [1.9, 2.0]
+        
+
         ###############################
         ###        FIGURE 1         ###
         ###############################
@@ -197,7 +202,11 @@ if __name__ == "__main__":
         ax1.plot(timestamp, data_out['v_true'], label='v_true')
         ax1.plot(timestamp, data_out['dragAero']/10, label='dragAero')
         ax1.set_ylabel('Mph, N/10')
-        ax1.set_ylim([0, 60])
+        #ax1.set_ylim([0, 80])
+        if xlim is not False:
+            ax1.set_xlim(xlim)
+            ax1.relim()
+            ax1.autoscale_view(scalex=False, scaley=True)
         ax1.grid(True)
         leg1 = ax1.legend(loc='upper right', shadow=True)
 
@@ -211,6 +220,10 @@ if __name__ == "__main__":
         ax2.plot(timestamp, data_out['speedD'], label='speedD', linestyle=':')
         ax2.set_ylabel('Speed Ctrl \n 0-255')
         #ax2.set_ylim([-260, 260])
+        if xlim is not False:
+            ax2.set_xlim(xlim)
+            ax2.relim()
+            ax2.autoscale_view(scalex=False, scaley=True)
         ax2.grid(True)
         leg2 = ax2.legend(loc='upper right', shadow=True)
 
@@ -224,6 +237,10 @@ if __name__ == "__main__":
         ax3.plot(timestamp, data_out['motorD'], label='motorD', linestyle=':')
         ax3.set_ylabel('Motor Ctrl \n 0-255')
         #ax3.set_ylim([-260, 260]
+        if xlim is not False:
+            ax3.set_xlim(xlim)
+            ax3.relim()
+            ax3.autoscale_view(scalex=False, scaley=True)
         ax3.grid(True)
         leg3 = ax3.legend(loc='upper right', shadow=True)
 
@@ -237,6 +254,10 @@ if __name__ == "__main__":
         ax4.plot(timestamp, data_out['brakeD'], label='brakeD', linestyle=':')
         ax4.set_ylabel('Brake Ctrl \n 0-255')
         #ax4.set_ylim([-260, 260])
+        if xlim is not False:
+            ax4.set_xlim(xlim)
+            ax4.relim()
+            ax4.autoscale_view(scalex=False, scaley=True)
         leg4 = ax4.legend(loc='upper right', shadow=True)
         ax4.grid(True)
         # Fig 1 x-Axis Label
@@ -252,15 +273,23 @@ if __name__ == "__main__":
         ###    FIG 2, SUBPLOT 1     ###
         ###############################
         ax1 = fig2.add_subplot(411)
-        ax1.plot(timestamp, data_out['batt_v'],  label='batt_v')
-        ax1.plot(timestamp, data_out['esc_v'],   label='esc_v')
-        ax1.plot(timestamp, data_out['motor_v'], label='motor_v')
+        #ax1.plot(timestamp, data_out['batt_v'],  label='batt_v')
+        #ax1.plot(timestamp, data_out['esc_v'],   label='esc_v')
+        #ax1.plot(timestamp, data_out['motor_v'], label='motor_v')
         #ax1.plot(timestamp, data_out['batt_i'],    label='batt_i')
         #ax1.plot(timestamp, data_out['esc_i'],     label='esc_i')
         #ax1.plot(timestamp, data_out['motor_i'],   label='motor_i')
         #ax1.plot(timestamp, data_out['motor_v']*data_out['motor_i']/1000.0,   label='motor_p', linestyle=':')
-        ax1.set_ylabel('Voltage/4V, Current/I, Power/kW')
-        ax1.set_ylim([300, 400])
+        ax1.plot(timestamp, data_out['speedE'], label='speedE')
+        ax1.plot(timestamp, data_out['motorE'], label='motorE', linestyle=':')
+        ax1.plot(timestamp, data_out['brakeE'], label='brakeE', linestyle=':')
+        ax1.set_ylabel('Speed Ctrl \n 0-255')
+        #ax1.set_ylabel('Voltage/4V, Current/I, Power/kW')
+        #ax1.set_ylim([300, 400])
+        if xlim is not False:
+            ax1.set_xlim(xlim)
+            ax1.relim()
+            ax1.autoscale_view(scalex=False, scaley=True)
         ax1.grid(True)
         leg1 = ax1.legend(loc='upper right', shadow=True)
 
@@ -278,6 +307,10 @@ if __name__ == "__main__":
         ax2.plot([0,max(timestamp)], [267,267],  linestyle='--', color='k')
         ax2.set_ylabel('Current')
         ax2.set_ylim([0, 300])
+        if xlim is not False:
+            ax2.set_xlim(xlim)
+            ax2.relim()
+            ax2.autoscale_view(scalex=False, scaley=True)
         ax2.grid(True)
         leg2 = ax2.legend(loc='upper right', shadow=True)
 
@@ -291,6 +324,10 @@ if __name__ == "__main__":
         ax3.plot(timestamp, data_out['tq_b0'],   label='tq_b0', linestyle=':')
         ax3.set_ylabel('Torque')
         #ax3.set_ylim([0, 300])
+        if xlim is not False:
+            ax3.set_xlim(xlim)
+            ax3.relim()
+            ax3.autoscale_view(scalex=False, scaley=True)
         ax3.grid(True)
         leg3 = ax3.legend(loc='upper right', shadow=True)
 
@@ -304,6 +341,10 @@ if __name__ == "__main__":
         ax4.plot(timestamp, data_out['w_b0'],     label='w_b0', linestyle=':')
         ax4.set_ylabel('RPM')
         #ax4.set_ylim([-260, 260])
+        if xlim is not False:
+            ax4.set_xlim(xlim)
+            ax4.relim()
+            ax4.autoscale_view(scalex=False, scaley=True)
         leg4 = ax4.legend(loc='upper right', shadow=True)
         ax4.grid(True)
         # Fig 1 x-Axis Label

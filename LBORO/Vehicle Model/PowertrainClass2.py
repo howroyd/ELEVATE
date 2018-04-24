@@ -51,9 +51,9 @@ class PowertrainControllerClass(object):
                           WheelClass(kwargs),   # FR
                           WheelClass(kwargs),   # RL
                           WheelClass(kwargs) ]  # RR
-        self._ctrl_speed = ControllerClass(40, 4, -1, "signed")
-        self._ctrl_motor = ControllerClass(1, 0, 0.0, "unsigned")
-        self._ctrl_brake = ControllerClass(1, 0, 0.0, "unsigned")
+        self._ctrl_speed = ControllerClass(50, 5, -0.8, "signed")
+        self._ctrl_motor = ControllerClass(2, 0, -0.075, "unsigned")
+        self._ctrl_brake = ControllerClass(1, 0, -0.075, "unsigned")
         self._speed_target = 0.0
         self._speed        = 0.0
         self._car_mass     = kwargs.get('car_mass')
@@ -145,6 +145,11 @@ class PowertrainControllerClass(object):
                 mode = 4.0
 
         self._mode = mode
+
+        if self.target_speed <=0.01 and self.vehicle_speed <=0.01:
+            self._ctrl_speed.anti_wind_up()
+            self._ctrl_motor.anti_wind_up()
+            self._ctrl_brake.anti_wind_up()
 
 
     ###############################

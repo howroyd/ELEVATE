@@ -10,7 +10,7 @@ class CarData(object):
 
 class Nissan_Leaf(CarData):
     def __init__(self):
-        self._data = dict(batt_soc=50.0,
+        self._data = dict(batt_soc=62.7161,
                     batt_v_min=300.0,
                     batt_v_max=400.0,
                     batt_i_max=266.0,
