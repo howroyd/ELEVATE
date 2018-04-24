@@ -78,27 +78,7 @@ class WheelClass(RotatingCylinderShellClass):
     # Net lateral force
     @property 
     def force(self):
-        # The main output of this class.  The total forward force provided by this wheel.
         return self._force
-    @force.setter
-    def force(self, veh_force):
-        self._force = veh_force
-
-    @property 
-    def slip(self):
-        return self._slip
-
-    @property 
-    def slip_peak(self):
-        return self._slip_peak
-
-    @property
-    def brake_parking(self):
-        return self._brake_parking
-    @brake_parking.setter
-    def brake_parking(self, state):
-        if ((state is True) and (self._brake_parking is False)): self._force = 0.0
-        self._brake_parking = state
 
 
     # Odometer
@@ -121,7 +101,7 @@ class WheelClass(RotatingCylinderShellClass):
     # Brake torque
     @property
     def brake_torque(self):
-        return -self._brake.torque
+        return self._brake.torque
 
     # Brake control signal
     @property

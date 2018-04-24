@@ -13,16 +13,13 @@ class AerodynamicsClass(object):
     def __init__(self, kwargs):
         self._area = kwargs['car_area']
         self._cd = kwargs['car_cd']
-        self._data = dict()
-        self._name = name
         return
 
     ###############################
     ###      UPDATE LOOP        ###
     ###############################
     def update(self, v):
-        self._force_drag_dynamic = 0.5*1.225*v*v*self._area*self._cd #Total drag
-        self._data.update({(self._name+'_dynamic') : self._force_drag_dynamic})
+        self._force_drag_dynamic = 0.5*1.225*v*v*self._area*self._cd
         return
 
     ###############################

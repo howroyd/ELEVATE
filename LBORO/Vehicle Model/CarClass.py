@@ -34,12 +34,6 @@ class CarClass(object):
         self._powertrain.update(dt)
 
         self._aero_model.update(self._speed)
-        
-        self._total_force = sum(ptr.force for ptr in self._powertrain_model_array) - self._aero_model.force
-
-        #print(str(self._powertrain_model_array[0].force), '\t', str(sum(ptr.force for ptr in self._powertrain_model_array)))
-
-        accn = self._total_force / self._vehicle_mass
 
         #print(self._powertrain.force, self._aero_model.force)
 

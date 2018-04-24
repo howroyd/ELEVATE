@@ -72,10 +72,6 @@ class BrakesClass(RotatingDiscClass):
 
     # Control signal
     @property
-    def data(self):
-        return self._data
-
-    @property
     def value(self):
         return self._ctrl_sig.value
 

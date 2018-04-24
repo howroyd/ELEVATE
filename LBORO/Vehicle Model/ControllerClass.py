@@ -45,10 +45,8 @@ class ControllerClass(ControlBusClass):
             self._i += error*dt
             self._i = constrain(self._i*self._ki, self._min_i, self._max_i) / self._ki
         if self._kd is not 0:
-            self._d = (error - self._error)/self._dt
-            
+            self._d = (error - self._error)/dt
         self._error = error
-
         #self._cost += abs(error)*dt # TODO machine learning on cost function
 
         self.value = self.error_p + self.error_i + self.error_d
@@ -62,7 +60,6 @@ class ControllerClass(ControlBusClass):
     def set_i_limits(self, min_i, max_i):
         self._min_i = min_i
         self._max_i = max_i
-
 
     ###############################
     ###         WIND UP         ###

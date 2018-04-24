@@ -58,12 +58,6 @@ class Continuous_dt(object):
             return True
         else: return False
 
-class DataOutputClass(object):
-    def __init__(self, filename):
-        self._file_out = open(filename+"_out"+".csv",'w', newline="\n", encoding="utf-8")
-        self._csvout = csv.writer(self._file_out,quoting=csv.QUOTE_NONNUMERIC)
-        self._lineout = []
-        self.update()
 
 ###############################
 ###############################
@@ -93,11 +87,9 @@ class DataIoClass(object):
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, filename):
+
         self._file_in = open(filename,'rt')
-        if filenameout is None:
-            self._file_out = open(filename.rsplit('.')[0]+"_out"+".csv",'w', newline="\n", encoding="utf-8")
-        else:
-            self._file_out = open(filenameout,'w', newline="\n", encoding="utf-8")
+        self._file_out = open(filename.rsplit('.')[0]+"_out"+".csv",'w', newline="\n", encoding="utf-8")
 
         self._tsvin = csv.reader(self._file_in, delimiter='\t')
         self._csvout = csv.writer(self._file_out,quoting=csv.QUOTE_NONNUMERIC)
@@ -116,40 +108,8 @@ class DataIoClass(object):
                 self._csvout.writerow(self._lineout)
                 self._lineout = []
 
-        try:
-            if (not sim_time or not self._data[self._num_this_line]) or (sim_time >= self._data[self._num_this_line+1][0]):
-                # Simtime is ahead of our next line so get a new line update
-                self._num_this_line += 1
-                if self._num_this_line >= self._num_lines-1:
-                    self._num_this_line = self._num_lines-1
-                    self._finished = True
-                    self._file_out.flush()
-                    self._file_out.close()
-                else:
-                    self._new_data = True
-            else:
-                self._new_data = False
-
-            if self._data[self._num_this_line] is None:
-                self._new_data = False
-
-            # If we get here we know that nextline is ahead of simtime
-            self._dt = self._data[self._num_this_line][0] - self._data[self._num_this_line-1][0] if self._data[self._num_this_line-1][0] else 0.0
-
-        except IndexError:
-            self._num_this_line = self._num_lines-1
-            print("End of file;", self._num_this_line+1, "of", self._num_lines)
-            self._finished = True
-            self._file_out.flush()
-            self._file_out.close()
-
-        return self.new_data
-
-
-        # Old code
-
         # Update the input
-        if (not sim_time or not self._nextline or not self._thisline) or (sim_time >= self._nextline[0]):
+        if (not sim_time or not self._nextline or not self._thisline or (sim_time >= self._nextline[0])):
             # Simtime is ahead of our next line so get a new line update
             try:
                 self._previousline   = self._thisline
@@ -163,7 +123,6 @@ class DataIoClass(object):
             except StopIteration:
                 # Set flag if end of file
                 self._finished = True
-                self._file_out.flush() # TODO might not be necessary
 
         else: self._new_data = False
 
@@ -172,7 +131,7 @@ class DataIoClass(object):
         # If we get here we know that nextline is ahead of simtime
         self._dt = self._thisline[0] - self._previousline[0] if self._previousline else 0.0
 
-        return self.new_data
+        return self.finished
         
 
     ###############################
@@ -219,14 +178,6 @@ class DataIoClass(object):
         return self._nextline
 
     # Line number
-    @property
-    def nextline(self):
-        return self._data[self._num_this_line+1]
-
-    def read_ahead(self, vision=1):
-        _vision = vision + self._num_this_line
-        return self._data[min(max(0, _vision), self._num_lines-1)]
-
     @property
     def line_number(self):
         return self._num_this_line

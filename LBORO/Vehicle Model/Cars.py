@@ -14,11 +14,10 @@ class Nissan_Leaf(CarData):
                     batt_v_min=300.0,
                     batt_v_max=400.0,
                     batt_i_max=266.0,
-                    batt_p_max=90000.0,
-                    batt_kwh_max=30.0,
-                    car_cd=0.28,
-                    car_cda=0.768,
-                    car_area=2.744,
+                    batt_p_max=80000.0,
+                    batt_kwh=30.0,
+                    car_cd=0.29,
+                    car_area=0.725,
                     car_mass=1521.0,
                     wheel_diameter=0.2159*2,
                     wheel_mass=9.0, # Rough google search
@@ -35,8 +34,6 @@ class Nissan_Leaf(CarData):
                     motor_v_max = 400.0, # assumed
                     motor_v_min=300.0, # assumed
                     motor_i_max=266.0, # assumed
-                    motor_p_max=80000.0, # assumed
-                    motor_p_min=-20000.0 # assumed
+                    motor_p_max=80000.0 # assumed
                     )
-
         super().__init__()

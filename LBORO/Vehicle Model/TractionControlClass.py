@@ -3,13 +3,14 @@ import MotorClass
 import BrakesClass
 import ControllerClass
 import enum
-import EscClass
 
 PowertrainState = { 'initialising',
                     'stopped',
                     'accelerating',
                     'cruising',
+                    'coasting',
                     'deccelerating',
+                    'braking',
                     'error'}
 PowertrainState = dict( zip( PowertrainState, range(len(PowertrainState)) ) )
 
@@ -23,17 +24,8 @@ ControlState = dict( zip( ControlState, range(len(ControlState)) ) )
 
 class SpeedControlClass(ControllerClass.ControllerClass):
     """Takes in the current and target speeds and outputs a control signal"""
-
-    @property
-    def state(self):
-        if   self._state is PowertrainState['initialising']:    return  0
-        elif self._state is PowertrainState['stopped']:         return  1
-        elif self._state is PowertrainState['accelerating']:    return  2
-        elif self._state is PowertrainState['cruising']:        return  3
-        elif self._state is PowertrainState['deccelerating']:   return  4
-        elif self._state is PowertrainState['error']:           return -1
-
-    def __init__(self, battery_array, motor_array, wheel_array, kwargs, name="speedController"):
+    
+    def __init__(self, battery_array, motor_array, wheel_array, kwargs):
         self._state = PowertrainState['initialising']
         self._control_state = ControlState['off']
         self._battery_array = battery_array
@@ -49,7 +41,6 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         #self._ki = 0.05
         #self._kd = 5.0
         self._dv = 0.0
-        self._dv_filtered = 0.0
         self._dv_last = 0.0
         self._dv_next = None
         self._target = 0.0
@@ -145,18 +136,12 @@ class SpeedControlClass(ControllerClass.ControllerClass):
                     #print('Motors not on, apply brakes')
                     self.set_brakes(relative=-super().error)
 
-        if self._feed_forward is not None:
-            self._feed_forward.update(dt, self._target_forward - self._current)
-            #print(self._feed_forward.error)
-            self._error = (super(SpeedControlClass, self).error + self._feed_forward.error) 
-        else:
-            self._error = super(SpeedControlClass, self).error  
+        if model_update: self._update_models(dt)
 
-        #print(self.error)
+        #if (self._state == PowertrainState['stopped']):
+        #    super().reset()
 
-        (motor, brake, parking) = self._control(self._error, self.dv, self._hysteresis, self._hysteresis_speed,
-                                                        True if (ptr.brake_parking for ptr in self._wheel_array) else False, verbose=False)
-
+        return
 
     def _update_models(self, dt):
         # Update models
@@ -167,221 +152,26 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         for ptr in self._wheel_array:
             ptr.update(dt)
 
-
-        for ptr in self._battery_array:
-            ptr.i = self._motor_array[0].i
-            ptr.p = self._motor_array[0].p
-
-        for ptr in self._motor_array:
-            ptr.v = self._battery_array[0].v
-
-        for ptr in self._battery_array:
-            ptr.update(dt)
-
-
-        #self._update_models(dt)
-
-        self._data.update(super(SpeedControlClass, self).data)
-        self._data.update({(self._name+'_motor') : motor,
-                            (self._name+'_brake') : brake,
-                            (self._name+'_parking') : parking,
-                            (self._name+'_powertrain_state') : self._state,
-                            (self._name+'_control_state') : self._control_state,
-        })
-
-        return
-
-    def _update_models(self, dt):
-        #if (self._dt_last > dt):
-            # Update models
-            for ptr in self._battery_array:
-                ptr.update(dt)
-            self._esc.update(dt)
-            for ptr in self._motor_array:
-                ptr.update(dt)
+    def set_brakes(self, absolute=None, relative=None):
+        if (absolute != None):
             for ptr in self._wheel_array:
-                ptr.update(dt)
-
-            self._dt_last = dt
-
-    def _set_motor(self, val, verbose=False):
-        if verbose: print("Motor: ", end=' ')
-        for ptr in self._motor_array:
-            if self._regen is None: ptr.regen_activated = False
-            else: ptr.regen_activated = True
-            ptr.motor_value = val
-            if verbose: print(str(int(ptr.motor_value)), end=' ')
-        if verbose: print()
-
-    def _set_brakes(self, val, parking=False, verbose=False):
-        if verbose: print("Brake: ", end=' ')
-
-        for ptr in self._wheel_array:
-            ptr.brake_parking = parking
-            ptr.brake_value = -val if val is not None else None
-               
-        if verbose: 
-            if parking: print("parking brake on", end=' ')
-            print(str(int(ptr.brake_value)), end=' ')   
-
-        if verbose: print()
-
-    def _control(self, pid_error, dv, hysteresis, v_hysteresis, parking, verbose=False):     
-    ###################
-    ## STATE MACHINE ##
-    ###################
-        motor_sig = None
-        brake_sig = None
-        state_last = self._state
-        ###################
-        ##    STOPPED    ##
-        ###################
-        if self._state is PowertrainState['stopped']:
-            if (pid_error <= hysteresis):
-                # Remain stopped
-                self._control_state = ControlState['ok']
-                motor_sig = None
-                brake_sig = None
-                parking   = True
-            else:
-                # Accelerate
-                self._state         = PowertrainState['accelerating']
-                self._control_state = ControlState['too_slow']   
-                motor_sig = pid_error
-                brake_sig = None
-                parking   = False
-        
-        ###################
-        ##   ACCELERATE  ##
-        ###################
-        elif self._state is PowertrainState['accelerating']:
-            # Remain accelerating, cruise (not straight to coast or decelerate)
-            if (pid_error > -hysteresis):
-                # Continue accelerating
-                self._control_state =  ControlState['ok'] if (pid_error <= hysteresis) else ControlState['too_slow']
-                motor_sig = pid_error
-                brake_sig = None
-                parking   = False
-            else:
-                # Cruise
-                self._state         = PowertrainState['cruising']
-                self._control_state = ControlState['too_fast']   
-                motor_sig = pid_error
-                brake_sig = None
-                parking   = False
-
-        ###################
-        ##     CRUISE    ##
-        ###################
-        elif self._state is PowertrainState['cruising']:
-            # Remain cruising, accelerate or coast
-            if (abs(dv) <= v_hysteresis):
-                # Continue cruising
-                self._control_state = ControlState['ok']   
-                motor_sig = pid_error
-                brake_sig = None
-                parking   = False
-            elif (dv > 0.0):
-                # Accelerate
-                self._state = PowertrainState['accelerating']
-                self._control_state = ControlState['too_slow']   
-                motor_sig = pid_error
-                brake_sig = None
-                parking   = False
-            elif (dv < 0.0):
-                # Deccel
-                #self._state = PowertrainState['regen'] if (regen is not None) else PowertrainState['deccelerating']
-                self._state = PowertrainState['deccelerating']
-                self._control_state = ControlState['too_fast']   
-                motor_sig = None
-                brake_sig = pid_error
-                parking   = False
-
-        ###################
-        ##     REGEN     ##
-        ###################
-        #elif self._state is PowertrainState['regen']:
-        #    if (regen is None):
-        #        print("Regen error - in regen mode with regen turned off")
-        #        self._state = PowertrainState['error']
-
-        #    # Remain in regen, cruise or decelerate
-        #    if (pid_error < (-255/4)):
-        #        # Decelerate, can't regen enough
-        #        self._state = PowertrainState['deccelerating']
-        #        self._control_state = ControlState['too_fast']   
-        #        motor_sig = pid_error
-        #        brake_sig = None
-        #        parking   = False
-        #        regen     = True if (regen is not None) else None
-        #    elif (pid_error > 0.0):
-        #        # Cruise
-        #        self._state = PowertrainState['cruising']
-        #        self._control_state = ControlState['too_slow']   
-        #        motor_sig = pid_error
-        #        brake_sig = None
-        #        parking   = False
-        #        regen     = False ## REGEN OFF
-        #    else:
-        #        # Continue regen
-        #        self._control_state = ControlState['ok']   
-        #        motor_sig = pid_error
-        #        brake_sig = None
-        #        parking   = False
-        #        regen     = True if (regen is not None) else None               
-
-        ###################
-        ##     DECCEL    ##
-        ###################
-        elif self._state is PowertrainState['deccelerating']:
-            # Remain decelerating
-            if (pid_error <= hysteresis):
-                self._control_state = ControlState['ok']
-                parking   = False
-                motor_sig = 0
-                brake_sig = pid_error
-            elif (pid_error > 0.0):
-                # Cruise
-                self._state         = PowertrainState['cruising']
-                self._control_state = ControlState['too_slow']
-                motor_sig = pid_error
-                brake_sig = None
-                parking   = False
-
-
-        ###################
-        ##     ERROR     ##
-        ###################
-        elif (self._state is PowertrainState['error'] or self._control_state is ControlState['error']):
-            # Test to see if stationary. If so apply parking and relieve the error
-            print("Speed controller in error state")
-            self._control_state = ControlState['error']
-            motor_sig = None
-            brake_sig = None
-            parking   = True
-            regen     = False if (regen is not None) else None
+                ptr.brake_value = absolute
+        elif (relative != None):
+            for ptr in self._wheel_array:
+                ptr.brake_value = ptr.brake_value + relative/len(self._brake_array)
         else:
-            # WTF
-            print("Speed controller in WTF state, it's completely broken mate, Alt+F4")
-            self._control_state = ControlState['ok']
-            motor_sig = None
-            brake_sig = None
-            parking   = True
-            regen     = False if (regen is not None) else None
+            pass # This shouldn't happen
 
-    ###################
-    ##      END      ##
-    ###################
+    def set_motor(self, absolute=None, relative=None):
+        if (absolute != None):
+            for ptr in self._motor_array:
+                ptr.motor_value = absolute
+        elif (relative != None):
+            for ptr in self._motor_array:
+                ptr.motor_value = ptr.motor_value + relative/len(self._motor_array)
+        else:
+            pass # This shouldn't happen
 
-        if (verbose and self._state is not state_last):
-            print("State changed to " + str(self.state))
-        if verbose:
-            print("Motor: " + str(motor_sig) + "\tBrake: " + str(brake_sig))
-
-        return (motor_sig, brake_sig, parking)
-
-
-        
     @property
     def target(self):
         return self._target
@@ -402,7 +192,6 @@ class SpeedControlClass(ControllerClass.ControllerClass):
     @current.setter
     def current(self, value):
         self._current = max(0, value) # Positive numbers only
-
         for ptr in self._wheel_array:
             ptr.set_wheel_speed(self._current)
             
@@ -415,7 +204,7 @@ class SpeedControlClass(ControllerClass.ControllerClass):
 
     @property
     def error(self):
-        return self._error
+        return super().error
 
 
 class TractionControlClass(SpeedControlClass):
@@ -432,12 +221,11 @@ class TractionControlClass(SpeedControlClass):
         self._motor_controller.set_i_limits(-50,50)
         self._error_brake = 0.0
         self._error_motor = 0.0 
-        self._error_brake = 0.0
-        return super(TractionControlClass, self).__init__(battery_array, motor_array, wheel_array, kwargs)
+        return super().__init__(battery_array, motor_array, wheel_array, kwargs)
 
     def update(self, dt):
         state_last = self._state
-        super(TractionControlClass, self).update(dt, model_update=False)
+        super().update(dt, model_update=False)
         self._brake_controller.update(dt, self._error_brake)
         self._motor_controller.update(dt, self._error_motor)
 
@@ -450,50 +238,22 @@ class TractionControlClass(SpeedControlClass):
         #    self._brake_controller.reset()
         #    self._motor_controller.reset()
         for ptr in self._wheel_array:
-                if ptr.slip > ptr.slip_peak: trac_ctrl = True
-
-#        if trac_ctrl:
-#            for ptr in self._wheel_array:
-#                    ptr.brake_value = self._brake_controller.error                        /2
-#            for ptr in self._motor_array:
-#                    ptr.motor_value = self._motor_controller.error/len(self._motor_array) /2
-#        else:
-        #for ptr in self._wheel_array:
-        #        ptr.brake_value = self._brake_controller.error
-        #for ptr in self._motor_array:
-        #        ptr.motor_value = self._motor_controller.error/len(self._motor_array)
-
-        #self.control_motor(relative=(self._motor_controller.error/len(self._motor_array)))
-        #self.control_brakes(relative=self._brake_controller.error, parking=False)
-
-        super(TractionControlClass, self)._update_models(dt)
+                ptr.brake_value = self._brake_controller.error
+        for ptr in self._motor_array:
+                ptr.motor_value = self._motor_controller.error/len(self._motor_array)
+        super()._update_models(dt)
 
 
-    def set_brakes(self, absolute=None, relative=None, parking=False):
-        #if parking: pass#print("Parking true")
-        #else: print("Parking false")
-
-        for ptr in self._wheel_array:
-                ptr.brake_parking = parking
-
+    def set_brakes(self, absolute=None, relative=None):
         if (absolute == 0.0):
-            if absolute is not None:
-                for ptr in self._wheel_array:
-                    ptr.brake_value = absolute
-                    
+            for ptr in self._wheel_array:
+                ptr.brake_value = absolute
             self._brake_controller.reset()
             self._error_brake = 0.0
-        else:                   
+        else:
             self._error_brake = (absolute if absolute!=None else relative if relative!=None else 0.0)
-            
-            self._motor_controller.reset()
-            self._error_motor = 0.0
-            for ptr in self._wheel_array:
-                ptr.brake_value = ptr.brake_value + self._error_brake/len(self._brake_array)
 
     def set_motor(self, absolute=None, relative=None):
-        #print("Set motor; abs:", absolute, "rel:", relative)
-
         if (absolute == 0.0):
             for ptr in self._motor_array:
                 ptr.motor_value = absolute
@@ -501,29 +261,16 @@ class TractionControlClass(SpeedControlClass):
             self._error_motor = 0.0
         else:
             self._error_motor = (absolute if absolute!=None else relative if relative!=None else 0.0)
-            self._brake_controller.reset()
-            self._error_brake = 0.0
-            for ptr in self._motor_array:
-                ptr.motor_value = ptr.motor_value + self._error_motor/len(self._motor_array)
 
-        
-
-    def control_brakes(self, absolute=None, relative=None, parking=False):
-        for ptr in self._wheel_array:
-                ptr.brake_parking = parking
-
+    def control_brakes(self, absolute=None, relative=None):
         if (absolute != None):
             for ptr in self._wheel_array:
                 ptr.brake_value = absolute
-        elif (parking is True):
-                for ptr in self._wheel_array:
-                    ptr.brake_value = 0.0
         elif (relative != None):
             for ptr in self._wheel_array:
                 ptr.brake_value = ptr.brake_value + relative/len(self._brake_array)
         else:
-            pass # This shouldn't happen    
-        #print("Brake val=", self._brake_array[0].value)
+            pass # This shouldn't happen
 
     def control_motor(self, absolute=None, relative=None):
         if (absolute != None):
@@ -534,6 +281,5 @@ class TractionControlClass(SpeedControlClass):
                 ptr.motor_value = ptr.motor_value + relative/len(self._motor_array)
         else:
             pass # This shouldn't happen
-        #print("Motor val=", self._motor_array[0].motor_value)
 
     
