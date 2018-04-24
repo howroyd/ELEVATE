@@ -1,11 +1,4 @@
-<<<<<<< HEAD
-from Filters import LowPassFilter
-
-class BrakesClass(object):
-    """description of class"""
-=======
 #!/usr/bin/python3
->>>>>>> linking_overhaul
 
 ###############################
 ###    IMPORT LIBRARIES     ###
@@ -51,19 +44,6 @@ class BrakesClass(RotatingDiscClass):
 
         self._K_J         = 1.0 / ( self._shc_carbon_steel * _mass)
 
-<<<<<<< HEAD
-    # Instance constructor
-    def __init__(self, diameter, max_torque, kwargs, name='brake'):
-        self._temperature = 16.0 # TODO
-        self._max_torque = max_torque
-        self._current_torque = 0.0
-        self._value = 0 # 0-255
-        self._diameter = diameter
-        self._lpf = LowPassFilter(0.01)
-        self._name = name
-        self._data = dict()
-=======
->>>>>>> linking_overhaul
         return
 
 
@@ -71,18 +51,6 @@ class BrakesClass(RotatingDiscClass):
     ###      UPDATE LOOP        ###
     ###############################
     def update(self, dt):
-<<<<<<< HEAD
-        if self._value is None: self._value = 0.0
-        if self._value > 0.0:
-            # Calculate force & temperature (1-255)
-            self._current_torque = max(0.0, (self._value/255)*self._max_torque)
-        else:
-            self._current_torque = 0.0
-
-        self._data.update({(self._name+'_value') : self._value,
-                    (self._name+'_torque') : self._current_torque,
-        })
-=======
         super().update(dt)
 
 
@@ -94,7 +62,6 @@ class BrakesClass(RotatingDiscClass):
         energy_lost = power_lost * dt
         
         self._temperature += (self._K_J * (energy_gained-energy_lost))
->>>>>>> linking_overhaul
 
         return
 
@@ -110,22 +77,8 @@ class BrakesClass(RotatingDiscClass):
 
     @property
     def value(self):
-<<<<<<< HEAD
-        return self._value
-    @value.setter
-    def value(self, value):
-        self._value = max(min(value, 255), 0) if value is not None else 0.0
-        #self._value = value
-        #if value is None:
-        #    self._value = self._lpf.reset()
-        #else:
-        #    self._value = self._lpf.get(max(min(-value/10, 255), 0) )
-        
-        
-=======
         return self._ctrl_sig.value
 
->>>>>>> linking_overhaul
 
     # Maximum torque limit
     @property

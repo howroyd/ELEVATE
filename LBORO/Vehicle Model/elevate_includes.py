@@ -8,29 +8,18 @@
 import telnetlib, time, sys, os, datetime, copy
 
 # Matlab libraries
-<<<<<<< HEAD
-import matlab.engine
-=======
 #import matlab.engine
->>>>>>> linking_overhaul
 import matplotlib
 import matplotlib.pyplot as plt
 
 # Python libraries
 import numpy as np
 import colorama
-<<<<<<< HEAD
-
-# User libraries
-from CarClass import CarClass
-from DataInputClass import DataInputClass, DataOutputClass, Continuous_dt
-=======
 import progressbar
 
 # User libraries
 from CarClass import CarClass
 from DataInputClass import DataIoClass, Continuous_dt
->>>>>>> linking_overhaul
 from RotatingThingClass import rads_to_rpm
 
 
@@ -76,25 +65,16 @@ class Display(object):
     ###############################
     ###     INITIALISATION      ###
     ###############################
-<<<<<<< HEAD
-    def disp(self, my_string, end='\n'):
-        print(my_string, end=end)
-=======
     def disp(self, *my_string:str, end="\n"):
         for x in my_string:
             print(x, end='')
         print(end, end='')
->>>>>>> linking_overhaul
 
     ###############################
     ###     INITIALISATION      ###
     ###############################
     def disp_testfile(self, filename):
         print("\nTest file", filename)
-<<<<<<< HEAD
-        print('\n')
-=======
->>>>>>> linking_overhaul
 
     ###############################
     ###     INITIALISATION      ###

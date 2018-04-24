@@ -39,11 +39,6 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._battery_array = battery_array
         self._motor_array = motor_array
         self._wheel_array = wheel_array
-<<<<<<< HEAD
-        self._brake_array = kwargs['brake_model_array']
-        self._esc = kwargs['esc']
-        self._dt_last = 0.0
-=======
         #self._brake_array = kwargs['brake_model_array']
         self._i = 0.0
         self._d = 0.0
@@ -53,7 +48,6 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         #self._kp = 60.0
         #self._ki = 0.05
         #self._kd = 5.0
->>>>>>> linking_overhaul
         self._dv = 0.0
         self._dv_filtered = 0.0
         self._dv_last = 0.0
@@ -63,37 +57,6 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._feed_forward = None
         self._k_feed_forward = 5
         self._state = PowertrainState['stopped']
-<<<<<<< HEAD
-        self._regen = False # Set to None to disable
-        self._name = name
-        self._data = dict()
-        self._hysteresis_speed = 0#0.44704/4#0.25*1 # 0.45=1mph
-        self._target_forward = 0
-
-        p = 100
-        i = 1/20
-        d = 0
-
-        self._feed_forward = None#ControllerClass.ControllerClass(p, i, d, min_i=-50, max_i=50, name=(self._name+"_ff"))
-
-        self._hysteresis = 0#self._hysteresis_speed * p/10 # PID error
-        super(SpeedControlClass, self).__init__(p, i, d, min_i=-50, max_i=50, name=self._name)
-
-        return 
-
-    @property
-    def data(self):
-        return self._data
-
-    def update(self, dt):
-        #if ((self._target <= self._hysteresis_speed/10.0) and (self._current <= self._hysteresis_speed/10.0) and ((self._feed_forward.error <= self._hysteresis_speed/10.0) if self._feed_forward is not None else True)):
-        #    if (self._state is not PowertrainState['stopped']):
-        #        self._state = PowertrainState['stopped']
-        #    super(SpeedControlClass, self).reset()
-        #    self._feed_forward.reset() if self._feed_forward is not None else None
-
-        super(SpeedControlClass, self).update(dt, (self._target+self._target_forward)/2 - self._current)#self.dv)
-=======
         self._hysteresis = 10
         return super().__init__(150, 50, -7.5, type='signed')  # 128, 16, 0
         #return super().__init__(15, 0.05, 1)
@@ -181,7 +144,6 @@ class SpeedControlClass(ControllerClass.ControllerClass):
                     self._state = PowertrainState['deccelerating']
                     #print('Motors not on, apply brakes')
                     self.set_brakes(relative=-super().error)
->>>>>>> linking_overhaul
 
         if self._feed_forward is not None:
             self._feed_forward.update(dt, self._target_forward - self._current)
@@ -195,34 +157,11 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         (motor, brake, parking) = self._control(self._error, self.dv, self._hysteresis, self._hysteresis_speed,
                                                         True if (ptr.brake_parking for ptr in self._wheel_array) else False, verbose=False)
 
-<<<<<<< HEAD
 
-        #if self._feed_forward is not None:
-        #    return self._target - self._current + self._k_feed_forward*(self._feed_forward)
-        #else:
-
-
-        if (brake is not None and parking is not True):
-            if (brake > -255/4):
-                motor = brake   
-                brake = 0
-            else:
-                motor = -255/4
-                brake = (brake + 255/4) * 4
-
-        if parking:
-            motor = 0
-
-        self._set_motor(motor)
-        self._set_brakes(brake, parking)
-
-        self._esc.update(dt)
-=======
     def _update_models(self, dt):
         # Update models
         #for ptr in self._battery_array:
         #    ptr.update(dt)
->>>>>>> linking_overhaul
         for ptr in self._motor_array:
             ptr.update(dt)
         for ptr in self._wheel_array:
@@ -451,19 +390,11 @@ class SpeedControlClass(ControllerClass.ControllerClass):
         self._target = max(0, value) # Positive numbers only
 
     @property
-<<<<<<< HEAD
-    def target_forward(self):
-        return self._feed_forward
-    @target_forward.setter
-    def target_forward(self, value):
-        self._target_forward = max(0, value) # Positive numbers only
-=======
     def feed_forward(self):
         return self._feed_forward
     @feed_forward.setter
     def feed_forward(self, value):
         self._feed_forward = max(0, value) # Positive numbers only
->>>>>>> linking_overhaul
 
     @property
     def current(self):
@@ -471,17 +402,7 @@ class SpeedControlClass(ControllerClass.ControllerClass):
     @current.setter
     def current(self, value):
         self._current = max(0, value) # Positive numbers only
-<<<<<<< HEAD
-        
 
-
-    @property
-    def dv(self):
-        #if self._feed_forward is not None:
-            return self._target - self._current
-        #else:
-        #    return self._target - self._current
-=======
         for ptr in self._wheel_array:
             ptr.set_wheel_speed(self._current)
             
@@ -491,7 +412,6 @@ class SpeedControlClass(ControllerClass.ControllerClass):
             return self._target + self._k_feed_forward*(self._feed_forward - self._target) - self._current
         else:
             return self._target - self._current
->>>>>>> linking_overhaul
 
     @property
     def error(self):
@@ -502,14 +422,6 @@ class TractionControlClass(SpeedControlClass):
     """Takes a control signal and drives the brakes/motors"""
     
     def __init__(self, battery_array, motor_array, wheel_array, kwargs):
-<<<<<<< HEAD
-        self._motor_controller = ControllerClass.ControllerClass(1, 0, 0, min_val=0, max_val=255)
-        self._brake_controller = ControllerClass.ControllerClass(1, 0, 0, min_val=0, max_val=255)
-        
-        self._motor_controller.set_i_limits(-150,150)
-        self._brake_controller.set_i_limits(-100,100)
-
-=======
         self._brake_controller = ControllerClass.ControllerClass(0.9, 0.1, -0.05, type='unsigned')
         self._motor_controller = ControllerClass.ControllerClass(1.5, 0.1, -0.025, type='signed')
         self._motor_controller.min_val = -95
@@ -519,7 +431,6 @@ class TractionControlClass(SpeedControlClass):
         self._brake_controller.set_i_limits(-50,50)
         self._motor_controller.set_i_limits(-50,50)
         self._error_brake = 0.0
->>>>>>> linking_overhaul
         self._error_motor = 0.0 
         self._error_brake = 0.0
         return super(TractionControlClass, self).__init__(battery_array, motor_array, wheel_array, kwargs)
@@ -530,21 +441,6 @@ class TractionControlClass(SpeedControlClass):
         self._brake_controller.update(dt, self._error_brake)
         self._motor_controller.update(dt, self._error_motor)
 
-<<<<<<< HEAD
-        if ( super(TractionControlClass, self).state is PowertrainState['accelerating'] ):
-            self._brake_controller.anti_wind_up()
-        if ( super(TractionControlClass, self).state is PowertrainState['deccelerating'] ):
-            self._motor_controller.anti_wind_up()
-
-        if ( super(TractionControlClass, self).state is PowertrainState['stopped'] ):
-            for ptr in self._wheel_array:
-                ptr.reset()
-            self._brake_controller.reset()
-            self._motor_controller.reset()
-
-        # Anti slip
-        trac_ctrl = False
-=======
         if ( super().state is PowertrainState['accelerating'] or super().state is PowertrainState['stopped']):
             self._brake_controller.anti_wind_up()
         if ( super().state is PowertrainState['deccelerating'] or super().state is PowertrainState['stopped'] ):
@@ -553,7 +449,6 @@ class TractionControlClass(SpeedControlClass):
         #if (state_last != self._state):# or self._state==PowertrainState.stopped):
         #    self._brake_controller.reset()
         #    self._motor_controller.reset()
->>>>>>> linking_overhaul
         for ptr in self._wheel_array:
                 if ptr.slip > ptr.slip_peak: trac_ctrl = True
 

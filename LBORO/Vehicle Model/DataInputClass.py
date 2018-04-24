@@ -65,66 +65,6 @@ class DataOutputClass(object):
         self._lineout = []
         self.update()
 
-<<<<<<< HEAD
-    def __del__(self):
-        self._file_out.close()
-
-    def update(self, sim_time=None):
-        # Update output file
-        if self._lineout:
-                self._csvout.writerow(self._lineout)
-                self._lineout = []
-        return
-
-    @property
-    def line(self):
-        return self._thisline
-    @line.setter
-    def line(self, data):
-        for i in data:
-            self._lineout.append(i)
-
-class DataInputClass(object):
-    """description of class"""
-    def __init__(self, filename, filenameout=None):
-
-        self._data = list()
-
-        num_lines_in_file = self.file_len(filename)-1
-
-        with open(filename,'rt') as f:
-            reader = csv.reader(f, delimiter='\t')
-            
-            for row in reader:
-                try:
-                    self._data.append(list(map(float, row)))
-                except:
-                    pass
-
-        self._num_lines = len(self._data)
-
-        if round(num_lines_in_file) is not round(self._num_lines): print("Warning: Difference between input file length and parsed data length;", num_lines_in_file, "vs", self._num_lines, '\n')
-
-        if filenameout is None:
-            self._file_out = open(filename.rsplit('.')[0]+"_out"+".csv",'w', newline="\n", encoding="utf-8")
-        else:
-            self._file_out = open(filenameout,'w', newline="\n", encoding="utf-8")
-        
-        self._csvout = csv.writer(self._file_out,quoting=csv.QUOTE_NONNUMERIC)
-
-        self._num_this_line = -1
-        self._new_data = False
-        self._lineout = []
-        self._dt = 0.0
-        self._finished = False
-
-        return
-
-
-
-
-        # Old code
-=======
 ###############################
 ###############################
 ######       END         ######
@@ -153,8 +93,6 @@ class DataIoClass(object):
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, filename):
->>>>>>> linking_overhaul
-
         self._file_in = open(filename,'rt')
         if filenameout is None:
             self._file_out = open(filename.rsplit('.')[0]+"_out"+".csv",'w', newline="\n", encoding="utf-8")
@@ -168,28 +106,6 @@ class DataIoClass(object):
 
         self.update()
 
-<<<<<<< HEAD
-
-
-    @staticmethod
-    def file_len(fname) -> int:
-        with open(fname) as f:
-            for i, l in enumerate(f):
-                pass
-        return i + 1
-
-    @property
-    def dt(self):
-        return self._dt
-    @dt.setter
-    def dt(self, val):
-        self._dt = val
-
-    @property
-    def finished(self):
-        return self._finished
-=======
->>>>>>> linking_overhaul
 
     ###############################
     ###      UPDATE LOOP        ###
@@ -295,15 +211,7 @@ class DataIoClass(object):
     # String of this timesteps line data
     @property
     def line(self):
-<<<<<<< HEAD
-        return self._data[min(self._num_this_line, self._num_lines-1)]
-    @line.setter
-    def line(self, data):
-        for i in data:
-            self._lineout.append(i)
-=======
         return self._thisline
->>>>>>> linking_overhaul
 
     # String of the next lines data (for feed forward)
     @property
