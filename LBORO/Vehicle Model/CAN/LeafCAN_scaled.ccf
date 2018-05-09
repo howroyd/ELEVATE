@@ -1,0 +1,16 @@
+Fuel inj 1 PW on {measured time 1} VAR_2500|Fuel inj 2 PW on {measured time 2} VAR_2501|Fuel inj 3 PW on {measured time 3} VAR_2502|Throttle angle {angle 1} VAR_3000|Engine speed (ECU) {frequency 1} VAR_1500|Fuel inj 5 PW on {measured time 5} VAR_2504|Fuel inj 6 PW on {measured time 6} VAR_2505|Speed from the ECU {misc 4} VAR_4003|Battery voltage {misc 3} VAR_4002|Fuel inj 7 PW on {measured time 7} VAR_2506|Fuel inj 8 PW on {measured time 8} VAR_2507|Coil 1 PW {measured time 9} VAR_2508|Coil 2 PW {measured time 10} VAR_2509|Coil 3 PW {measured time 11} VAR_2510|Distance from the ECU {misc 5} VAR_4004|
+11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|
+0x176|0x176|0x180|0x180|0x280|0x284|0x284|0x284|0x292|0x292|0x510|0x55b|0x5b3|0x5b3|0x5c5|
+No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|
+0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
+48|32|36|16|16|48|32|16|32|8|33|54|49|16|32|
+16|16|12|8|16|16|16|16|8|8|6|10|7|9|24|
+Unsigned|Unsigned|Signed|Unsigned|Signed|Signed|Signed|Signed|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|
+Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|
+13.79|109.89|1|1|1|84.746|84.746|40.816|10|1|4|1|1|1|1|
+0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
+0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
+500 kbit
+2|5|5|7|5|7|4|3|1|OFF|2|4|OFF|1|3|3|OFF|OFF|
+ 0 
+100Hz|100Hz|100Hz|100Hz|50Hz|50Hz|50Hz|50Hz|50Hz|50Hz|10Hz|10Hz|2Hz|2Hz|100Hz|
