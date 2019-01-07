@@ -5,7 +5,7 @@
 ###############################
 import time
 from AerodynamicsClass import AerodynamicsClass
-from PowertrainClass2 import PowertrainControllerClass
+from PowertrainClass import PowertrainControllerClass
 
 
 class CarClass(object):

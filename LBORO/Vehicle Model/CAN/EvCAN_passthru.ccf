@@ -1,16 +1,16 @@
-Passthru01 {measured time 1} VAR_2500|Passthru02 {measured time 2} VAR_2501|Passthru03 {measured time 3} VAR_2502|Passthru04 {measured time 4} VAR_2503|Passthru05 {measured time 5} VAR_2504|Passthru06 {measured time 6} VAR_2505|Passthru07 {measured time 7} VAR_2506|Passthru08 {measured time 8} VAR_2507|Passthru09 {measured time 9} VAR_2508|Passthru10 {measured time 10} VAR_2509|Passthru11 {measured time 11} VAR_2510|Passthru12 {measured time 12} VAR_2511|Passthru14 {pressure 2} VAR_3501|Passthru14 {pressure 2} VAR_3501|Passthru15 {pressure 3} VAR_3502|
+Passthru01 {measured time 1} VAR_2500|Passthru02 {measured time 2} VAR_2501|Passthru03 {measured time 3} VAR_2502|PASSTHROUGH16bit {aux 26} VAR_2025|Passthru05 {measured time 5} VAR_2504|Auxiliary 2 {aux 27} VAR_2026|Auxiliary 4 {aux 29} VAR_2028|Auxiliary 3 {aux 28} VAR_2027|Passthru09 {measured time 9} VAR_2508|Passthru10 {measured time 10} VAR_2509|Fuel inj 2 PW {aux 7} VAR_2006|Fuel inj 3 PW {aux 8} VAR_2007|Fuel inj 4 PW {aux 9} VAR_2008|Passthru14 {pressure 2} VAR_3501|Passthru15 {pressure 3} VAR_3502|
 11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|
 0x54f|0x54f|0x55b|0x1d4|0x1da|0x1da|0x1da|0x1db|0x1db|0x1dc|0x284|0x284|0x284|0x00|0x00|
 No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|
 0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
-16|42|0|16|0|20|32|0|16|0|0|16|32|16|32|
-8|6|10|12|8|12|16|11|10|8|16|16|16|9|24|
-Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|
+16|42|0|17|0|21|33|1|16|0|0|16|32|16|32|
+8|6|10|11|8|11|15|10|10|8|16|16|16|9|24|
+Unsigned|Unsigned|Unsigned|Signed|Unsigned|Signed|Signed|Signed|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|
 Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|
-1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|
+1|1|1|1|1|1|10|1|1|1|1|1|1|1|1|
 0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
 0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
 500 kbit
 2|5|5|7|5|7|4|3|1|OFF|2|4|OFF|1|3|3|OFF|OFF|
  0 
-10Hz|10Hz|10Hz|100Hz|100Hz|100Hz|100Hz|100Hz|100Hz|100Hz|50Hz|50Hz|50Hz|Disabled|Disabled|
+10Hz|10Hz|10Hz|100Hz|100Hz|100Hz|100Hz|100Hz|100Hz|100Hz|50Hz|50Hz|50Hz|Disabled|100Hz|
