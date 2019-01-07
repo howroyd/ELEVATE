@@ -78,6 +78,7 @@ class ElectricalManagementClass(ElectricalDeviceClass.ElectricalDevice):
         counter = 0
         even_share = [elec.i / length(battery_array)] * length(battery_array)
 
+        # WTF is this # TODO
         while (counter < 5):
             
         
