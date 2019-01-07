@@ -25,12 +25,19 @@
     <Compile Include="AerodynamicsClass.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="AxleClass.py" />
+    <Compile Include="SupercapacitorManagementClass.py" />
+    <Compile Include="SupercapacitorClass.py" />
+    <Compile Include="BatteryClass.py" />
+    <Compile Include="BatteryManagementClass.py" />
     <Compile Include="BrakesClass.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CarClass.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Cars.py" />
+    <Compile Include="ControlBusClass.py" />
     <Compile Include="ControllerClass.py">
       <SubType>Code</SubType>
     </Compile>
@@ -41,14 +48,20 @@
     <Compile Include="ElectricalManagementClass.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="firstTest.py" />
+    <Compile Include="ElectricityClass.py" />
+    <Compile Include="elevate_includes.py" />
+    <Compile Include="EscClass.py" />
+    <Compile Include="Filters.py" />
+    <Compile Include="main.py" />
     <Compile Include="MotorClass.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="PowertrainClass.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="RotatingThingClass.py" />
     <Compile Include="TdiLoadbankClass.py" />
+    <Compile Include="test.py" />
     <Compile Include="TractionControlClass.py">
       <SubType>Code</SubType>
     </Compile>

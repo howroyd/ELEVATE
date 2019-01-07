@@ -5,6 +5,7 @@
 ###############################
 from AxleClass import AxleClass
 from BatteryClass import BatteryClass
+from SupercapacitorClass import SupercapacitorClass
 from BatteryManagementClass import BatteryManagementClass
 from ControllerClass import ControllerClass
 from EscClass import ESC
@@ -44,6 +45,7 @@ class PowertrainControllerClass(object):
 
         self._axle    = AxleClass()
         self._battery = BatteryClass(kwargs)
+        self._sc      = SupercapacitorClass(kwargs)
         self._bms     = BatteryManagementClass(kwargs)
         self._esc     = ESC(kwargs)
         self._motor   = MotorClass(kwargs)
