@@ -53,7 +53,10 @@ class SupercapacitorClass(ElectricalDeviceClass):
         else:
             print('\t', "MATLAB says ", mynum, "is NOT PRIME")
 
-        print(self._eng.testfun(5.0, 1.5,nargout=2))
+        print(self._eng.sc_model_single_shot(5.0, 1.5, 1.0, nargout=3))
+
+        while True:
+            pass
 
         return #super().__init__(dict(e_min=sc_e_min, e_max=sc_e_max, e_start=_e_start))
 
