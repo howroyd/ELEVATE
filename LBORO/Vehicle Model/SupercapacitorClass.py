@@ -9,7 +9,10 @@ import matlab.engine
 import os
 import colorama
 
-
+from mpl_toolkits import mplot3d
+#%matplotlib notebook
+import numpy as np
+import matplotlib.pyplot as plt
 
 class SupercapacitorClass(ElectricalDeviceClass):
     '''Supercapacitor for an electric vehicle'''
@@ -18,13 +21,17 @@ class SupercapacitorClass(ElectricalDeviceClass):
     _i_max_charge    = None
     _i_max_discharge = None
     _p_max           = None
+    _soc             = 0.0
+    _skew            = 0.5 # 1=max slow states, 0=max fast states
 
     ###############################
     ###     INITIALISATION      ###
     ###############################
     def __init__(self, kwargs):
-        #self._v_min           = kwargs.get('v_min')
-        #self._v_max           = kwargs.get('v_max')
+        self._v_min           = kwargs.get('v_min')
+        self._v_max           = kwargs.get('v_max')
+        self._farads          = kwargs.get('sc_F')
+        self._esr             = kwargs.get('sc_esr')
         #self._i_max_charge    = kwargs.get('i_max_charge')
         #self._i_max_discharge = kwargs.get('i_max_discharge')
         #self._p_max           = kwargs.get('p_max')
@@ -53,7 +60,30 @@ class SupercapacitorClass(ElectricalDeviceClass):
         else:
             print('\t', "MATLAB says ", mynum, "is NOT PRIME")
 
-        print(self._eng.sc_model_single_shot(5.0, 1.5, 1.0, nargout=3))
+        dt = 10.0
+        distribution = matlab.double([ 0.0, 0.0, 0.0, 0.0, 0.0 ])
+        amps_in = 0.5
+
+        [ v_end, amps_delivered, soc, distribution_out ] = self._eng.sc_model_single_shot(dt, 0.01, amps_in, distribution, nargout=4)
+        #print(self._eng.sc_model_single_shot(dt, amps_in, distribution, nargout=4))
+        #print(distribution_out)
+
+        distribution_out = np.asarray(distribution_out)
+        print(distribution_out)
+
+        X = np.linspace(1,5,1)
+        Y = np.linspace(0, dt, 11)
+        Xv, Yv = np.meshgrid(X, Y)
+
+        Z = distribution_out
+
+        #X, Y = np.meshgrid(X, Y)
+
+        fig = plt.figure()
+        ax = plt.axes(projection='3d')
+        ax.plot_surface(Xv, Yv, Z)
+
+        plt.show()
 
         while True:
             pass
