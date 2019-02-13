@@ -4,18 +4,19 @@ function [ v_end, amps_delivered, soc ] = sc_model_single_shot( v_start, amps_re
 
     clear all;
 
-    model = 'cap_eq_circuit_pascal5_single_shot';
+    model = 'cap_eq_circuit_pascal5_single_shot_stack';
     %model = 'test_model';
     verbose = true;
     
     % Define simulation variables
-    v_chg    = 1.0;
+    v_chg    = 10.0;
     time_on  = 0;
-    time_off = 5;
+    time_off = 10;
     short_on = 5.0001;
-    short_off= short_on + 1;
+    short_off= short_on + 5;
     sim_time = 20 + short_off;
     r_pwr    = 1e-3;
+    r_load   = 1e0;
     
     if verbose
         disp(['Running ' model]);
