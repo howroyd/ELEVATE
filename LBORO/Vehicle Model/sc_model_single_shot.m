@@ -6,7 +6,7 @@ function [ v_end, amps_delivered, soc, distribution_out ] ...
 
     %clear all;
 
-    model = 'cap_eq_circuit_pascal5_single_shot';
+    model = 'cap_eq_circuit_pascal5_single_shot_stack';
     %model = 'test_model';
     verbose = true;
     
@@ -26,8 +26,8 @@ function [ v_end, amps_delivered, soc, distribution_out ] ...
     x=x(2);
     
     if x==1
-        v_init1 = v_start;
-        v_init2 = v_start;
+        v_init1 = ones(5,1) .* v_start;
+        v_init2 = ones(5,1) .* v_start;
         v_init3 = v_start;
         v_init4 = v_start;
         v_init5 = v_start;
