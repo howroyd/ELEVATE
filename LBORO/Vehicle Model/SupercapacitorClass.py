@@ -61,7 +61,7 @@ class SupercapacitorClass(ElectricalDeviceClass):
             print('\t', "MATLAB says ", mynum, "is NOT PRIME")
 
         dt = 10.0
-        distribution = matlab.double([ 0.0, 0.0, 0.0, 0.0, 0.0 ])
+        distribution = matlab.double([ 0.0 ] * 15)
         amps_in = 0.5
 
         [ v_end, amps_delivered, soc, distribution_out ] = self._eng.sc_model_single_shot(dt, 0.01, amps_in, distribution, nargout=4)

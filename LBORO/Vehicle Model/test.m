@@ -1,19 +1,21 @@
 clf; clc; clear all; close all;
 
-res = 0.2;
+res = 0.25;
+
+set_param('cap_eq_circuit_pascal5_single_shot_stack','AlgebraicLoopSolver','LineSearch');
 
 %% Initial conditions
 dt = 1.0;
-distribution_in = [0.0 0.0 0.0 0.0 0.0];
+distribution_in = 0.0;
 amps_in = 0.0;
 [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
-my_distribution = [ distribution_in ; distribution_out ];
+my_distribution = [ distribution_out ];
 v_cc = [0.0;v_end];
 
 %% Initial charge up
-dt = 1.0;
+dt = 20.0;
 distribution_in = distribution_out;
-amps_in = 0.2;
+amps_in = 2.0;
 [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
 my_distribution = [my_distribution ; distribution_out];
 v_cc = [ v_cc ; v_end ];
@@ -35,7 +37,7 @@ my_distribution = [my_distribution ; distribution_out];
 v_cc = [ v_cc ; v_end ];
 
 %% Soak
-dt = 20.0;
+dt = 500.0;
 distribution_in = distribution_out;
 amps_in = 0.0;
 [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
@@ -44,7 +46,11 @@ v_cc = [ v_cc ; v_end ];
 
 %% Plot
 
-surf(my_distribution); hold all;
+surf(my_distribution,...
+    'edgecolor','none'); hold all;
+
+%surf(my_distribution,...
+%    'edgecolor','none'); hold all;
 
 %for i=1:10
 %    [ v_end, amps_delivered, soc, distribution ] = sc_model_single_shot( dt, amps_in, distribution );
