@@ -75,25 +75,23 @@ zlabel('Voltage');
 %title('5th order pascal eq circuit, starting at 1V across each cap.  Apply load and see the fast states discharge.  Then open circuit and see the redistribution aka self balancing');
 hold off;
 
-h2 = figure();
-axis([0 16 0 8], 'manual');
+h2 = figure('visible','off');
+ax = axes(h2, 'visible','off');
+axis([0 15 0 8]);
 grid on;
 
 for i=1:length(my_distribution)
-    bar(my_distribution(i,1:15));
-    axis([0 16 0 8], 'manual');
-    grid on;
+    plot(ax, my_distribution(i,1:15));
     M(i) = getframe(h2);
 end
 
 close(h2);
 
-v = VideoWriter('pretty_vid.mp4', 'MPEG-4');
-open(v);
-writeVideo(v,M);
-close(v);
-
-%movie(M, 1);
+h  = figure('visible','on');
+ax = axes(h, 'visible','on');
+axis([0 15 0 8]);
+grid on;
+movie(M,1);
 
 %figure();
 %plot(v_cc);
