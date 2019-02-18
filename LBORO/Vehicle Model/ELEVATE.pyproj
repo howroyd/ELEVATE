@@ -27,7 +27,7 @@
     </Compile>
     <Compile Include="AxleClass.py" />
     <Compile Include="SupercapacitorManagementClass.py" />
-    <Compile Include="SupercapacitorClass.py" />
+    <Compile Include="SupercapacitorStackClass.py" />
     <Compile Include="BatteryClass.py" />
     <Compile Include="BatteryManagementClass.py" />
     <Compile Include="BrakesClass.py">

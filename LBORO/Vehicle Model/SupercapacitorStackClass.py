@@ -4,9 +4,8 @@
 ###    IMPORT LIBRARIES     ###
 ###############################
 from ElectricityClass import kwh_to_joules
-from ElectricalDeviceClass import ElectricalDeviceClass
-from MatlabClass import MatlabClass
-import matlab
+from SupercapacitorClass import SupercapacitorClass
+import matlab.engine
 import os
 import colorama
 
@@ -15,7 +14,7 @@ from mpl_toolkits import mplot3d
 import numpy as np
 import matplotlib.pyplot as plt
 
-class SupercapacitorClass(ElectricalDeviceClass):
+class SupercapacitorStackClass(SupercapacitorClass):
     '''Supercapacitor for an electric vehicle'''
     _v_min           = None
     _v_max           = None
@@ -23,7 +22,7 @@ class SupercapacitorClass(ElectricalDeviceClass):
     _i_max_discharge = None
     _p_max           = None
     _soc             = 0.0
-    _distribution    = np.zeros(5)
+    _skew            = 0.5 # 1=max slow states, 0=max fast states
 
     ###############################
     ###     INITIALISATION      ###
@@ -33,8 +32,6 @@ class SupercapacitorClass(ElectricalDeviceClass):
         self._v_max           = kwargs.get('v_max')
         self._farads          = kwargs.get('sc_F')
         self._esr             = kwargs.get('sc_esr')
-        self._eng_obj         = MatlabClass(None)
-        self._eng             = self._eng_obj.engine_handle
         #self._i_max_charge    = kwargs.get('i_max_charge')
         #self._i_max_discharge = kwargs.get('i_max_discharge')
         #self._p_max           = kwargs.get('p_max')
@@ -46,58 +43,52 @@ class SupercapacitorClass(ElectricalDeviceClass):
         #_e_start  = ((sc_e_max - sc_e_min) * kwargs.get('sc_soc') / 100.0) + sc_e_min
 
         # Matlab
-        res= 0.25
-        num_rungs = 15
+        print('Starting MATLAB engine...')
+        print(colorama.Fore.RED, '\tAlt+F4 to save your sanity while you still can!!!')
+        print(colorama.Style.RESET_ALL, end='')
+        self._eng = matlab.engine.connect_matlab()
+        print('\t...MATLAB engine started, impending doom')
 
-        distribution = matlab.double([ 0, 0, 0, 0, 0,
-                                       0, 0, 0, 0, 0,
-                                       0, 0, 0, 0, 0 ])
+        self._path = os.path.dirname(os.path.abspath(__file__))
+        print('\t...changing MATLAB path to ', self._path)
+        self._eng.cd(self._path)
 
-        dt = 1.0
-        amps_in = 0.0
-        [ v_end, amps_delivered, soc, distribution_out ] = self._eng.sc_model_single_shot(dt, res/dt, amps_in, distribution, nargout=4)
-        my_distribution = np.asarray(distribution_out)
+        mynum = 11
+
+        if self._eng.isprime(mynum):
+            print('\t', "MATLAB says ", mynum, "is PRIME")
+        else:
+            print('\t', "MATLAB says ", mynum, "is NOT PRIME")
 
         dt = 100.0
-        amps_in = 15.0
-        [ v_end, amps_delivered, soc, distribution_out ] = self._eng.sc_model_single_shot(dt, res/dt, amps_in, distribution_out, nargout=4)
-        my_distribution = np.append(my_distribution, distribution_out, axis=0)
+        res= 0.25
 
-        dt = 10.0
-        amps_in = 0.0
-        [ v_end, amps_delivered, soc, distribution_out ] = self._eng.sc_model_single_shot(dt, res/dt, amps_in, distribution_out, nargout=4)
-        my_distribution = np.append(my_distribution, distribution_out, axis=0)
+        num_rungs = 15
 
-        dt = 5.0
-        amps_in = -0.05
-        [ v_end, amps_delivered, soc, distribution_out ] = self._eng.sc_model_single_shot(dt, res/dt, amps_in, distribution_out, nargout=4)
-        my_distribution = np.append(my_distribution, distribution_out, axis=0)
+        distribution = matlab.double([ 0.0 ] * num_rungs)
+        amps_in = 0.5
 
-        dt = 500.0
-        amps_in = 0.0
-        [ v_end, amps_delivered, soc, distribution_out ] = self._eng.sc_model_single_shot(dt, res/dt, amps_in, distribution_out, nargout=4)
-        my_distribution = np.append(my_distribution, distribution_out, axis=0)
+        [ v_end, amps_delivered, soc, distribution_out ] = self._eng.sc_model_single_shot(dt, res/dt, amps_in, distribution, nargout=4)
+        #print(self._eng.sc_model_single_shot(dt, amps_in, distribution, nargout=4))
+        #print(distribution_out)
+
+        distribution_out = np.asarray(distribution_out)
+        #print(distribution_out)      
 
         X = np.arange(num_rungs)
-        Y = np.arange(my_distribution.shape[0])
+        Y = np.arange(distribution_out.shape[0])
 
         #print('x=', X, ' y=', Y)
 
         #Xv, Yv = np.meshgrid(X, Y)
 
-        Z = my_distribution
+        Z = distribution_out
 
         X, Y = np.meshgrid(X, Y)
 
-        # summer_r, PiYG, Greens, CMRmap_r, BuGn
-
         fig = plt.figure()
         ax = plt.axes(projection='3d')
-        ax.plot_surface(X, Y, Z, cmap='Greens')
-        ax.view_init(elev=25, azim=-130)
-        ax.set_xlabel('Pascal Rungs of Series Stack')
-        ax.set_ylabel('Time /s')
-        ax.set_zlabel('Voltage /V')
+        ax.plot_surface(X, Y, Z)
 
         plt.show()
 

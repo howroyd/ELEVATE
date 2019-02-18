@@ -2,7 +2,7 @@ clf; clc; clear all; close all;
 
 res = 0.25;
 
-set_param('cap_eq_circuit_pascal5_single_shot_stack','AlgebraicLoopSolver','LineSearch');
+%set_param('cap_eq_circuit_pascal5_single_shot_stack','AlgebraicLoopSolver','LineSearch');
 
 distribution_in = [ 0 0 0 0 0 ...
                     1 1 1 1 1 ...
@@ -13,7 +13,7 @@ distribution_in = [ 0 0 0 0 0 ...
 dt = 1.0;
 %distribution_in = 0.0;
 amps_in = 0.0;
-[ v_end, amps_delivered, soc, distribution_out, simout1 ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
+[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
 my_distribution = [ distribution_out ];
 v_cc = [0.0;v_end];
 
@@ -21,7 +21,7 @@ v_cc = [0.0;v_end];
 dt = 100.0;
 distribution_in = distribution_out;
 amps_in = 15.0;
-[ v_end, amps_delivered, soc, distribution_out, simout2 ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
+[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
 my_distribution = [my_distribution ; distribution_out];
 v_cc = [ v_cc ; v_end ];
 
@@ -29,7 +29,7 @@ v_cc = [ v_cc ; v_end ];
 dt = 10.0;
 distribution_in = distribution_out;
 amps_in = 0.0;
-[ v_end, amps_delivered, soc, distribution_out, simout3 ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
+[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
 my_distribution = [my_distribution ; distribution_out];
 v_cc = [ v_cc ; v_end ];
 
@@ -37,7 +37,7 @@ v_cc = [ v_cc ; v_end ];
 dt = 5.0;
 distribution_in = distribution_out;
 amps_in = -0.05;
-[ v_end, amps_delivered, soc, distribution_out, simout4 ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
+[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
 my_distribution = [my_distribution ; distribution_out];
 v_cc = [ v_cc ; v_end ];
 
@@ -45,7 +45,7 @@ v_cc = [ v_cc ; v_end ];
 dt = 500.0;
 distribution_in = distribution_out;
 amps_in = 0.0;
-[ v_end, amps_delivered, soc, distribution_out, simout5 ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
+[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
 my_distribution = [my_distribution ; distribution_out];
 v_cc = [ v_cc ; v_end ];
 
