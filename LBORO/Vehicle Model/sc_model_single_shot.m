@@ -13,11 +13,11 @@ function [ v_end, amps_delivered, soc, distribution_out ] ...
     % Define simulation variables
     sim_time = dt;
     
-    capacitance = 0.1 % F
+    capacitance = 0.1; % F
     
     v_start = mean(distribution_in(end,:));
     
-    disp(['Requested ' num2str(amps_in) ' Amps']);
+    disp(['\nRequested ' num2str(amps_in) ' Amps. dt=' num2str(sim_time) ' Distn: ' num2str(distribution_in(end,:))]);
     
     if resolution <= 0.0
         resolution = 0.1;

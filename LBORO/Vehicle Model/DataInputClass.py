@@ -67,6 +67,69 @@ class Continuous_dt(object):
 
 
 
+
+class Discrete_dt(object):
+    ''' Class to synchronise simulation time with data timestamps'''
+    dt_set     = None
+    dt_scalar  = None
+    _time_last = time.time()
+    _flag      = False
+    _dt        = None
+    _sim_time  = 0
+
+    ###############################
+    ###     INITIALISATION      ###
+    ###############################
+    def __init__(self, dt=None, scaler=10):
+        self._dt = dt
+        self._dt_set = dt
+        self._dt_scaler = scaler
+        self._time_last = time.time()
+
+
+    ###############################
+    ###      UPDATE LOOP        ###
+    ###############################
+    def update(self):
+        now = time.time()
+        #self._dt = (now - self._time_last) * self._dt_scaler
+        self._sim_time += self._dt
+        if (self._dt >= self._dt_set):
+            self._flag = True
+            self._time_last = now
+
+
+    ###############################
+    ###        GETTERS          ###
+    ###############################
+
+    # Simulation time
+    @property
+    def sim_time(self):
+        return self._sim_time
+
+    # Last time step delta
+    @property
+    def dt(self):
+        return self._dt
+
+    # New time available
+    @property
+    def flag(self):
+        if self._flag:
+            self._flag = False
+            return True
+        else: return False
+
+
+###############################
+###############################
+######       END         ######
+###############################
+###############################
+
+
+
 class DataIoClass(object):
     '''Class to fetch timestamped data from file and save data to another file'''
     _file_in       = None
@@ -96,42 +159,55 @@ class DataIoClass(object):
 
         self._num_lines = self.file_len(filename)
 
-        self.update()
+        self.update(0)
 
 
     ###############################
     ###      UPDATE LOOP        ###
     ###############################
-    def update(self, sim_time=None):
+    def update(self, sim_time=0):
         # Update output file
         if self._lineout:
                 self._csvout.writerow(self._lineout)
                 self._lineout = []
 
+        #print('\nsimtime=', sim_time, '\tthisline=', self._thisline, end='\n')
+
         # Update the input
         if (not sim_time or not self._nextline or not self._thisline or (sim_time >= self._nextline[0])):
             # Simtime is ahead of our next line so get a new line update
-            try:
-                self._previousline   = self._thisline
-                self._thisline       = self._nextline
-                self._nextline       = list(map(float,next(self._tsvin)))
-                self._num_this_line += 1
-                self._new_data       = True
-            except ValueError:
-                # Re-run if value error
-                self.update(sim_time)
-            except StopIteration:
-                # Set flag if end of file
-                self._finished = True
-
-        else: self._new_data = False
+            self.move_to_next_line(sim_time)
+        else:
+            self._new_data = False
+        
 
         if self._thisline is None: self._new_data = False
 
         # If we get here we know that nextline is ahead of simtime
         self._dt = self._thisline[0] - self._previousline[0] if self._previousline else 0.0
 
-        return self.finished
+        if self.finished:                       return self.finished
+        elif sim_time >= self._nextline[0]:     self.update(sim_time)
+        else:                                   self._new_data = True
+        
+
+    ###############################
+    ###      FILE NUM LINES     ###
+    ###############################
+    def move_to_next_line(self, sim_time=0):
+        try:
+            self._previousline   = self._thisline
+            self._thisline       = self._nextline
+            self._nextline       = list(map(float,next(self._tsvin)))
+            self._num_this_line += 1
+            self._new_data       = True if (sim_time >= self._nextline[0]) else False
+        except ValueError:
+            # Re-run if value error
+            self.move_to_next_line(sim_time)
+        except StopIteration:
+            # Set flag if end of file
+            self._finished = True
+
         
 
     ###############################

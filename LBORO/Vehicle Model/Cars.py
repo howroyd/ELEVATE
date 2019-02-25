@@ -1,4 +1,4 @@
-class CarData(object):
+class ObjectData(object):
     _data=dict()
 
     @property
@@ -8,7 +8,7 @@ class CarData(object):
     def data(self, val):
         raise Exception("Cannot change default values!")
 
-class Nissan_Leaf(CarData):
+class Nissan_Leaf(ObjectData):
     def __init__(self):
         self._data = dict(batt_soc=62.7161,
                     batt_v_min=300.0,
@@ -37,5 +37,17 @@ class Nissan_Leaf(CarData):
                     motor_v_min=300.0, # assumed
                     motor_i_max=266.0, # assumed
                     motor_p_max=80000.0 # assumed
+                    )
+        super().__init__()
+
+
+class Supercapacitor(ObjectData):
+    def __init__(self):
+        self._data = dict(sc_soc=100.0,   # todo
+                    sc_v_min=0.0,
+                    sc_v_max=8.0,
+                    sc_i_max=266.0,
+                    sc_F=1.0,
+                    sc_esr=0.5
                     )
         super().__init__()

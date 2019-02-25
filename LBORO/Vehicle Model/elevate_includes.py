@@ -19,7 +19,7 @@ import progressbar
 
 # User libraries
 from CarClass import CarClass
-from DataInputClass import DataIoClass, Continuous_dt
+from DataInputClass import DataIoClass, Continuous_dt, Discrete_dt
 from RotatingThingClass import rads_to_rpm
 
 

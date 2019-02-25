@@ -50,6 +50,7 @@ class ElectricityClass(object):
     # Power
     @property
     def power(self):
+        print('v=', self._v, '\ti=', self._i, end='\n')
         return self._v * self._i
 
 

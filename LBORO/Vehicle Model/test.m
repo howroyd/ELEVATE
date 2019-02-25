@@ -4,9 +4,9 @@ res = 0.25;
 
 %set_param('cap_eq_circuit_pascal5_single_shot_stack','AlgebraicLoopSolver','LineSearch');
 
-distribution_in = [ 0 0 0 0 0 ...
+distribution_in = [ 1 1 1 1 1 ...
                     1 1 1 1 1 ...
-                    0 0 0 0 0];
+                    1 1 1 1 1 ] .* 8;
 
 
 %% Initial conditions
@@ -20,7 +20,7 @@ v_cc = [0.0;v_end];
 %% Initial charge up
 dt = 100.0;
 distribution_in = distribution_out;
-amps_in = 15.0;
+amps_in = -5.0;
 [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, dt\res, amps_in, distribution_in );
 my_distribution = [my_distribution ; distribution_out];
 v_cc = [ v_cc ; v_end ];
