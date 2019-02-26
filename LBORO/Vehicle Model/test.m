@@ -6,7 +6,7 @@ res = 0.25;
 
 distribution_in = [ 1 1 1 1 1 ...
                     1 1 1 1 1 ...
-                    1 1 1 1 1 ] .* 8;
+                    1 1 1 1 1 ] .* 4.0;
 
 
 %% Initial conditions

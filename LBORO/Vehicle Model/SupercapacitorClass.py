@@ -24,7 +24,7 @@ class SupercapacitorClass(ElectricalDeviceClass):
     _p_max           = None
     _soc             = 0.0
     _distribution    = np.zeros(5)
-    _res             = 1
+    _res             = 0.1
     _pascal_order    = 5
     _num_series_caps = 3
 
@@ -58,7 +58,7 @@ class SupercapacitorClass(ElectricalDeviceClass):
         
         distribution = np.dot( distribution, self._soc/100.0 )
         self._distribution = matlab.double(distribution.tolist())
-        print(self._distribution)
+        print('Initial supercapacitor distribution:\n', self._distribution, end='\n')
         #dt = 1.0
         #amps_in = 0.0
         #[ v_end, amps_delivered, soc, distribution_out ] = self._eng.sc_model_single_shot(dt, res/dt, amps_in, distribution, nargout=4)
@@ -131,13 +131,19 @@ class SupercapacitorClass(ElectricalDeviceClass):
     ###      MATLAB MODEL       ###
     ###############################
     def _run_model(self, dt):
+        #print('dt=', dt, end='\n')
         [ v_end, amps_delivered, soc, distribution_out ] = self._eng.sc_model_single_shot( 
-                dt, dt/self._res, self.current, self._distribution, nargout=4 )
-        print('\nDistribution_out: ', distribution_out, end='\n')
+                dt, dt*self._res, self.current, self._distribution, nargout=4 )
+        #print(end='\n')
+        #print('Distribution_out: ', distribution_out, end='\n')
         self._distribution = distribution_out
         self._soc          = soc
-        self.voltage       = v_end
-        self.current       = amps_delivered
+        self.voltage       = float(v_end[0][0])
+        self.current       = float(amps_delivered[0][0])
+
+        #print('v_end: ', self.voltage, end='\n')
+        #print('soc: ', self.voltage, end='\n')
+        #print('current: ', self.current, end='\n')
 
 
     ###############################

@@ -94,13 +94,14 @@ if __name__ == "__main__":
         ###############################
         if datafile.new_data:
             #print('Datafile=', datafile.line, end='\n')
-            mysupercap.current = datafile.line[1] / 10.0 # TODO
+            mysupercap.current = datafile.line[1] / 1.0 # TODO
 
 
         ###############################
         ###      UPDATE MODEL       ###
         ###############################
             mysupercap.update(timer.dt)
+            #mysupercap.update(10)
         
             if distribution is None:
                 distribution = mysupercap.distribution
