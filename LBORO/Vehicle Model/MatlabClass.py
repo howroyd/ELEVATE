@@ -22,7 +22,13 @@ class MatlabClass(object):
         print(colorama.Fore.RED, '\tAlt+F4 to save your sanity while you still can!!!')
         print(colorama.Style.RESET_ALL, end='')
 
-        MatlabClass.engine_handle = matlab.engine.connect_matlab()
+        while True: # TODO this is dirty
+            try:
+                MatlabClass.engine_handle = matlab.engine.connect_matlab()
+                break
+            except:# EngineError:
+                print('Failed, trying again...')
+                pass
 
         print('\t...MATLAB engine started, impending doom')
 

@@ -10,6 +10,7 @@ function [ v_end, amps_delivered, soc, distribution_out ] ...
     %model = 'test_model';
     verbose = false;
     verbose_distribution = true;
+    verbose_load = true;
     invert_order = true;
     
     % Define simulation variables
@@ -17,7 +18,7 @@ function [ v_end, amps_delivered, soc, distribution_out ] ...
     distribution_in = double(distribution_in);
     amps_in = double(amps_in);
     
-    capacitance = 0.1; % F
+    capacitance = 1.0; % F
     
     v_start = mean(distribution_in(end,:));
     
@@ -44,32 +45,59 @@ function [ v_end, amps_delivered, soc, distribution_out ] ...
         v_init3 = v_init3 .* v_start;
         disp('Assuming capacitors are balanced');
     elseif x==15
-        if invert_logic:
-        v_init1(1) = v_init1(1) .* distribution_in(end, 5);
-        v_init1(2) = v_init1(2) .* distribution_in(end, 4);
-        v_init1(3) = v_init1(3) .* distribution_in(end, 3);
-        v_init1(4) = v_init1(4) .* distribution_in(end, 2);
-        v_init1(5) = v_init1(5) .* distribution_in(end, 1);
-        
-        if verbose || verbose_distribution
-            disp(v_init1);
-        end
-        
-        v_init2(1) = v_init2(1) .* distribution_in(end, 10);
-        v_init2(2) = v_init2(2) .* distribution_in(end, 9);
-        v_init2(3) = v_init2(3) .* distribution_in(end, 8);
-        v_init2(4) = v_init2(4) .* distribution_in(end, 7);
-        v_init2(5) = v_init2(5) .* distribution_in(end, 6);
-        
-        v_init3(1) = v_init3(1) .* distribution_in(end, 15);
-        v_init3(2) = v_init3(2) .* distribution_in(end, 14);
-        v_init3(3) = v_init3(3) .* distribution_in(end, 13);
-        v_init3(4) = v_init3(4) .* distribution_in(end, 12);
-        v_init3(5) = v_init3(5) .* distribution_in(end, 11);
+        if ~invert_order
+            v_init1(1) = v_init1(1) .* distribution_in(end, 5);
+            v_init1(2) = v_init1(2) .* distribution_in(end, 4);
+            v_init1(3) = v_init1(3) .* distribution_in(end, 3);
+            v_init1(4) = v_init1(4) .* distribution_in(end, 2);
+            v_init1(5) = v_init1(5) .* distribution_in(end, 1);
 
-        %disp(['Distribution: ' num2str([v_init1, v_init2, v_init3])]);
+            if verbose || verbose_distribution
+                disp(v_init1);
+            end
+
+            v_init2(1) = v_init2(1) .* distribution_in(end, 10);
+            v_init2(2) = v_init2(2) .* distribution_in(end, 9);
+            v_init2(3) = v_init2(3) .* distribution_in(end, 8);
+            v_init2(4) = v_init2(4) .* distribution_in(end, 7);
+            v_init2(5) = v_init2(5) .* distribution_in(end, 6);
+
+            v_init3(1) = v_init3(1) .* distribution_in(end, 15);
+            v_init3(2) = v_init3(2) .* distribution_in(end, 14);
+            v_init3(3) = v_init3(3) .* distribution_in(end, 13);
+            v_init3(4) = v_init3(4) .* distribution_in(end, 12);
+            v_init3(5) = v_init3(5) .* distribution_in(end, 11);
+        else
+            v_init1(1) = v_init1(1) .* distribution_in(end, 1);
+            v_init1(2) = v_init1(2) .* distribution_in(end, 2);
+            v_init1(3) = v_init1(3) .* distribution_in(end, 3);
+            v_init1(4) = v_init1(4) .* distribution_in(end, 4);
+            v_init1(5) = v_init1(5) .* distribution_in(end, 5);
+
+            if verbose || verbose_distribution
+                disp(v_init1);
+            end
+
+            v_init2(1) = v_init2(1) .* distribution_in(end, 6);
+            v_init2(2) = v_init2(2) .* distribution_in(end, 7);
+            v_init2(3) = v_init2(3) .* distribution_in(end, 8);
+            v_init2(4) = v_init2(4) .* distribution_in(end, 9);
+            v_init2(5) = v_init2(5) .* distribution_in(end, 10);
+
+            v_init3(1) = v_init3(1) .* distribution_in(end, 11);
+            v_init3(2) = v_init3(2) .* distribution_in(end, 12);
+            v_init3(3) = v_init3(3) .* distribution_in(end, 13);
+            v_init3(4) = v_init3(4) .* distribution_in(end, 14);
+            v_init3(5) = v_init3(5) .* distribution_in(end, 15);
+        end
+
+            %disp(['Distribution: ' num2str([v_init1, v_init2, v_init3])]);
     else
         error('Unknown distribution')
+    end
+    
+    if verbose || verbose_load
+        disp(['Load: ', num2str(amps_in)]);
     end
         
     if verbose

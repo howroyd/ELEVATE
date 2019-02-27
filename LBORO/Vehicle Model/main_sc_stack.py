@@ -94,7 +94,7 @@ if __name__ == "__main__":
         ###############################
         if datafile.new_data:
             #print('Datafile=', datafile.line, end='\n')
-            mysupercap.current = datafile.line[1] / 1.0 # TODO
+            mysupercap.current = datafile.line[1] * 1.0 / 1.0 # TODO
 
 
         ###############################
@@ -128,8 +128,12 @@ if __name__ == "__main__":
 
     fig = plt.figure()
     ax = plt.axes(projection='3d')
-    ax.plot_surface(X, Y, Z, cmap='Greens')
+    #ax.plot_surface(X, Y, Z, cmap='Greens')
+    #ax.plot_surface(X, Y, Z, cmap='jet_r')
+    ax.plot_surface(X, Y, Z, cmap='summer_r')
     ax.view_init(elev=25, azim=-130)
+    z_low, z_high = ax.get_zlim()
+    ax.set_zlim(0, z_high)
     ax.set_xlabel('Pascal Rungs of Series Stack')
     ax.set_ylabel('Time /s')
     ax.set_zlabel('Voltage /V')

@@ -18,7 +18,7 @@ function [ v_end, amps_delivered, soc, distribution_out ] ...
     distribution_in = double(distribution_in);
     amps_in = double(amps_in);
     
-    capacitance = 0.01; % F
+    capacitance = 1.0; % F
     
     v_start = mean(distribution_in(end,:));
     
