@@ -43,7 +43,7 @@ class Nissan_Leaf(ObjectData):
 
 class Supercapacitor(ObjectData):
     def __init__(self):
-        self._data = dict(sc_soc=100.0,   # todo
+        self._data = dict(sc_soc=0.0,   # todo
                     sc_v_min=0.0,
                     sc_v_max=8.0,
                     sc_i_max=266.0,

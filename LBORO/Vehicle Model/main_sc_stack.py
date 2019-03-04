@@ -19,6 +19,8 @@ from mpl_toolkits import mplot3d
 #%matplotlib notebook
 import numpy as np
 import matplotlib.pyplot as plt
+import csv
+from datetime import datetime
 
 ###############################
 ###     LOCAL VARIABLES     ###
@@ -31,7 +33,7 @@ distribution = None
 ###############################
 ###   TEST DATAFILE NAME    ###
 ###############################
-filename     = "sc_test"
+filename     = "Results\Supercaps\\0soc_balanced_0A5_20s"
 #filename     = "realcycle_kph"
 
 
@@ -117,6 +119,12 @@ if __name__ == "__main__":
         datafile.line = [ mysupercap.current ]
         datafile.line = [ mysupercap.soc ]
 
+    now = datetime.now()
+    filename_out = filename + '_out_' + now.strftime("%Y%m%d_%H%M") + '.csv'
+    
+    np.savetxt(filename_out, np.asarray(distribution), delimiter=',')
+
+    print('Saved output data as ', filename_out)
 
     progress.finish()
     disp.disp("", end='\r\n')

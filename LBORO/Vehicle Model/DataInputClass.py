@@ -155,7 +155,7 @@ class DataIoClass(object):
         self._file_out = open(filename.rsplit('.')[0]+"_out"+".csv",'w', newline="\n", encoding="utf-8")
 
         self._tsvin = csv.reader(self._file_in, delimiter='\t')
-        self._csvout = csv.writer(self._file_out,quoting=csv.QUOTE_NONNUMERIC)
+        self._csvout = csv.writer(self._file_out, quoting=csv.QUOTE_NONNUMERIC)
 
         self._num_lines = self.file_len(filename)
 

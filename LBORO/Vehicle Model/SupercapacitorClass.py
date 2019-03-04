@@ -55,6 +55,7 @@ class SupercapacitorClass(ElectricalDeviceClass):
 
 
         distribution = np.asarray([ self._v_max ] * self.num_rungs)
+
         
         distribution = np.dot( distribution, self._soc/100.0 )
         self._distribution = matlab.double(distribution.tolist())
