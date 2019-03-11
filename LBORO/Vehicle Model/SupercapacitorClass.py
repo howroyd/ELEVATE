@@ -59,7 +59,7 @@ class SupercapacitorClass(ElectricalDeviceClass):
         
         distribution = np.dot( distribution, self._soc/100.0 )
         self._distribution = matlab.double(distribution.tolist())
-        print('Initial supercapacitor distribution:\n', self._distribution, end='\n')
+        print('\nInitial supercapacitor distribution:\n', self._distribution, end='\n')
         #dt = 1.0
         #amps_in = 0.0
         #[ v_end, amps_delivered, soc, distribution_out ] = self._eng.sc_model_single_shot(dt, res/dt, amps_in, distribution, nargout=4)
@@ -156,6 +156,12 @@ class SupercapacitorClass(ElectricalDeviceClass):
     def soc(self):
         #return self.energy / self._e_max
         return self._soc
+
+    # Pascal order
+    @property
+    def pascal_order(self):
+        #return self.energy / self._e_max
+        return self._pascal_order
 		
     # Distribution
     @property

@@ -33,7 +33,8 @@ distribution = None
 ###############################
 ###   TEST DATAFILE NAME    ###
 ###############################
-filename     = "Results\Supercaps\\0soc_balanced_0A5_20s"
+filename     = "Results\Supercaps\\0soc_balanced_1A_5s_step"
+#filename     = "Results\Supercaps\\quicktest"
 #filename     = "realcycle_kph"
 
 
@@ -59,14 +60,14 @@ if __name__ == "__main__":
     
     datafile = DataIoClass(filename+".tsv")
     #timer    = Continuous_dt(datafile.dt, 50)
-    timer    = Discrete_dt(10.0, 1)
+    timer    = Discrete_dt(1.0, 10.0)
 
     # Spawn supercapacitor(s)
     mysupercap = SupercapacitorClass(Supercapacitor().data)
     
-    disp.disp(datafile.num_lines, " lines in input file")
+    disp.disp('\n', datafile.num_lines, " lines in input file")
 
-    disp.disp("SoC at start ",     round( mysupercap.soc, 1 ), '%\n')
+    disp.disp('\n', "SoC at start ",     round( mysupercap.soc, 1 ), '%\n')
 
     progress = progressbar.ProgressBar().start()
 
@@ -120,9 +121,9 @@ if __name__ == "__main__":
         datafile.line = [ mysupercap.soc ]
 
     now = datetime.now()
-    filename_out = filename + '_out_' + now.strftime("%Y%m%d_%H%M") + '.csv'
+    filename_out = filename + '_out_' + now.strftime("%Y%m%d_%H%M")
     
-    np.savetxt(filename_out, np.asarray(distribution), delimiter=',')
+    np.savetxt(filename_out + '.csv', np.asarray(distribution), delimiter=',')
 
     print('Saved output data as ', filename_out)
 
@@ -131,17 +132,27 @@ if __name__ == "__main__":
 
     X    = np.arange(mysupercap.num_rungs)
     Y    = np.arange(distribution.shape[0])
+    Y    = np.dot(Y, 10.0) # TODO, why is the time in seconds/10???  res defines column/row headings???
     Z    = distribution
     X, Y = np.meshgrid(X, Y)
+
+    x    = X.flatten(order = 'C')
+    y    = Y.flatten(order = 'C')
+    z    = Z.flatten(order = 'C')
+
+    data_out = np.array( ( x, y, z ) )
+
+    np.savetxt(filename_out + '_XYZ' + '.csv', np.transpose(data_out), delimiter=',')
 
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     #ax.plot_surface(X, Y, Z, cmap='Greens')
-    #ax.plot_surface(X, Y, Z, cmap='jet_r')
-    ax.plot_surface(X, Y, Z, cmap='summer_r')
+    #ax.plot_surface(X, Y, Z, cmap='jet') # max's
+    #ax.plot_surface(X, Y, Z, cmap='summer_r') # green and yellow
+    ax.plot_surface(X, Y, Z, cmap='gnuplot_r')
     ax.view_init(elev=25, azim=-130)
     z_low, z_high = ax.get_zlim()
-    ax.set_zlim(0, z_high)
+    ax.set_zlim(-2.0, z_high)
     ax.set_xlabel('Pascal Rungs of Series Stack')
     ax.set_ylabel('Time /s')
     ax.set_zlabel('Voltage /V')

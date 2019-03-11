@@ -74,7 +74,7 @@ class Display(object):
     ###     INITIALISATION      ###
     ###############################
     def disp_testfile(self, filename):
-        print("\nTest file", filename)
+        print("\nTest file", filename, '\n')
 
     ###############################
     ###     INITIALISATION      ###
