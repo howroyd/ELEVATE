@@ -60,7 +60,7 @@ if __name__ == "__main__":
     
     datafile = DataIoClass(filename+".tsv")
     #timer    = Continuous_dt(datafile.dt, 50)
-    timer    = Discrete_dt(1.0, 10.0)
+    timer    = Discrete_dt(10.0, 1.0)
 
     # Spawn supercapacitor(s)
     mysupercap = SupercapacitorClass(Supercapacitor().data)
@@ -84,8 +84,8 @@ if __name__ == "__main__":
 
         datafile.update(timer.sim_time)
 
-        if datafile.new_data:
-            progress.update(round(datafile.percent_complete,1))
+        #if datafile.new_data:
+        #    progress.update(round(datafile.percent_complete,1))
 
             #if datafile.finished:
             #    disp.disp("100%", end="\n\n")

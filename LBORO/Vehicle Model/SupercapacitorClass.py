@@ -9,6 +9,7 @@ from MatlabClass import MatlabClass
 import matlab
 import os
 import colorama
+from time import sleep
 
 from mpl_toolkits import mplot3d
 #%matplotlib notebook
@@ -133,8 +134,14 @@ class SupercapacitorClass(ElectricalDeviceClass):
     ###############################
     def _run_model(self, dt):
         #print('dt=', dt, end='\n')
+
+        print('\nPython out: ', end='')
+        print('\nMatLab out: %.2f %.2f %.2f %.2f %.2f', self._distribution[1], self._distribution[2], self._distribution(3), self._distribution(4), self._distribution(5) );
+
         [ v_end, amps_delivered, soc, distribution_out ] = self._eng.sc_model_single_shot( 
                 dt, dt*self._res, self.current, self._distribution, nargout=4 )
+
+        #sleep(1)
         #print(end='\n')
         #print('Distribution_out: ', distribution_out, end='\n')
         self._distribution = distribution_out
