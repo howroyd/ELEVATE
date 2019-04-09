@@ -3,7 +3,7 @@
 # Electric Vehicle, Object Oriented Model
 
 # ELEVATE (ELEctric Vehicles and Advanced TEchnologies)
-# Simon Howroyd, Loughborough University 2018
+# Simon Howroyd, Loughborough University 2019
 
 VERSION = 2.1
 
