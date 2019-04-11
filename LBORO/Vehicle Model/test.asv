@@ -13,19 +13,17 @@ farads    = 3.0;
 
 current = @(ampsIn) ampsIn ./ iDivisor;
 
-disp('...Constructing supercapacitor class...');
+disp('...Constructing supercapacitor class');
 mySc = Sc(pascalOrd, vStart, farads, tStep);
 disp('......done');
 
-
 %% Initial conditions
-disp('...Setting initial conditions...');
+disp('...Setting initial conditions');
 mySc = mySc.run(10.0, current(0.0));
 disp('...done');
 
-
 %% Urban Drive
-disp('...Starting urban drive...');
+disp('...Starting urban drive');
 for x=0:3
     mySc = mySc.run(5.0, current(-0.075));
     mySc = mySc.run(10.0, current(-0.15));
@@ -44,9 +42,8 @@ for x=0:3
 end
 disp('...done');
 
-
 %% High Speed
-disp('...Starting High Speed...');
+disp('...Starting High Speed');
 mySc = mySc.run(10.0,     current(-0.15));
 mySc = mySc.run(10.0,     current(-0.37));
 mySc = mySc.run(10.0,     current(-0.5));
@@ -62,19 +59,14 @@ mySc = mySc.run(5.0,      current(-0.7)*regen);
 mySc = mySc.run(5.0,      current(-0.5)*regen);
 mySc = mySc.run(5.0,      current(-0.37)*regen);
 mySc = mySc.run(5.0,      current(-0.15)*regen);
-disp('...done');
-
-
-%% In the garage
-disp('...Parking up for the night...');
 mySc = mySc.run(10000.0,  current(0.0));
 disp('...done');
 
+%return;
 
-%% Plot surface
+%% Plot
 
-disp('...Plotting Surface...');
-
+disp('...Plotting surface');
 h1 = figure;
 surf(mySc.my_distribution,...
     'edgecolor','none'); hold all;
@@ -99,11 +91,10 @@ zlabel('Voltage');
 %title('5th order pascal eq circuit, starting at 1V across each cap.  Apply load and see the fast states discharge.  Then open circuit and see the redistribution aka self balancing');
 hold off;
 
-disp('...done');
 
+fprintf('\n\nFinished!\n');
 
-%% Plot movie
-disp('...Plotting movie...');
+%return;
 
 h2 = figure();
 axis([0 6 0 8], 'manual');
@@ -124,9 +115,12 @@ open(v);
 writeVideo(v,M);
 close(v);
 
-disp('...done');
+
+%movie(M, 1);
+
+%figure();
+%plot(v_cc);
+%grid on;
 
 
-%% End
-disp('done');
-disp('Finished!');
+fprintf('\n\nFinished!\n');
