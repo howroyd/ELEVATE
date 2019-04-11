@@ -1,279 +1,64 @@
 clf; clc; clear all; close all;
 
-res = 1.0;
-t=[0];
+regen = 1.0; % off
+%regen = -1.0; % on
 
-%set_param('cap_eq_circuit_pascal5_single_shot_stack','AlgebraicLoopSolver','LineSearch');
+pascalOrd = 5;
+iDivisor  = 1.0;
+vStart    = 6.0;
+tStep     = 1.0;
 
-distribution_in = [ 1 1 1 1 1 ] .* 6.0;
+current = @(ampsIn) ampsIn ./ iDivisor;
+
+mySc = Sc_single(pascalOrd, vStart, tStep);
 
 
 %% Initial conditions
-dt = 10.0;
-%distribution_in = 0.0;
-amps_in = 0.0;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [ distribution_out ];
-v_cc = [0.0;v_end];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
+mySc = mySc.run(10.0, current(0.0));
 
 %% Urban Drive
 for x=0:3
-    dt = 5.0;
-    distribution_in = distribution_out;
-    amps_in = -0.075;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    dt = 10.0;
-    distribution_in = distribution_out;
-    amps_in = -0.15;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    dt = 5.0;
-    distribution_in = distribution_out;
-    amps_in = -0.075;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    dt = 20.0;
-    distribution_in = distribution_out;
-    amps_in = 0.0;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    
-    
-    dt = 10.0;
-    distribution_in = distribution_out;
-    amps_in = -0.15;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    dt = 20.0;
-    distribution_in = distribution_out;
-    amps_in = -0.30;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    dt = 10.0;
-    distribution_in = distribution_out;
-    amps_in = -0.15;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    dt = 20.0;
-    distribution_in = distribution_out;
-    amps_in = 0.0;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    
-    
-    
-    dt = 10.0;
-    distribution_in = distribution_out;
-    amps_in = -0.15;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    dt = 10.0;
-    distribution_in = distribution_out;
-    amps_in = -0.37;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    dt = 10.0;
-    distribution_in = distribution_out;
-    amps_in = -0.50;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    dt = 20.0;
-    distribution_in = distribution_out;
-    amps_in = -0.37;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    dt = 10.0;
-    distribution_in = distribution_out;
-    amps_in = -0.15;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-    dt = 20.0;
-    distribution_in = distribution_out;
-    amps_in = 0.0;
-    [ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-    my_distribution = [my_distribution ; distribution_out];
-    v_cc = [ v_cc ; v_end ];
-    t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
+    mySc = mySc.run(5.0, current(-0.075));
+    mySc = mySc.run(10.0, current(-0.15));
+    mySc = mySc.run(5.0, current(-0.75)*regen);
+    mySc = mySc.run(20.0, current(0.0));
+    mySc = mySc.run(10.0, current(-0.15));
+    mySc = mySc.run(20.0, current(-0.3));
+    mySc = mySc.run(10.0, current(-0.15)*regen);
+    mySc = mySc.run(20.0, current(0.0));
+    mySc = mySc.run(10.0, current(-0.15));
+    mySc = mySc.run(10.0, current(-0.37));
+    mySc = mySc.run(10.0, current(-0.5));
+    mySc = mySc.run(20.0, current(-0.37)*regen);
+    mySc = mySc.run(10.0, current(-0.15)*regen);
+    mySc = mySc.run(20.0, current(0.0));
 end
 
-dt = 10.0;
-distribution_in = distribution_out;
-amps_in = -0.15;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
+%% High Speed
+mySc = mySc.run(10.0,     current(-0.15));
+mySc = mySc.run(10.0,     current(-0.37));
+mySc = mySc.run(10.0,     current(-0.5));
+mySc = mySc.run(50.0,     current(-0.7));
+mySc = mySc.run(70.0,     current(-0.5));
+mySc = mySc.run(50.0,     current(-0.7));
+mySc = mySc.run(10.0,     current(-0.85));
+mySc = mySc.run(30.0,     current(-1.0));
+mySc = mySc.run(10.0,     current(-1.2));
+mySc = mySc.run(5.0,      current(-1.0)*regen);
+mySc = mySc.run(5.0,      current(-0.85)*regen);
+mySc = mySc.run(5.0,      current(-0.7)*regen);
+mySc = mySc.run(5.0,      current(-0.5)*regen);
+mySc = mySc.run(5.0,      current(-0.37)*regen);
+mySc = mySc.run(5.0,      current(-0.15)*regen);
+mySc = mySc.run(10000.0,  current(0.0));
 
-dt = 10.0;
-distribution_in = distribution_out;
-amps_in = -0.37;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 10.0;
-distribution_in = distribution_out;
-amps_in = -0.50;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 50.0;
-distribution_in = distribution_out;
-amps_in = -0.70;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 70.0;
-distribution_in = distribution_out;
-amps_in = -0.50;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 50.0;
-distribution_in = distribution_out;
-amps_in = -0.70;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 10.0;
-distribution_in = distribution_out;
-amps_in = -0.85;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 30.0;
-distribution_in = distribution_out;
-amps_in = -1.0;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 10.0;
-distribution_in = distribution_out;
-amps_in = -1.2;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 5.0;
-distribution_in = distribution_out;
-amps_in = -1.0;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 5.0;
-distribution_in = distribution_out;
-amps_in = -0.85;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 5.0;
-distribution_in = distribution_out;
-amps_in = -0.70;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 5.0;
-distribution_in = distribution_out;
-amps_in = -0.50;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 5.0;
-distribution_in = distribution_out;
-amps_in = -0.37;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-dt = 5.0;
-distribution_in = distribution_out;
-amps_in = -0.15;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
-
-
-dt = 10000.0;
-distribution_in = distribution_out;
-amps_in = 0.0;
-[ v_end, amps_delivered, soc, distribution_out ] = sc_model_single_shot( dt, res, amps_in, distribution_in );
-my_distribution = [my_distribution ; distribution_out];
-v_cc = [ v_cc ; v_end ];
-t= [ t ; (t(end):res:(t(end)+dt))' ]; % TODO duplicate timestamp
-
+fprintf('\n\nFinished!\n');
+%return;
 
 %% Plot
 
 h1 = figure;
-surf(my_distribution,...
+surf(mySc.my_distribution,...
     'edgecolor','none'); hold all;
 
 %surf(my_distribution,...
@@ -305,8 +90,8 @@ h2 = figure();
 axis([0 6 0 8], 'manual');
 grid on;
 
-for i=1:length(my_distribution)
-    bar(my_distribution(i,1:5));
+for i=1:length(mySc.my_distribution)
+    bar(mySc.my_distribution(i, 1:size(mySc.my_distribution, 2)));
     axis([0 6 0 8], 'manual');
     grid on;
     M(i) = getframe(h2);
