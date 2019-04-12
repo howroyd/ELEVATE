@@ -12,6 +12,10 @@ classdef Sc
         model;
         soc;
         farads;
+        nSeries;
+        pascalTri;
+        simOut;
+        hSurface=1;
     end
     
     properties (Constant)
@@ -19,43 +23,60 @@ classdef Sc
     end
     
     methods
-        function obj = Sc(order, vStart, farads, res, model)
+        function obj = Sc(order, nSeries, vStart, farads, res, model)
             %Sc Construct an instance of this class
             %   Detailed explanation goes here
             
-            if nargin < 5
-                model = 'single';
+            if nargin < 6
+                if nSeries == 1
+                    model = 'single';
+                else
+                    model = 'stack';
+                end
             end
             
-            obj.distribution_in = ones(order) .* vStart;
-            obj.res             = res;
-            obj.my_distribution = obj.distribution_in;
-            obj.pascalOrd       = order;
+            if ( strcmp(model, 'single') && nSeries > 1 ) || ...
+                    ( strcmp(model, 'stack') && nSeries == 1 )
+                error('Wrong model selected for number of caps')
+            end
+            
+            if ~( nSeries == 1 || nSeries == 3 )
+                error('Unimplimented model required');
+            end
             
             if strcmp(model, 'single')
-                obj.model = 'cap_eq_circuit_pascal5_single_shot';
+                obj.model       = 'cap_eq_circuit_pascal5_single_shot';
             elseif strcmp(model, 'stack')
-                obj.model = 'cap_eq_circuit_pascal5_single_shot_stack';
+                obj.model       = 'cap_eq_circuit_pascal5_single_shot_stack';
             end
+
+            disp(obj.model);
             
-            obj.soc = mean(obj.my_distribution) / obj.vPeak;
-            obj.farads = farads;
-                
+            obj.res             = res;
+            obj.pascalOrd       = order;
+            obj.pascalTri       = Sc.pascal_triangle(order);
+            obj.nSeries         = nSeries;
+            obj.farads          = farads;
+            
+            obj.distribution_in = ones(1, order, nSeries) .* vStart;           
+            obj.my_distribution = obj.distribution_in;
+            obj.soc             = mean(obj.my_distribution) / obj.vPeak;
+            
         end
         
         function obj = run(obj, dt, ampsIn)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            [ v_end, amps_delivered, soc, distribution_out ] = ...
+            [ t, v_end, amps_delivered, soc, distribution_out ] = ...
                 obj.sc_model_single_shot( dt, obj.res, ampsIn, obj.distribution_in );
             
             obj.distribution_in = distribution_out;
             obj.my_distribution = Sc.appendDistribution(...
-                                    obj.my_distribution, distribution_out);
+                                    obj.my_distribution, obj.distribution_in, obj.nSeries);
             obj                 = obj.updateVcc(v_end);
-            obj                 = obj.updateT(dt);
+            obj                 = obj.updateT(t+obj.t(end)+obj.res);
                                     % TODO duplicate timestamp
-            obj.soc = [obj.soc soc];
+            obj.soc             = [obj.soc , soc];
             
         end
         
@@ -63,19 +84,15 @@ classdef Sc
             obj.v_cc = [ obj.v_cc ; vcc ];
         end
         
-        function obj = updateT(obj, dt)
-            obj.t = [ obj.t ; (obj.t(end):obj.res:(obj.t(end)+dt))' ];
+        function obj = updateT(obj, t)
+            obj.t = [ obj.t ; t ];
         end
         
-        function [ v_end, amps_delivered, soc, distribution_out ] ...
+        function [ t, v_end, amps_delivered, soc, distribution_out ] ...
                 = sc_model_single_shot(obj, dt, resolution, amps_in, distribution_in)
             %sc_model_single_shot Summary of this function goes here
             %   Detailed explanation goes here
-            
-            verbose             = false;
-            verbose_dist        = false;
-            verbose_load        = false;
-            
+
             invert_order        = false;
 
             % Define simulation variables
@@ -83,223 +100,139 @@ classdef Sc
             distribution_in     = double(distribution_in);
             amps_in             = double(amps_in);
             capacitance         = double(obj.farads); % F
+            
             if resolution <= 0.0
                 resolution      = 0.1;
+                warning('Overriding resolution');
             end
             
-            v_init1             = Sc.createInputArray(...
-                                    obj.pascalOrd, distribution_in);
-                
-            if verbose
-                fprintf('Requested %.2eAmps. dt=%d\nDistn: %s\n', num2str(amps_in), num2str(sim_time),...
-                    Sc.getDistributionString(distribution_in(end,:)));
-            end
+            resolution = double(resolution);
+            tStep      = resolution;
+            
+            %fprintf(sprintf('sim_time=%.1f\tres=%.1f\n', sim_time, resolution));
+            
+            %v_init              = Sc.createInputArray(...
+            %                        obj.pascalTri, obj.nSeries, distribution_in);
 
-            if verbose || verbose_dist
-                fprintf( '\nMatLab in:\t%s\n',...
-                    Sc.getDistributionString(v_init1) );
-            end
-
-            if verbose || verbose_load
-                fprintf('Load: %.3f\n', amps_in);
-            end
-
-            if verbose
-                fprintf('Running %s\n', obj.model);
-            end
-
+            v_init = distribution_in(end, :, :);
             
             % Run Simulation
             warning('off');
-            simOut              = sim(obj.model,...
+            obj.simOut          = sim(obj.model,...
                 'SrcWorkspace', 'current', 'ReturnWorkspaceOutputs', 'on');
             warning('on');
 
-            if verbose
-                fprintf('...simulation finished!\n');
-            end
+            % Get output variables
+            v_end               = obj.simOut.get('v_cc');
+            v_dist              = obj.simOut.get('v_cap');
+            amps_delivered      = obj.simOut.get('i_cc');
+            t                   = obj.simOut.get('t');
+            
+            distribution_out    = Sc.createOutputArray(obj.pascalTri, obj.nSeries, v_dist);
+            soc                 = mean(distribution_out)./obj.vPeak;
+        end
 
-            v_end = simOut.get('v_cc');
-
-            v_dist = simOut.get('v_cap');
-
-            distribution_out    = Sc.createOutputArray(obj.pascalOrd, v_dist);
-
-            if verbose || verbose_dist
-            %pause(0.1)
-                fprintf( 'MatLab out:\t%s\n',...
-                    Sc.getDistributionString(distribution_out) );
+        function [x y z] = get3d(obj, idCap)
+            if nargin < 2
+                idCap = 0;
             end
             
-            amps_delivered      = simOut.get('i_cc');
-            %amps_delivered = amps_delivered(end);
+            x=0;y=0;z=0;
+            
+            if idCap == 1
+                x = 1:obj.pascalOrd;
+                
+                y = obj.t;
 
-            soc                 = mean(distribution_out)/obj.vPeak;
+                z = obj.my_distribution(:,:,1);
+            end
+            
         end
+        
+        function handle = plotSurface(obj)
+            disp('...Plotting Surface...');
 
-
-        function [ v_end, amps_delivered, soc, distribution_out ] ...
-                = sc_model_single_shot_stack(obj,  dt, resolution, amps_in, distribution_in)
-            %UNTITLED2 Summary of this function goes here
-            %   Detailed explanation goes here
-
-
-            %clear all;
-
-            model = 'cap_eq_circuit_pascal5_single_shot_stack';
-            %model = 'test_model';
-            verbose = false;
-            verbose_distribution = true;
-            verbose_load = false;
-            invert_order = false;
-
-            % Define simulation variables
-            sim_time = double(dt);
-            distribution_in = double(distribution_in);
-            amps_in = double(amps_in);
-
-            capacitance = 1.0; % F
-
-            v_start = mean(distribution_in(end,:));
-
-            if verbose
-                disp(['Requested ' num2str(amps_in) ' Amps. dt=' num2str(sim_time)...
-                    ' Distn: ' num2str(round(distribution_in(end,:)),2)]);
-            end
-
-            if resolution <= 0.0
-                resolution = 0.1;
-            end
-
-
-            x=size(distribution_in);
-            x=x(2);
-
-            v_init1 = ones(5,1);
-            v_init2 = ones(5,1);
-            v_init3 = ones(5,1);
-
-            if x==1
-                v_init1 = v_init1 .* v_start;
-                v_init2 = v_init2 .* v_start;
-                v_init3 = v_init3 .* v_start;
-                disp('Assuming capacitors are balanced');
-            elseif x==15
-                if ~invert_order
-                    v_init1(1) = v_init1(1) .* distribution_in(end, 5);
-                    v_init1(2) = v_init1(2) .* distribution_in(end, 4);
-                    v_init1(3) = v_init1(3) .* distribution_in(end, 3);
-                    v_init1(4) = v_init1(4) .* distribution_in(end, 2);
-                    v_init1(5) = v_init1(5) .* distribution_in(end, 1);
-
-                    v_init2(1) = v_init2(1) .* distribution_in(end, 10);
-                    v_init2(2) = v_init2(2) .* distribution_in(end, 9);
-                    v_init2(3) = v_init2(3) .* distribution_in(end, 8);
-                    v_init2(4) = v_init2(4) .* distribution_in(end, 7);
-                    v_init2(5) = v_init2(5) .* distribution_in(end, 6);
-
-                    v_init3(1) = v_init3(1) .* distribution_in(end, 15);
-                    v_init3(2) = v_init3(2) .* distribution_in(end, 14);
-                    v_init3(3) = v_init3(3) .* distribution_in(end, 13);
-                    v_init3(4) = v_init3(4) .* distribution_in(end, 12);
-                    v_init3(5) = v_init3(5) .* distribution_in(end, 11);
-                else
-                    v_init1(1) = v_init1(1) .* distribution_in(end, 1);
-                    v_init1(2) = v_init1(2) .* distribution_in(end, 2);
-                    v_init1(3) = v_init1(3) .* distribution_in(end, 3);
-                    v_init1(4) = v_init1(4) .* distribution_in(end, 4);
-                    v_init1(5) = v_init1(5) .* distribution_in(end, 5);
-
-                    if verbose || verbose_distribution
-                        disp(v_init1);
-                    end
-
-                    v_init2(1) = v_init2(1) .* distribution_in(end, 6);
-                    v_init2(2) = v_init2(2) .* distribution_in(end, 7);
-                    v_init2(3) = v_init2(3) .* distribution_in(end, 8);
-                    v_init2(4) = v_init2(4) .* distribution_in(end, 9);
-                    v_init2(5) = v_init2(5) .* distribution_in(end, 10);
-
-                    v_init3(1) = v_init3(1) .* distribution_in(end, 11);
-                    v_init3(2) = v_init3(2) .* distribution_in(end, 12);
-                    v_init3(3) = v_init3(3) .* distribution_in(end, 13);
-                    v_init3(4) = v_init3(4) .* distribution_in(end, 14);
-                    v_init3(5) = v_init3(5) .* distribution_in(end, 15);
-                end
-
-                %disp(['Distribution: ' num2str([v_init1, v_init2, v_init3])]);
+            [x, y, z] = obj.get3d(1);
+            
+            if length(y) > 3*60*60
+                y = y ./ 3600.0;
+                yUnits = 'hrs';
+            elseif length(y) > 3*60
+                y = y ./ 60.0;
+                yUnits = 'mins';
             else
-                error('Unknown distribution')
+                yUnits = 'secs';
             end
 
-            if verbose || verbose_distribution
-                fprintf( '\nMatLab in: %.2f %.2f %.2f %.2f %.2f', v_init1(1), v_init1(2), v_init1(3), v_init1(4), v_init1(5) );
-            end
+            obj.hSurface = figure(obj.hSurface);
+            surf(x, y, z,...
+                'edgecolor','none'); hold all;
 
-            if verbose || verbose_load
-                disp(['Load: ', num2str(amps_in)]);
-            end
+            grid on;
+            
+            ylabel(sprintf('Time /%s', yUnits));
+            
+            xlabel('Pascal rungs 1 to 5');
+            zlabel('Voltage');
+            %title('5th order pascal eq circuit, starting at 1V across each cap.  Apply load and see the fast states discharge.  Then open circuit and see the redistribution aka self balancing');
+            hold off;
 
-            if verbose
-                disp(['Running ' model]);
-            end
-
-            % Run Simulation
-            %sim(model, model_cs, 'ReturnWorkspaceOutputs', 'on');
-            warning('off');
-            simOut = sim(model, 'SrcWorkspace', 'current', 'ReturnWorkspaceOutputs', 'on');
-            warning('on');
-
-            if verbose
-                disp('...done!');
-            end
-
-            v_end = simOut.get('v_cc');
-            %v_end = v_end(end);
-
-            v_dist = simOut.get('v_cap');
-            %v_dist = v_dist(end, :);
-
-            distribution_out(1)  = v_dist(end, 1);
-            distribution_out(2)  = mean(v_dist(end, 2:5), 2);
-            distribution_out(3)  = mean(v_dist(end, 6:11), 2);
-            distribution_out(4)  = mean(v_dist(end, 12:15), 2);
-            distribution_out(5)  = v_dist(end, 16);
-
-            distribution_out(6)  = v_dist(end, 16+1);
-            distribution_out(7)  = mean(v_dist(end, 16+2:16+5), 2);
-            distribution_out(8)  = mean(v_dist(end, 16+6:16+11), 2);
-            distribution_out(9)  = mean(v_dist(end, 16+12:16+15), 2);
-            distribution_out(10) = v_dist(end, 16+16);
-
-            distribution_out(11) = v_dist(end, 32+1);
-            distribution_out(12) = mean(v_dist(end, 32+2:32+5), 2);
-            distribution_out(13) = mean(v_dist(end, 32+6:32+11), 2);
-            distribution_out(14) = mean(v_dist(end, 32+12:32+15), 2);
-            distribution_out(15) = v_dist(end, 32+16);
-
-            if verbose || verbose_distribution
-            %pause(0.1)
-                fprintf( '\nMatLab out: %.2f %.2f %.2f %.2f %.2f', distribution_out(1), distribution_out(2), distribution_out(3), distribution_out(4), distribution_out(5) );
-            end
-
-
-
-            amps_delivered = simOut.get('i_cc');
-            %amps_delivered = amps_delivered(end);
-
-            soc = 0.5;
+            disp('...done');
         end
+        
+        function obj = plotMovie(obj, filename, res)
+            if nargin < 3
+                res          = 1;
+            end
+            
+            disp('...Plotting movie...');
 
+            handle = figure();
+            axis([0 6 0 8], 'manual');
+            grid on;
+
+            counter = 1;
+
+            for i=1:res:size(obj.my_distribution, 1)
+                %bar(mySc.my_distribution(i,:,1));
+
+                bar( obj.my_distribution(i, 1:size(obj.my_distribution, 2)));
+
+                axis([0 6 0 8], 'manual');
+                grid on;
+                M(counter) = getframe(handle);
+
+                counter = counter + 1;
+            end
+
+            close(handle);
+
+            v = VideoWriter(sprintf('%s.mp4', filename), 'MPEG-4');
+            v.FrameRate = 5;
+            open(v);
+            writeVideo(v,M);
+            close(v);
+
+            disp('...done');
+        end
+        
     end
     
     methods (Static)
         
-        function distribution = appendDistribution(distributionSrc, distributionNew)
-            distribution        = [ distributionSrc ; distributionNew ];
+        function distribution   = appendDistribution(distributionSrc, distributionNew, nSeries)
+            distribution = zeros( size(distributionSrc, 1)+size(distributionNew, 1), size(distributionSrc, 2), nSeries );
+            if nSeries == 1
+                distribution = [ distributionSrc ; distributionNew ];
+            else
+                for i=1:nSeries
+                    distribution(:,:,i) = [ distributionSrc(:,:,i) ; distributionNew(:,:,i) ];
+                end
+            end
+            
         end
         
-        function str = getDistributionString(distribution)
+        function str            = getDistributionString(distribution)
             str                 = '';
             
             for i=1:length(distribution)
@@ -307,41 +240,109 @@ classdef Sc
             end
         end
         
-        function v_init = createInputArray(pascalOrd, distribution, invert)
+        function v_init         = createInputArray(pascalTri, nSeries, distribution, invert)
             
-            if nargin < 3
+            if nargin < 4
                 invert          = false;
             end
             
-            x                   = size(distribution, 2);
+            x                   = size(distribution);
+            
+            % Do some checks
+            if x(2) ~= size(pascalTri, 2)
+                error('Wrong array size for pascal order in input');
+            else
+                if size(x, 3) == 1
+                    % Only a single cap so all ok
+                elseif x(3) ~= nSeries
+                    error('Not enough caps defined in input array');
+                end
+            end
+            
+            v_init              = ones(x(1), 1, nSeries);
 
-            v_init              = ones(x,1);
-
-            if pascalOrd == x
-                if ~invert
-                    for i=1:pascalOrd
-                        v_init(i)   = v_init(i) .* distribution(end, (pascalOrd+1) - i);
-                    end
-                else
-                    for i=1:pascalOrd
-                        v_init(i)   = v_init(i) .* distribution(end, i);
+            if ~invert
+                for i=1:x(1)
+                    for j=1:nSeries
+                        v_init(i, 1, j) = v_init(i, 1, j)...
+                                    .* distribution((x(1)+1) - i, j);
                     end
                 end
-                else
-                error('Unknown distribution')
+            else
+                for i=1:x(1)
+                    for j=1:nSeries
+                        v_init(i, 1, j) = v_init(i, 1, j) .* distribution(i, end, j);
+                    end
+                end
             end
         end
         
-        function v_out  = createOutputArray(pascalOrd, distribution, invert)
-            if nargin < 3
+        function v_out          = createOutputArray(pascalTri, nSeries, distribution, invert)
+            
+            if nargin < 4
                 invert          = false; % TODO
             end
             
-            v_out(1)            = distribution(end, 1);
-            v_out(2)            = mean( distribution(end, 2:5), 2 );
-            v_out(3)            = mean( distribution(end, 6:11), 2 );
-            v_out(4)            = mean( distribution(end, 12:15), 2 );
-            v_out(5)            = distribution(end, 16);
+            x                   = size(distribution);
+            
+            % Do some checks
+            if x(2) ~= sum(pascalTri) * nSeries
+                error('Wrong array size for in output');
+            end
+            
+            ptrVout         = 1;
+            
+            for i=1:nSeries
+                ptrDistribution = 1;
+                for j=1:size(pascalTri, 2)
+                    counter = 1;
+
+                    ptrEndDistribution = ptrDistribution + pascalTri(1, j) - 1;
+
+                    for k=ptrDistribution:ptrEndDistribution
+                        for m=1:size(distribution,1)
+                            thisArray(m, counter) = distribution(m, i*j);
+                        end
+                        counter = counter + 1;
+                    end
+
+                    v_out(:, ptrVout) = mean(thisArray, 2);
+
+                    ptrVout = ptrVout + 1;
+                    ptrDistribution = ptrEndDistribution + 1;
+                end
+                temp(:,:,i)  = [v_out(:, (5*i-4):(5*i))];
+            end
+            
+            v_out = temp;
+        end
+    
+        function pt             = pascal_triangle(n) 
+
+            % The first two rows are constant
+            pt(1, 1) = 1;
+            pt(2, 1 : 2) = [1 1]; 
+
+            % If only two rows are requested, then exit
+            if n < 3
+                return
+            end 
+
+            for r = 3 : n
+                % The first element of every row is always 1
+                pt(r, 1) = 1;   
+
+                % Every element is the addition of the two elements
+                % on top of it. That means the previous row.
+                for c = 2 : r-1
+                    pt(r, c) = pt(r-1, c-1) + pt(r-1, c);
+                end   
+
+                % The last element of every row is always 1
+                pt(r, r) = 1;
+            end
+            
+            pt = pt(n,:);
         end
     end
 end

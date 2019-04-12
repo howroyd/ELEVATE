@@ -1,132 +1,71 @@
 clf; clc; clear all; close all;
 
-disp('Starting...');
+f = waitbar(0, 'Starting...');
 
-regen = 1.0; % off
-%regen = -1.0; % on
+driveCycle = readmatrix('DriveCycles/nedc2_kph.tsv','FileType','text');
 
 pascalOrd = 5;
 iDivisor  = 1.0;
 vStart    = 6.0;
-tStep     = 1.0;
-farads    = 3.0;
+tStep     = 100.0;
+farads    = 200.0;
+nSeries   = 3;
 
 current = @(ampsIn) ampsIn ./ iDivisor;
 
-disp('...Constructing supercapacitor class...');
-mySc = Sc(pascalOrd, vStart, farads, tStep);
-disp('......done');
+waitbar(0, f, '...Constructing supercapacitor class...');
+
+mySc = Sc(pascalOrd, nSeries, vStart, farads, tStep);
+
+waitbar(1, f, '......done');
+pause(0.5);
 
 
 %% Initial conditions
-disp('...Setting initial conditions...');
-mySc = mySc.run(10.0, current(0.0));
-disp('...done');
+waitbar(0, f, '...Setting initial conditions...');
+
+mySc = mySc.run(uint32(10.0 * tStep), current(0.0));
+
+waitbar(1, f, '......done');
+pause(0.5);
 
 
-%% Urban Drive
-disp('...Starting urban drive...');
-for x=0:3
-    mySc = mySc.run(5.0, current(-0.075));
-    mySc = mySc.run(10.0, current(-0.15));
-    mySc = mySc.run(5.0, current(-0.75)*regen);
-    mySc = mySc.run(20.0, current(0.0));
-    mySc = mySc.run(10.0, current(-0.15));
-    mySc = mySc.run(20.0, current(-0.3));
-    mySc = mySc.run(10.0, current(-0.15)*regen);
-    mySc = mySc.run(20.0, current(0.0));
-    mySc = mySc.run(10.0, current(-0.15));
-    mySc = mySc.run(10.0, current(-0.37));
-    mySc = mySc.run(10.0, current(-0.5));
-    mySc = mySc.run(20.0, current(-0.37)*regen);
-    mySc = mySc.run(10.0, current(-0.15)*regen);
-    mySc = mySc.run(20.0, current(0.0));
+%% Drive
+waitbar(0, f, '...Starting drive...');
+tLast = 0.0;
+
+for i=1:length(driveCycle)
+    % Calculate time since the model was last run (seconds)
+    dt = round(driveCycle(i, 1) - tLast);
+    
+    % Check if this current timestep is ahead of the last timestep + dt
+    if round(driveCycle(i, 1)) > ( round(tLast) + tStep )
+        
+        %fprintf('New timestep at %.2f\n', driveCycle(i, 1));
+        
+        % Run the model
+        mySc = mySc.run(dt, current(-driveCycle(i, 2)));
+        
+        % Update our last run timer
+        tLast = driveCycle(i, 1);
+    end
+    
+    waitbar( i / length(driveCycle), f);
 end
-disp('...done');
 
+waitbar(1, f, 'done');
+pause(1);
+close(f);
+clearvars -EXCEPT mySc;
 
-%% High Speed
-disp('...Starting High Speed...');
-mySc = mySc.run(10.0,     current(-0.15));
-mySc = mySc.run(10.0,     current(-0.37));
-mySc = mySc.run(10.0,     current(-0.5));
-mySc = mySc.run(50.0,     current(-0.7));
-mySc = mySc.run(70.0,     current(-0.5));
-mySc = mySc.run(50.0,     current(-0.7));
-mySc = mySc.run(10.0,     current(-0.85));
-mySc = mySc.run(30.0,     current(-1.0));
-mySc = mySc.run(10.0,     current(-1.2));
-mySc = mySc.run(5.0,      current(-1.0)*regen);
-mySc = mySc.run(5.0,      current(-0.85)*regen);
-mySc = mySc.run(5.0,      current(-0.7)*regen);
-mySc = mySc.run(5.0,      current(-0.5)*regen);
-mySc = mySc.run(5.0,      current(-0.37)*regen);
-mySc = mySc.run(5.0,      current(-0.15)*regen);
-disp('...done');
-
-
-%% In the garage
-disp('...Parking up for the night...');
-mySc = mySc.run(10000.0,  current(0.0));
-disp('...done');
-
+%% Save
+save('model_out.mat', 'mySc');
 
 %% Plot surface
-
-disp('...Plotting Surface...');
-
-h1 = figure;
-surf(mySc.my_distribution,...
-    'edgecolor','none'); hold all;
-
-%surf(my_distribution,...
-%    'edgecolor','none'); hold all;
-
-%for i=1:10
-%    [ v_end, amps_delivered, soc, distribution ] = sc_model_single_shot( dt, amps_in, distribution );
-%    plot(distribution); hold all;
-%end
-
-%for i=1:10
-%    [ v_end, amps_delivered, soc, distribution ] = sc_model_single_shot( dt, amps_in, distribution );
-%    plot(distribution); hold all;
-%end
-
-grid on;
-ylabel('time');
-xlabel('Pascal rungs 1 to 5');
-zlabel('Voltage');
-%title('5th order pascal eq circuit, starting at 1V across each cap.  Apply load and see the fast states discharge.  Then open circuit and see the redistribution aka self balancing');
-hold off;
-
-disp('...done');
-
+mySc.plotSurface();
 
 %% Plot movie
-disp('...Plotting movie...');
-
-h2 = figure();
-axis([0 6 0 8], 'manual');
-grid on;
-
-for i=1:length(mySc.my_distribution)
-    bar(mySc.my_distribution(i, 1:size(mySc.my_distribution, 2)));
-    axis([0 6 0 8], 'manual');
-    grid on;
-    M(i) = getframe(h2);
-end
-
-close(h2);
-
-v = VideoWriter('pretty_vid.mp4', 'MPEG-4');
-v.FrameRate = 5;
-open(v);
-writeVideo(v,M);
-close(v);
-
-disp('...done');
-
+mySc.plotMovie('pretty_vid', 100);
 
 %% End
-disp('done');
 disp('Finished!');
