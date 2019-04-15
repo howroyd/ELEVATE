@@ -116,7 +116,7 @@ classdef Sc
 
             v_init = distribution_in(end, :, :);
             
-            disp(v_init);
+            %disp(v_init);
             
             % Run Simulation
             warning('off');
@@ -130,13 +130,13 @@ classdef Sc
             amps_delivered      = obj.simOut.get('i_cc');
             t                   = obj.simOut.get('t');
             
-            fprintf('%.2f %.2f %.2f %.2f %.2f\n',...
-                v_dist(1), v_dist(2), v_dist(6), v_dist(12), v_dist(16));
+            %fprintf('%.2f %.2f %.2f %.2f %.2f\n',...
+            %    v_dist(1), v_dist(2), v_dist(6), v_dist(12), v_dist(16));
             
             distribution_out    = Sc.createOutputArray(obj.pascalTri, obj.nSeries, v_dist);
             soc                 = mean(distribution_out)./obj.vPeak;
             
-            disp(distribution_out(end, :));
+            %disp(distribution_out(end, :));
         end
 
         function [x y z] = get3d(obj, idCap)
@@ -290,7 +290,6 @@ classdef Sc
             % mdl_out = 6.00 6.00 5.99 5.99 5.98
             % fn_out  = 5.7810    5.3742    5.3742    5.3742    5.3742
             
-            
             if nargin < 4
                 invert          = false; % TODO
             end
@@ -302,31 +301,18 @@ classdef Sc
                 error('Wrong array size for in output');
             end
             
-            ptrVout         = 1;
+            v_out = [];
             
+            % Loop through each cap in series
             for i=1:nSeries
-                ptrDistribution = 1;
-                for j=1:size(pascalTri, 2)
-                    counter = 1;
-
-                    ptrEndDistribution = ptrDistribution + pascalTri(1, j) - 1;
-
-                    for k=ptrDistribution:ptrEndDistribution
-                        for m=1:size(distribution,1)
-                            thisArray(m, counter) = distribution(m, i*j);
-                        end
-                        counter = counter + 1;
-                    end
-
-                    v_out(:, ptrVout) = mean(thisArray, 2);
-
-                    ptrVout = ptrVout + 1;
-                    ptrDistribution = ptrEndDistribution + 1;
-                end
-                temp(:,:,i)  = [v_out(:, (5*i-4):(5*i))];
+                % TODO make generic for pascal order
+                v_out(:, 5, i) = mean(distribution(:, 1, i), 2);
+                v_out(:, 4, i) = mean(distribution(:, 2:5, i), 2);
+                v_out(:, 3, i) = mean(distribution(:, 6:11, i), 2);
+                v_out(:, 2, i) = mean(distribution(:, 12:15, i), 2);
+                v_out(:, 1, i) = mean(distribution(:, 16, i), 2);
             end
             
-            v_out = temp;
         end
     
         function pt             = pascal_triangle(n) 
