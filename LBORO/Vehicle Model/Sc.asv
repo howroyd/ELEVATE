@@ -131,12 +131,12 @@ classdef Sc
             t                   = obj.simOut.get('t');
             
             fprintf('%.2f %.2f %.2f %.2f %.2f\n',...
-                v_dist(1), v_dist(2), v_dist(6), v_dist(12), v_dist(16));
+                v_dist(1), v_dist(1), v_dist(1), v_dist(1), 
             
             distribution_out    = Sc.createOutputArray(obj.pascalTri, obj.nSeries, v_dist);
             soc                 = mean(distribution_out)./obj.vPeak;
             
-            disp(distribution_out(end, :));
+            disp(distribution_out);
         end
 
         function [x y z] = get3d(obj, idCap)
@@ -285,11 +285,6 @@ classdef Sc
         end
         
         function v_out          = createOutputArray(pascalTri, nSeries, distribution, invert)
-            % TODO, but in this code
-            % in      = 6.0000    6.0000    6.0000    6.0000    6.0000
-            % mdl_out = 6.00 6.00 5.99 5.99 5.98
-            % fn_out  = 5.7810    5.3742    5.3742    5.3742    5.3742
-            
             
             if nargin < 4
                 invert          = false; % TODO
