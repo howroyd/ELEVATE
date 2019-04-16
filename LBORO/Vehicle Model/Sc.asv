@@ -15,7 +15,7 @@ classdef Sc
         nSeries;
         pascalTri;
         simOut;
-        hSurface=1;
+        hSurface;
     end
     
     properties (Constant)
@@ -49,7 +49,7 @@ classdef Sc
             elseif strcmp(model, 'stack')
                 obj.model       = 'cap_eq_circuit_pascal5_single_shot_stack';
             end
-
+            
             disp(obj.model);
             
             obj.res             = res;
@@ -58,10 +58,10 @@ classdef Sc
             obj.nSeries         = nSeries;
             obj.farads          = farads;
             
-            obj.distribution_in = ones(1, order, nSeries) .* vStart;           
+            obj.distribution_in = ones(1, order, nSeries) .* vStart;
             obj.my_distribution = obj.distribution_in;
             obj.soc             = mean(obj.my_distribution) / obj.vPeak;
-            
+            obj.hSurface        = 1:nSeries;
         end
         
         function obj = run(obj, t, ampsIn)
@@ -72,12 +72,71 @@ classdef Sc
             
             obj.distribution_in = distribution_out;
             obj.my_distribution = Sc.appendDistribution(...
-                                    obj.my_distribution, obj.distribution_in, obj.nSeries);
+                obj.my_distribution, obj.distribution_in, obj.nSeries);
             obj                 = obj.updateVcc(v_end);
             obj                 = obj.updateT(t+obj.t(end)+obj.res);
-                                    % TODO duplicate timestamp
+            % TODO duplicate timestamp
             obj.soc             = [obj.soc , soc];
             
+        end
+        
+        function obj = runCycle(obj, t, ampsIn)
+            %% Initial conditions
+            waitbar(0, f, '...Setting initial conditions...');
+            
+            mySc      = mySc.run(uint32(10.0 * tStep), current(0.0));
+            
+            waitbar(1, f, '......done');
+            pause(0.5);
+            
+            
+            %% Drive
+            waitbar(0, f, '...Starting drive...');
+            
+            i         = 1;
+            while i < length(driveCycle)
+                
+                % Optimisation: If next time step current is the same then bulk
+                % together so model is only one once for common, consecutive currents
+                counter = 1;
+                while (driveCycle(i+counter, 1)-driveCycle(i, 1) <  tStep)
+                    counter = counter + 1;
+                    
+                    if (i + counter) == length(driveCycle)
+                        % End of file
+                        break;
+                    end
+                    
+                    while driveCycle(i+counter, 2) == driveCycle(i, 2)
+                        if (i + counter) == length(driveCycle)
+                            % End of file
+                            break;
+                        else
+                            % Look ahead one more timestep
+                            counter = counter + 1;
+                            
+                            
+                            
+                        end
+                    end
+                end
+                
+                fprintf('Bulking together timesteps %.2f to %.2f (of %.2f) at %.3fA\n',...
+                    driveCycle(i, 1), driveCycle(i+counter, 1),...
+                    driveCycle(end, 1), current(driveCycle(i, 2)));
+                
+                % Run the model
+                mySc = mySc.run( (driveCycle(i+counter, 1) - driveCycle(i, 1)),...
+                    current(-driveCycle(i, 2)) );
+                
+                % Update the loop and skip ahead if required
+                i    = i + counter;
+                waitbar( i / length(driveCycle), f);
+            end
+            
+            waitbar(1, f, 'done');
+            pause(1);
+            close(f);
         end
         
         function obj = updateVcc(obj, vcc)
@@ -92,9 +151,9 @@ classdef Sc
                 = sc_model_single_shot(obj, t, resolution, amps_in, distribution_in)
             %sc_model_single_shot Summary of this function goes here
             %   Detailed explanation goes here
-
+            
             invert_order        = false;
-
+            
             % Define simulation variables
             sim_time            = double(t);
             distribution_in     = double(distribution_in);
@@ -113,32 +172,33 @@ classdef Sc
             
             %v_init              = Sc.createInputArray(...
             %                        obj.pascalTri, obj.nSeries, distribution_in);
-
+            
             v_init = distribution_in(end, :, :);
             
-            disp(v_init);
+            %disp(v_init);
             
             % Run Simulation
             warning('off');
             obj.simOut          = sim(obj.model,...
                 'SrcWorkspace', 'current', 'ReturnWorkspaceOutputs', 'on');
             warning('on');
-
+            
             % Get output variables
             v_end               = obj.simOut.get('v_cc');
             v_dist              = obj.simOut.get('v_cap');
             amps_delivered      = obj.simOut.get('i_cc');
             t                   = obj.simOut.get('t');
             
-            fprintf('%.2f %.2f %.2f %.2f %.2f\n',...
-                v_dist(1), v_dist(1), v_dist(1), v_dist(1), 
+            %fprintf('%.2f %.2f %.2f %.2f %.2f\n',...
+            %    v_dist(1), v_dist(2), v_dist(6), v_dist(12), v_dist(16));
+            %disp(v_dist);
             
             distribution_out    = Sc.createOutputArray(obj.pascalTri, obj.nSeries, v_dist);
             soc                 = mean(distribution_out)./obj.vPeak;
             
-            disp(distribution_out);
+            %disp(distribution_out(end, :));
         end
-
+        
         function [x y z] = get3d(obj, idCap)
             if nargin < 2
                 idCap = 0;
@@ -146,20 +206,18 @@ classdef Sc
             
             x=0;y=0;z=0;
             
-            if idCap == 1
-                x = 1:obj.pascalOrd;
-                
-                y = obj.t;
-
-                z = obj.my_distribution(:,:,1);
-            end
+            x = 1:obj.pascalOrd;
+            
+            y = obj.t;
+            
+            z = obj.my_distribution(:,:,idCap);
             
         end
         
-        function handle = plotSurface(obj)
+        function handle = plotSurface(obj, idCap)
             disp('...Plotting Surface...');
-
-            [x, y, z] = obj.get3d(1);
+            
+            [x, y, z] = obj.get3d(idCap);
             
             if length(y) > 3*60*60
                 y = y ./ 3600.0;
@@ -170,11 +228,11 @@ classdef Sc
             else
                 yUnits = 'secs';
             end
-
-            obj.hSurface = figure(obj.hSurface);
+            
+            obj.hSurface(idCap) = figure(obj.hSurface(idCap));
             surf(x, y, z,...
                 'edgecolor','none'); hold all;
-
+            
             grid on;
             
             ylabel(sprintf('Time /%s', yUnits));
@@ -183,7 +241,7 @@ classdef Sc
             zlabel('Voltage');
             %title('5th order pascal eq circuit, starting at 1V across each cap.  Apply load and see the fast states discharge.  Then open circuit and see the redistribution aka self balancing');
             hold off;
-
+            
             disp('...done');
         end
         
@@ -193,33 +251,33 @@ classdef Sc
             end
             
             disp('...Plotting movie...');
-
+            
             handle = figure();
             axis([0 6 0 8], 'manual');
             grid on;
-
+            
             counter = 1;
-
+            
             for i=1:res:size(obj.my_distribution, 1)
                 %bar(mySc.my_distribution(i,:,1));
-
+                
                 bar( obj.my_distribution(i, 1:size(obj.my_distribution, 2)));
-
+                
                 axis([0 6 0 8], 'manual');
                 grid on;
                 M(counter) = getframe(handle);
-
+                
                 counter = counter + 1;
             end
-
+            
             close(handle);
-
+            
             v = VideoWriter(sprintf('%s.mp4', filename), 'MPEG-4');
             v.FrameRate = 5;
             open(v);
             writeVideo(v,M);
             close(v);
-
+            
             disp('...done');
         end
         
@@ -267,12 +325,12 @@ classdef Sc
             end
             
             v_init              = ones(x(1), 1, nSeries);
-
+            
             if ~invert
                 for i=1:x(1)
                     for j=1:nSeries
                         v_init(i, 1, j) = v_init(i, 1, j)...
-                                    .* distribution((x(1)+1) - i, j);
+                            .* distribution((x(1)+1) - i, j);
                     end
                 end
             else
@@ -285,6 +343,10 @@ classdef Sc
         end
         
         function v_out          = createOutputArray(pascalTri, nSeries, distribution, invert)
+            % TODO, but in this code
+            % in      = 6.0000    6.0000    6.0000    6.0000    6.0000
+            % mdl_out = 6.00 6.00 5.99 5.99 5.98
+            % fn_out  = 5.7810    5.3742    5.3742    5.3742    5.3742
             
             if nargin < 4
                 invert          = false; % TODO
@@ -297,54 +359,41 @@ classdef Sc
                 error('Wrong array size for in output');
             end
             
-            ptrVout         = 1;
+            v_out = [];
             
+            % Loop through each cap in series
             for i=1:nSeries
-                ptrDistribution = 1;
-                for j=1:size(pascalTri, 2)
-                    counter = 1;
-
-                    ptrEndDistribution = ptrDistribution + pascalTri(1, j) - 1;
-
-                    for k=ptrDistribution:ptrEndDistribution
-                        for m=1:size(distribution,1)
-                            thisArray(m, counter) = distribution(m, i*j);
-                        end
-                        counter = counter + 1;
-                    end
-
-                    v_out(:, ptrVout) = mean(thisArray, 2);
-
-                    ptrVout = ptrVout + 1;
-                    ptrDistribution = ptrEndDistribution + 1;
-                end
-                temp(:,:,i)  = [v_out(:, (5*i-4):(5*i))];
+                % TODO make generic for pascal order
+                v_out(:, 5, i) = mean(distribution(:, 1+16*(i-1)), 2);
+                v_out(:, 4, i) = mean(distribution(:, 2+16*(i-1):5+16*(i-1)), 2);
+                v_out(:, 3, i) = mean(distribution(:, 6+16*(i-1):11+16*(i-1)), 2);
+                v_out(:, 2, i) = mean(distribution(:, 12+16*(i-1):15+16*(i-1)), 2);
+                v_out(:, 1, i) = mean(distribution(:, 16+16*(i-1)), 2);
             end
             
-            v_out = temp;
         end
-    
-        function pt             = pascal_triangle(n) 
-
+        
+        function pt             = pascal_triangle(n)
+            
             % The first two rows are constant
             pt(1, 1) = 1;
-            pt(2, 1 : 2) = [1 1]; 
-
+            pt(2, 1 : 2) = [1 1];
+            
             % If only two rows are requested, then exit
             if n < 3
                 return
-            end 
-
+            end
+            
             for r = 3 : n
                 % The first element of every row is always 1
-                pt(r, 1) = 1;   
-
+                pt(r, 1) = 1;
+                
                 % Every element is the addition of the two elements
                 % on top of it. That means the previous row.
                 for c = 2 : r-1
                     pt(r, c) = pt(r-1, c-1) + pt(r-1, c);
-                end   
-
+                end
+                
                 % The last element of every row is always 1
                 pt(r, r) = 1;
             end
