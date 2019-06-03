@@ -49,6 +49,7 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
         super(ElectricalDeviceClass, self).__init__()
 
         self._torque_max  = kwargs['motor_max_torque']
+        print("Max motor torque: ", self._torque_max)
         self._v_min = kwargs['motor_v_min']
         self._v_max = kwargs['motor_v_max']
         self._i_max = kwargs['motor_i_max']
@@ -104,6 +105,10 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
 
         motor_torque_out = self.calculate_torque_from_current(self._i_in)
 
+        if (motor_torque_out > self._torque_max):
+            motor_torque_out = self._torque_max
+            self._i_in       = self.calculate_current_from_torque(motor_torque_out)
+
         # Calculate supply voltage required
         Vemf = self._efficiency_mech_to_elec * self._w_motor
         Vs = (self._i_in * self._winding_resistance) + Vemf
@@ -133,11 +138,19 @@ class MotorClass(ElectricalDeviceClass, RotatingCylinderClass):
 
         # If motor overspeed, only allow negative current (regen)
         if (self._w_motor > self._w_motor_max):
+            print("Overspeed! ", self._w_motor, "w")
             pass
             #print("Motor overspeed! w=", round(self._w_motor_max), round(self._w_motor))
             #self.current = min(self.current, 0.0)
 
         motor_torque_out        = self.calculate_torque_from_current(self.current)
+        if (motor_torque_out > 200):
+            print(motor_torque_out)
+
+        if (motor_torque_out > self._torque_max):
+            motor_torque_out = self._torque_max
+            self.current     = self.calculate_current_from_torque(motor_torque_out)
+            print("Max power! ", self.current, "A")
 
         if self.is_generating:
             # Calculate supply voltage produced

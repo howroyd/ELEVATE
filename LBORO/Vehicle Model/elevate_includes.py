@@ -5,7 +5,9 @@
 ###############################
 
 # System level libraries
-import telnetlib, time, sys, os, datetime, copy
+import telnetlib, time, sys, os, datetime, copy, math
+
+from statistics import mean 
 
 # Matlab libraries
 import matlab.engine
@@ -26,6 +28,10 @@ from RotatingThingClass import rads_to_rpm
 ###    UTILITY FUNCTIONS    ###
 ###############################
 
+from math import sqrt
+def rms(num):
+	return sqrt(sum(n*n for n in num)/len(num))
+
 # Convert mph to m/s
 def mph_to_ms(mph:'mph') -> 'm/s':
     return mph / 2.23694
@@ -33,6 +39,14 @@ def mph_to_ms(mph:'mph') -> 'm/s':
 # Convert m/s to mph
 def ms_to_mph(ms:'m/s') -> 'mph':
     return ms * 2.23694
+
+# Convert kph to m/s
+def kph_to_ms(kph:'kph') -> 'm/s':
+    return kph / 3.60000
+
+# Convert m/s to kph
+def ms_to_kph(ms:'m/s') -> 'kph':
+    return ms * 3.60000
 
 # Constrain
 def constrain(val, _min, _max):

@@ -10,7 +10,7 @@ class CarData(object):
 
 class Nissan_Leaf(CarData):
     def __init__(self):
-        self._data = dict(batt_soc=50.0,
+        self._data = dict(batt_soc=100.0,
                     batt_v_min=300.0,
                     batt_v_max=400.0,
                     batt_i_max=266.0,
@@ -18,7 +18,7 @@ class Nissan_Leaf(CarData):
                     batt_kwh=30.0,
                     car_cd=0.29,
                     car_area=0.725,
-                    car_mass=1521.0,
+                    car_mass=1521.0, # 1521.0
                     wheel_diameter=0.2159*2,
                     wheel_mass=9.0, # Rough google search
                     wheel_width=0.3, # APPROX
@@ -28,7 +28,7 @@ class Nissan_Leaf(CarData):
                     brake_max_torque=500.0,
                     motor_rotor_mass=5.0, # Complete guess
                     motor_rotor_diameter=0.2, # Complete guess
-                    motor_max_torque=280,#280.0,
+                    motor_max_torque=280.0,#280.0,
                     motor_max_rpm=10390,
                     motor_reduction_ratio=7.9377,
                     motor_v_max = 400.0, # assumed

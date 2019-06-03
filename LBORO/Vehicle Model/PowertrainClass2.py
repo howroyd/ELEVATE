@@ -11,6 +11,8 @@ from EscClass import ESC
 from MotorClass import MotorClass
 from WheelClass import WheelClass
 
+from statistics import mean
+
 
 class PowertrainControllerClass(object):
     '''Electric vehicle powertrain class'''
@@ -40,8 +42,9 @@ class PowertrainControllerClass(object):
                                                     v_max=kwargs.get('batt_v_max'),
                                                     ))
 
-
         self._axle    = AxleClass()
+        #self._axle1    = AxleClass()
+        #self._axle2    = AxleClass()
         self._battery = BatteryClass(kwargs)
         self._bms     = BatteryManagementClass(kwargs)
         self._esc     = ESC(kwargs)
@@ -93,7 +96,24 @@ class PowertrainControllerClass(object):
 
         # Update axle torque and speed, pass to drive wheels
         self._motor.update(dt)
+
+        # 4wd
+        #motor_out = self._motor.rotational_data
+        #motor_out[self._motor._key_torque] /= 2.0
+        #self._axle1.shaft_data       = motor_out
+        #self._axle2.shaft_data       = motor_out
+        #self._axle1._shaft.torque    *= 0.931*0.98
+        #self._axle2._shaft.torque    *= 0.98*0.931*0.98*0.931
+        #self._axle1.update(dt)
+        #self._axle2.update(dt)
+        #self._wheel[0].axle_data    = self._axle1.wheel_data[0].rotational_data
+        #self._wheel[1].axle_data    = self._axle1.wheel_data[1].rotational_data
+        #self._wheel[2].axle_data    = self._axle2.wheel_data[0].rotational_data
+        #self._wheel[3].axle_data    = self._axle2.wheel_data[1].rotational_data
+
+        # 2wd
         self._axle.shaft_data       = self._motor.rotational_data
+        self._axle._shaft.torque   *= 0.931*0.98
         self._axle.update(dt)
         self._wheel[0].axle_data    = self._axle.wheel_data[0].rotational_data
         self._wheel[1].axle_data    = self._axle.wheel_data[1].rotational_data
@@ -206,6 +226,7 @@ class PowertrainControllerClass(object):
     @property
     def axle_rotation(self):
         return self._axle.shaft_data.rotational_data
+#        return [self._axle1.shaft_data.rotational_data, self._axle2.shaft_data.rotational_data]
 
     # Wheel Rotational
     @property
@@ -227,7 +248,7 @@ class PowertrainControllerClass(object):
     # Battery Electricity
     @property
     def battery_electricity(self):
-        return self._battery.electricity_data
+        return self._battery.battery_data
 
     # ESC Electricity
     @property
@@ -257,6 +278,13 @@ class PowertrainControllerClass(object):
         for ptr in self._wheel:
             ptr.vehicle_speed_feedback(speed)
         self._axle.wheel_speed_feedback(self._wheel[0].speed, self._wheel[1].speed) 
+        self._motor.shaft_speed_feedback(self._axle.shaft_data.speed)
+
+        #self._axle1.wheel_speed_feedback(self._wheel[0].speed, self._wheel[1].speed) 
+        #self._axle2.wheel_speed_feedback(self._wheel[2].speed, self._wheel[3].speed) 
+        #self._motor.shaft_speed_feedback(mean([self._axle1.shaft_data.speed, self._axle2.shaft_data.speed]))
+
+        self._axle.wheel_speed_feedback(self._wheel[0].speed, self._wheel[1].speed)
         self._motor.shaft_speed_feedback(self._axle.shaft_data.speed)
 
     # Target speed

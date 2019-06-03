@@ -24,7 +24,7 @@ feed_forward = False
 ###############################
 ###   TEST DATAFILE NAME    ###
 ###############################
-filename     = "nedc2_short"
+filename     = "DriveCycles\WLTP_kph"
 
 
 ###############################
@@ -55,6 +55,9 @@ if __name__ == "__main__":
     
     disp.disp((datafile.num_lines, 'lines in input file\n'))
 
+    battery_soc_start = mycar.battery_electricity.get('soc')*100.0
+
+    disp.disp(("Batt SoC: ", battery_soc_start))
 
     ###############################
     ###    BEGIN SIMULATION     ###
@@ -74,7 +77,7 @@ if __name__ == "__main__":
         ###    SET VEHICLE SPEED    ###
         ###############################
         if datafile.new_data:
-            mycar.target_speed = mph_to_ms(datafile.line[1])
+            mycar.target_speed = kph_to_ms(datafile.line[1])
 
 
         ###############################
@@ -120,6 +123,7 @@ if __name__ == "__main__":
         datafile.line = [ mycar.motor_electricity.get('current') ]
 
         datafile.line = [ mycar.motor_rotation.get('torque') ]
+        #datafile.line = [ mycar.axle_rotation[0].get('torque') ]
         datafile.line = [ mycar.axle_rotation.get('torque') ]
         datafile.line = [ mycar.wheel_rotation[0].get('torque') ]
         datafile.line = [ mycar.wheel_rotation[2].get('torque') ]
@@ -127,6 +131,7 @@ if __name__ == "__main__":
         datafile.line = [ mycar.brake_rotation[2].get('torque') ]
 
         datafile.line = [ rads_to_rpm(mycar.motor_rotation.get('speed')) ]
+        #datafile.line = [ rads_to_rpm(mycar.axle_rotation[0].get('speed')) ]
         datafile.line = [ rads_to_rpm(mycar.axle_rotation.get('speed')) ]
         datafile.line = [ rads_to_rpm(mycar.wheel_rotation[0].get('speed')) ]
         datafile.line = [ rads_to_rpm(mycar.wheel_rotation[2].get('speed')) ]
@@ -172,7 +177,7 @@ if __name__ == "__main__":
         ax1.plot(timestamp, data_out['v_true'], label='v_true')
         ax1.plot(timestamp, data_out['dragAero']/10, label='dragAero')
         ax1.set_ylabel('Mph, N/10')
-        ax1.set_ylim([0, 60])
+        ax1.set_ylim([0, math.ceil(max(data_out['v_true'])/10.0)*10])
         ax1.grid(True)
         leg1 = ax1.legend(loc='upper right', shadow=True)
 
@@ -285,12 +290,50 @@ if __name__ == "__main__":
         ax4.set_xlabel('Time /mins')
 
 
+        ###############################
+        ###        FIGURE 3         ###
+        ###############################
+        fig3 = plt.figure()
+
+        delta = data_out['v_true'] - data_out['v_set']
+
+        ###############################
+        ###    FIG 3, SUBPLOT 1     ###
+        ###############################
+        ax1 = fig3.add_subplot(211)
+        ax1.plot(timestamp, data_out['v_set'],  label='v_set')
+        ax1.plot(timestamp, data_out['v_true'], label='v_true')
+        #ax1.plot(timestamp, data_out['dragAero']/10, label='dragAero')
+        ax1.set_ylabel('Mph')
+        ax1.set_ylim([0, math.ceil(max(data_out['v_true'])/10.0)*10])
+        ax1.grid(True)
+        leg1 = ax1.legend(loc='upper left', shadow=True)
+
+        ###############################
+        ###    FIG 3, SUBPLOT 2     ###
+        ###############################
+        ax2 = fig3.add_subplot(212)
+        ax2.plot(timestamp, delta, label=r'$\delta$')
+        ax2.set_ylabel(r'$\delta$ mph')
+        #ax2.set_ylim([-260, 260])
+        ax2.grid(True)
+        leg2 = ax2.legend(loc='upper right', shadow=True)
+        ax2.set_xlabel('Time /mins')
+
     ###############################
     ###       SHOW COSTS        ###
     ###############################
     #disp.disp_cost("Speed Cost:", round(leaf1._powertrain_model_array[0]._speed_control.cost, 1))
     #disp.disp_cost("Motor Cost:", round(leaf1._powertrain_model_array[0]._speed_control._motor_controller.cost, 1))
     #disp.disp_cost("Brake Cost:", round(leaf1._powertrain_model_array[0]._speed_control._brake_controller.cost, 1))    
+
+    battery_soc_end = mycar.battery_electricity.get('soc')*100.0
+    
+    disp.disp(("delta mph mean:", mean(delta)))
+    disp.disp(("delta mph rms:", rms(delta)))
+
+    disp.disp(("SoC used: ", battery_soc_start - battery_soc_end))
+
 
     ###############################
     ###       SHOW TIME         ###
