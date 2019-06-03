@@ -7,6 +7,7 @@ classdef Sc
         res;
         t = [0];
         v_cc = [0.0];
+        v;
         my_distribution;
         pascalOrd;
         model;
@@ -16,6 +17,9 @@ classdef Sc
         pascalTri;
         simOut;
         hSurface;
+        hSoc;
+        bCapacity;
+        bSoc;
     end
     
     properties (Constant)
@@ -26,6 +30,8 @@ classdef Sc
         function obj = Sc(order, nSeries, vStart, farads, res, model)
             %Sc Construct an instance of this class
             %   Detailed explanation goes here
+            
+            Sc.killEmAll();
             
             if nargin < 6
                 if nSeries == 1
@@ -47,9 +53,10 @@ classdef Sc
             if strcmp(model, 'single')
                 obj.model       = 'cap_eq_circuit_pascal5_single_shot';
             elseif strcmp(model, 'stack')
-                obj.model       = 'cap_eq_circuit_pascal5_single_shot_stack';
+                obj.model       = 'battery_eq_circuit_pascal5_single_shot_stack';
             end
             
+            %load_system(obj.model);
             disp(obj.model);
             
             obj.res             = res;
@@ -58,26 +65,55 @@ classdef Sc
             obj.nSeries         = nSeries;
             obj.farads          = farads;
             
+            obj.v               = zeros(1, nSeries);
+            
             obj.distribution_in = ones(1, order, nSeries) .* vStart;
             obj.my_distribution = obj.distribution_in;
             obj.soc             = mean(obj.my_distribution) / obj.vPeak;
             obj.hSurface        = 1:nSeries;
+            obj.hSoc            = 1:nSeries;
+        end
+        
+        function [sim_time, amps_in, distribution_in, capacitance,...
+                bCapacity, bSoc, resolution, tStep, v_init] = fakeRun(obj, t, ampsIn)
+            
+            [sim_time, amps_in, distribution_in, capacitance,...
+                bCapacity, bSoc, resolution, tStep, v_init] = ...
+                obj.returnAsGlobals(t, obj.res, ampsIn, obj.distribution_in);
+        end
+        
+        function obj = setupBattery(obj, capacity, soc)
+            obj.bCapacity = ones(1, obj.nSeries) .* capacity;
+            obj.bSoc      = ones(1, obj.nSeries) .* soc;
+        end
+        
+        function h = buildModel(obj)
+            warning('off');
+            h = Simulink.BlockDiagram.buildRapidAcceleratorTarget(obj.model);
+            warning('on');
         end
         
         function obj = run(obj, t, ampsIn)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            [ t, v_end, amps_delivered, soc, distribution_out ] = ...
-                obj.sc_model_single_shot( t, obj.res, ampsIn, obj.distribution_in );
+            
+            %[ t, v_end, amps_delivered, soc, distribution_out ] = ...
+            %    obj.sc_model_single_shot( t, obj.res, ampsIn, obj.distribution_in );
+            [ t, v_end, v, amps_delivered, soc, bSoc, distribution_out ] = ...
+                obj.hybrid_model_single_shot( t, obj.res, ampsIn, obj.distribution_in );
             
             obj.distribution_in = distribution_out;
             obj.my_distribution = Sc.appendDistribution(...
                 obj.my_distribution, obj.distribution_in, obj.nSeries);
             obj                 = obj.updateVcc(v_end);
             obj                 = obj.updateT(t+obj.t(end)+obj.res);
-            % TODO duplicate timestamp
-            obj.soc             = [obj.soc , soc];
             
+            obj.v               = [obj.v ; v ];
+            
+            % TODO duplicate timestamp
+            obj.soc             = [obj.soc  , soc];
+            obj                 = obj.updateBattSoc(bSoc);
+            %disp(obj.bSoc(end,:));
         end
         
         function obj = runCycle(obj, t, ampsIn, tStep)
@@ -97,6 +133,7 @@ classdef Sc
             
             i         = 1;
             while i < length(t)
+                %try
                 
                 % Optimisation: If next time step current is the same then bulk
                 % together so model is only one once for common, consecutive currents
@@ -129,7 +166,10 @@ classdef Sc
                 
                 % Update the loop and skip ahead if required
                 i    = i + counter;
-                waitbar( i / length(t), f);
+                waitbar( i / length(t), f, sprintf('...Driving...%s', obj.model));
+                %catch
+                %    break;
+                %end
             end
             
             waitbar(1, f, 'done');
@@ -145,7 +185,11 @@ classdef Sc
             obj.t = [ obj.t ; t ];
         end
         
-        function [ t, v_end, amps_delivered, soc, distribution_out ] ...
+        function obj = updateBattSoc(obj, battSoc)
+            obj.bSoc = [ obj.bSoc ; battSoc ];
+        end
+        
+        function [ t, v_end, v, amps_delivered, soc, distribution_out ] ...
                 = sc_model_single_shot(obj, t, resolution, amps_in, distribution_in)
             %sc_model_single_shot Summary of this function goes here
             %   Detailed explanation goes here
@@ -157,6 +201,9 @@ classdef Sc
             distribution_in     = double(distribution_in);
             amps_in             = double(amps_in);
             capacitance         = double(obj.farads); % F
+            
+            bCapacity           = double(obj.bCapacity);
+            bSoc                = double(obj.bSoc);
             
             if resolution <= 0.0
                 resolution      = 0.1;
@@ -186,15 +233,104 @@ classdef Sc
             v_dist              = obj.simOut.get('v_cap');
             amps_delivered      = obj.simOut.get('i_cc');
             t                   = obj.simOut.get('t');
+            v                   = obj.simOut.get('v_cell');
             
             %fprintf('%.2f %.2f %.2f %.2f %.2f\n',...
             %    v_dist(1), v_dist(2), v_dist(6), v_dist(12), v_dist(16));
             %disp(v_dist);
             
             distribution_out    = Sc.createOutputArray(obj.pascalTri, obj.nSeries, v_dist);
-            soc                 = mean(distribution_out)./obj.vPeak;
+            %soc                 = mean(distribution_out)./obj.vPeak;
+            soc_temp            = obj.simOut.get('bSoc')';
+            soc                 = soc_temp(end,:);
             
             %disp(distribution_out(end, :));
+        end
+        
+        function [ t, v_end, v, amps_delivered, soc, bSoc, distribution_out ] ...
+                = hybrid_model_single_shot(obj, t, resolution, amps_in, distribution_in)
+            %sc_model_single_shot Summary of this function goes here
+            %   Detailed explanation goes here
+            
+            invert_order        = false;
+            
+            % Define simulation variables
+            sim_time            = double(t);
+            distribution_in     = double(distribution_in);
+            amps_in             = double(amps_in);
+            capacitance         = double(obj.farads); % F
+            
+            bCapacity           = double(obj.bCapacity);
+            bSoc                = double(obj.bSoc);
+            
+            if resolution <= 0.0
+                resolution      = 0.1;
+                warning('Overriding resolution');
+            end
+            
+            resolution = double(resolution);
+            tStep      = resolution;
+            
+            %fprintf(sprintf('sim_time=%.1f\tres=%.1f\n', sim_time, resolution));
+            
+            %v_init              = Sc.createInputArray(...
+            %                        obj.pascalTri, obj.nSeries, distribution_in);
+            
+            v_init = distribution_in(end, :, :);
+            
+            %disp(v_init);
+            
+            % Run Simulation
+            disp('Running simulation');
+            
+            warning('off');
+            obj.simOut          = sim(obj.model,...
+                'SrcWorkspace', 'current', 'ReturnWorkspaceOutputs', 'on');%,...
+            %    'SimulationMode','rapid');
+            warning('on');
+            
+            disp('Done.');
+            
+            % Get output variables
+            v_end               = obj.simOut.get('v_cc');
+            v_dist              = obj.simOut.get('v_cap');
+            amps_delivered      = obj.simOut.get('i_cc');
+            t                   = obj.simOut.get('t');
+            
+            %fprintf('%.2f %.2f %.2f %.2f %.2f\n',...
+            %    v_dist(1), v_dist(2), v_dist(6), v_dist(12), v_dist(16));
+            %disp(v_dist);
+            
+            distribution_out    = Sc.createOutputArray(obj.pascalTri, obj.nSeries, v_dist);
+            v                   = [mean(distribution_out(:,1:5,1), 2)...
+                mean(distribution_out(:,1:5,2), 2)...
+                mean(distribution_out(:,1:5,3), 2)]; % TODO generalise for nSeries
+            soc                 = mean(distribution_out)./obj.vPeak;
+            bSoc                = obj.simOut.get('bSoc');
+            %disp(bSoc);
+        end
+        
+        function [sim_time, amps_in, distribution_in, capacitance,...
+                bCapacity, bSoc, resolution, tStep, v_init]...
+                = returnAsGlobals(obj, t_, resolution_, amps_in_, distribution_in_)
+            
+            sim_time            = double(t_);
+            distribution_in     = double(distribution_in_);
+            amps_in             = double(amps_in_);
+            capacitance         = double(obj.farads); % F
+            
+            bCapacity           = double(obj.bCapacity);
+            bSoc                = double(obj.bSoc);
+            
+            if resolution_ <= 0.0
+                resolution_      = 0.1;
+                warning('Overriding resolution');
+            end
+            
+            resolution = double(resolution_);
+            tStep      = resolution_;
+            
+            v_init = distribution_in_(end, :, :);
         end
         
         function [x y z] = get3d(obj, idCap)
@@ -237,6 +373,43 @@ classdef Sc
             
             xlabel('Pascal rungs 1 to 5');
             zlabel('Voltage');
+            %title('5th order pascal eq circuit, starting at 1V across each cap.  Apply load and see the fast states discharge.  Then open circuit and see the redistribution aka self balancing');
+            hold off;
+            
+            disp('...done');
+        end
+        
+        function handle = plotSoc(obj, idCap)
+            disp('...Plotting State of Charge (SoC)...');
+            
+            socCap = mean(obj.my_distribution(:, :, idCap), 2) / 8.0 * 100.0;
+            socBat = obj.bSoc(:,idCap);
+            
+            v      = obj.v(:, idCap);
+            
+            t      = obj.t ./ 10.0;
+            
+            if t(end) > 3*60*60
+                t = t ./ 3600.0;
+                tUnits = 'hrs';
+            elseif t(end) > 3*60
+                t = t ./ 60.0;
+                tUnits = 'mins';
+            else
+                tUnits = 'secs';
+            end
+            
+            obj.hSoc(idCap) = figure(obj.hSurface(idCap));
+            plot(t, socCap);
+            hold all;
+            plot(t, socBat);
+            plot(t, v*10.0);
+            
+            grid on;
+            
+            xlabel(sprintf('Time /%s', tUnits));
+            legend('Cap', 'Bat', 'V_{local}');
+            ylabel('SoC /%, V_{local}*10 /V');
             %title('5th order pascal eq circuit, starting at 1V across each cap.  Apply load and see the fast states discharge.  Then open circuit and see the redistribution aka self balancing');
             hold off;
             
@@ -398,6 +571,13 @@ classdef Sc
             
             pt = pt(n,:);
         end
+        
+        function killEmAll
+            set(0,'ShowHiddenHandles','on');
+            delete(get(0,'Children'));
+            set(0,'ShowHiddenHandles','off');
+        end
+        
     end
 end
 

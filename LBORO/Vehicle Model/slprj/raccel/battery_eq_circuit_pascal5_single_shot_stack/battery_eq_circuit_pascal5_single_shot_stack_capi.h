@@ -1,0 +1,7 @@
+#include "__cf_battery_eq_circuit_pascal5_single_shot_stack.h"
+#ifndef RTW_HEADER_battery_eq_circuit_pascal5_single_shot_stack_capi_h
+#define RTW_HEADER_battery_eq_circuit_pascal5_single_shot_stack_capi_h
+#include "battery_eq_circuit_pascal5_single_shot_stack.h"
+extern void
+battery_eq_circuit_pascal5_single_shot_stack_InitializeDataMapInfo ( void ) ;
+#endif
