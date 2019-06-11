@@ -9,6 +9,7 @@ classdef Sc
         v_cc = [0.0];
         v;
         my_distribution;
+        batt_distribution;
         pascalOrd;
         model;
         soc;
@@ -18,7 +19,8 @@ classdef Sc
         simOut;
         hSurface;
         hSoc;
-        bCapacity;
+        bCap;
+        bR;
         bSoc;
     end
     
@@ -53,7 +55,7 @@ classdef Sc
             if strcmp(model, 'single')
                 obj.model       = 'cap_eq_circuit_pascal5_single_shot';
             elseif strcmp(model, 'stack')
-                obj.model       = 'battery_eq_circuit_pascal5_single_shot_stack';
+                obj.model       = 'hybrid_new_eq_circuit_pascal5_single_shot_stack';
             end
             
             %load_system(obj.model);
@@ -69,6 +71,7 @@ classdef Sc
             
             obj.distribution_in = ones(1, order, nSeries) .* vStart;
             obj.my_distribution = obj.distribution_in;
+            obj.batt_distribution   = ones(1, 7, nSeries) .* vStart;
             obj.soc             = mean(obj.my_distribution) / obj.vPeak;
             obj.hSurface        = 1:nSeries;
             obj.hSoc            = 1:nSeries;
@@ -82,9 +85,10 @@ classdef Sc
                 obj.returnAsGlobals(t, obj.res, ampsIn, obj.distribution_in);
         end
         
-        function obj = setupBattery(obj, capacity, soc)
-            obj.bCapacity = ones(1, obj.nSeries) .* capacity;
-            obj.bSoc      = ones(1, obj.nSeries) .* soc;
+        function obj = setupBattery(obj, cap, r, soc)
+            obj.bCap = cap;
+            obj.bR   = r;
+            obj.batt_distribution   = (ones(1, 7) .* soc) + 3.2;
         end
         
         function h = buildModel(obj)

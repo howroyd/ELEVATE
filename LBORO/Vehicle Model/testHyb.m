@@ -13,8 +13,9 @@ tDivisor  = 0.1;
 tStep     = 10.0;
 
 vStart    = 8.0;
-farads    = 2.0;
-bCapacity = 0.5; % Ah
+farads    = 5.0;
+bCap      = 0.25; % Ah
+bR        = 0;
 bSoc      = 90; % pc 8.2v
 
 current   = @(ampsIn)  -ampsIn ./ iDivisor;
@@ -50,7 +51,7 @@ mySc.plotSoc(3);
 %mySc.plotMovie('pretty_vid', 100);
 
 %% End
-load('handel.mat');
-player = audioplayer(y, Fs);
-play(player);
+%load('handel.mat');
+%player = audioplayer(y, Fs);
+%play(player);
 disp('Finished!');
