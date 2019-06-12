@@ -25,7 +25,7 @@ feed_forward = False
 ###############################
 ###   TEST DATAFILE NAME    ###
 ###############################
-filename     = "nedc2_short"
+filename     = "DriveCycles\WLTP_kph"
 #filename     = "realcycle_kph"
 
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     ###############################
     ###    BEGIN SIMULATION     ###
     ###############################
-    while not datafile.finished and timer.sim_time<(10*60):
+    while not datafile.finished:# and timer.sim_time<(10*60):
 
 
         ###############################
@@ -102,6 +102,8 @@ if __name__ == "__main__":
         datafile.line = [ ms_to_mph(mycar.speed) ]
         datafile.line = [ mycar.powertrain_mode ]
         datafile.line = [ int(mycar._powertrain._motor.is_generating) ]
+
+        datafile.line = [ mycar.battery_electricity.get('soc')*100.0 ]
 
         datafile.line = [ mycar.aero_force ]
 
