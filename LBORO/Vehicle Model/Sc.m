@@ -88,7 +88,7 @@ classdef Sc
         function obj = setupBattery(obj, cap, r, soc)
             obj.bCap = cap;
             obj.bR   = r;
-            obj.batt_distribution   = (ones(1, 7) .* soc) + 3.2;
+            obj.batt_distribution   = (ones(1, 7, obj.nSeries) .* soc) + 3.2;
         end
         
         function h = buildModel(obj)
@@ -103,12 +103,14 @@ classdef Sc
             
             %[ t, v_end, amps_delivered, soc, distribution_out ] = ...
             %    obj.sc_model_single_shot( t, obj.res, ampsIn, obj.distribution_in );
-            [ t, v_end, v, amps_delivered, soc, bSoc, distribution_out ] = ...
+            [ t, v_end, v, amps_delivered, soc, bSoc, distribution_out, bDistribution_out ] = ...
                 obj.hybrid_model_single_shot( t, obj.res, ampsIn, obj.distribution_in );
             
             obj.distribution_in = distribution_out;
             obj.my_distribution = Sc.appendDistribution(...
                 obj.my_distribution, obj.distribution_in, obj.nSeries);
+            obj.batt_distribution = Sc.appendDistribution(...
+                obj.batt_distribution, bDistribution_out, obj.nSeries);
             obj                 = obj.updateVcc(v_end);
             obj                 = obj.updateT(t+obj.t(end)+obj.res);
             
@@ -251,7 +253,7 @@ classdef Sc
             %disp(distribution_out(end, :));
         end
         
-        function [ t, v_end, v, amps_delivered, soc, bSoc, distribution_out ] ...
+        function [ t, v_end, v, amps_delivered, soc, bSoc, distribution_out, bDistribution_out ] ...
                 = hybrid_model_single_shot(obj, t, resolution, amps_in, distribution_in)
             %sc_model_single_shot Summary of this function goes here
             %   Detailed explanation goes here
@@ -264,7 +266,8 @@ classdef Sc
             amps_in             = double(amps_in);
             capacitance         = double(obj.farads); % F
             
-            bCapacity           = double(obj.bCapacity);
+            batt_c              = double(obj.bCap);
+            batt_r              = double(obj.bR);
             bSoc                = double(obj.bSoc);
             
             if resolution <= 0.0
@@ -281,6 +284,7 @@ classdef Sc
             %                        obj.pascalTri, obj.nSeries, distribution_in);
             
             v_init = distribution_in(end, :, :);
+            bv_init= obj.batt_distribution(end, :, :);
             
             %disp(v_init);
             
@@ -310,7 +314,13 @@ classdef Sc
                 mean(distribution_out(:,1:5,2), 2)...
                 mean(distribution_out(:,1:5,3), 2)]; % TODO generalise for nSeries
             soc                 = mean(distribution_out)./obj.vPeak;
-            bSoc                = obj.simOut.get('bSoc');
+            bDistribution_out_temp   = obj.simOut.get('bSoc');
+            bDistribution_out = ones(size(bDistribution_out_temp,1), 7, obj.nSeries);
+            bDistribution_out(:,:,1) = bDistribution_out_temp(:,1:7);
+            bDistribution_out(:,:,2) = bDistribution_out_temp(:,8:14);
+            bDistribution_out(:,:,3) = bDistribution_out_temp(:,15:21);
+            
+            
             %disp(bSoc);
         end
         

@@ -14,8 +14,8 @@ tStep     = 10.0;
 
 vStart    = 8.0;
 farads    = 5.0;
-bCap      = 0.25; % Ah
-bR        = 0;
+bCap      = ones(1, 7) .* 0.25; % Ah
+bR        = ones(1, 8) .* 1.0;
 bSoc      = 90; % pc 8.2v
 
 current   = @(ampsIn)  -ampsIn ./ iDivisor;
@@ -29,7 +29,7 @@ end
 %tStep     = (driveCycle(2, 1) - driveCycle(1, 1)) ./ tStep;
 
 mySc      = Sc(pascalOrd, nSeries, vStart, farads, tStep);
-mySc      = mySc.setupBattery(bCapacity, bSoc);
+mySc      = mySc.setupBattery(bCap, bR, bSoc);
 
 %% Drive
 mySc = mySc.runCycle( driveCycle(:, 1), driveCycle(:, 2), tStep );
