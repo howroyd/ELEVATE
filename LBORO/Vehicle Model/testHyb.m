@@ -14,9 +14,9 @@ tStep     = 10.0;
 
 vStart    = 8.0;
 farads    = 5.0;
-bCap      = ones(1, 7) .* 0.25; % Ah
-bR        = ones(1, 8) .* 1.0;
-bSoc      = 90; % pc 8.2v
+bCap      = [0.03 0.8 2 1 1 0.1 20]; % Ah
+bR        = [0.021 0.207 0.0055 2 0.05 0.02 1 0.023];
+bSoc      = 0.9; % pc 8.2v
 
 current   = @(ampsIn)  -ampsIn ./ iDivisor;
 time      = @(t)       t      ./ tDivisor;
