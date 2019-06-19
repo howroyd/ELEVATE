@@ -1,3 +1,0 @@
-#ifndef CF_battery_eq_circuit_pascal5_single_shot_stack_H__
-#define CF_battery_eq_circuit_pascal5_single_shot_stack_H__
-#endif
