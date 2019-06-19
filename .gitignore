@@ -11,13 +11,13 @@
 *.userprefs
 
 # MATLAB ignore
-slprj/
+*/slprj/
 *.slxc
 *.htmx
 *.asv
 
 # Python ignore
-__pycache__/
+*/__pycache__/
 
 # Build results
 [Dd]ebug/
