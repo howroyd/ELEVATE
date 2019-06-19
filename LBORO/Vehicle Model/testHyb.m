@@ -8,18 +8,21 @@ pascalOrd = 5;
 nSeries   = 3;
 ptr       = 1;
 
-iDivisor  = 50.0;
+iDivisor  = 500.0;
 tDivisor  = 0.1;
 tStep     = 10.0;
 
-vStart    = 8.0;
-farads    = 5.0;
-bCap      = [0.03 0.8 2 1 1 0.1 20]; % Ah
-bR        = [0.021 0.207 0.0055 2 0.05 0.02 1 0.023];
-bSoc      = 0.9; % pc 8.2v
+vStart    = 4.2;
+
+cCap      = [20  20  20  20   20];
+cR        = [550 625 700 1400 4000];
+
+bCap      = [0.03 0.8 2 1 1 0.1 20]; % F
+bR        = [0.021 0.207 0.0055 2 0.05 0.02 1 0.023]; % FIXME TODO these R values are very low compared to the cap
+bSoc      = 1.0; % pc 8.2v
 
 current   = @(ampsIn)  -ampsIn ./ iDivisor;
-time      = @(t)       t      ./ tDivisor;
+time      = @(t)       t       ./ tDivisor;
 
 for i=1:length(driveCycle)
     driveCycle(i, 1) = time(driveCycle(i, 1));
@@ -28,8 +31,9 @@ end
 
 %tStep     = (driveCycle(2, 1) - driveCycle(1, 1)) ./ tStep;
 
-mySc      = Sc(pascalOrd, nSeries, vStart, farads, tStep);
-mySc      = mySc.setupBattery(bCap, bR, bSoc);
+mySc      = Sc(pascalOrd, nSeries, vStart, tStep);
+mySc      = mySc.setupCap(cCap, cR);
+mySc      = mySc.setupBattery(bCap, bR);
 
 %% Drive
 mySc = mySc.runCycle( driveCycle(:, 1), driveCycle(:, 2), tStep );

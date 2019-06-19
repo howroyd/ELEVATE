@@ -13,6 +13,8 @@ classdef Sc
         pascalOrd;
         model;
         soc;
+        cCap;
+        cR;
         farads;
         nSeries;
         pascalTri;
@@ -29,7 +31,7 @@ classdef Sc
     end
     
     methods
-        function obj = Sc(order, nSeries, vStart, farads, res, model)
+        function obj = Sc(order, nSeries, vStart, res, model)
             %Sc Construct an instance of this class
             %   Detailed explanation goes here
             
@@ -65,16 +67,17 @@ classdef Sc
             obj.pascalOrd       = order;
             obj.pascalTri       = Sc.pascal_triangle(order);
             obj.nSeries         = nSeries;
-            obj.farads          = farads;
             
             obj.v               = zeros(1, nSeries);
             
-            obj.distribution_in = ones(1, order, nSeries) .* vStart;
-            obj.my_distribution = obj.distribution_in;
+            obj.my_distribution     = ones(1, order, nSeries) .* vStart;
             obj.batt_distribution   = ones(1, 7, nSeries) .* vStart;
-            obj.soc             = mean(obj.my_distribution) / obj.vPeak;
-            obj.hSurface        = 1:nSeries;
-            obj.hSoc            = 1:nSeries;
+            
+            obj.distribution_in     = obj.my_distribution;
+            
+            obj.soc                 = mean(obj.my_distribution) / obj.vPeak;
+            obj.hSurface            = 1:nSeries;
+            obj.hSoc                = 1:nSeries;
         end
         
         function [sim_time, amps_in, distribution_in, capacitance,...
@@ -85,10 +88,19 @@ classdef Sc
                 obj.returnAsGlobals(t, obj.res, ampsIn, obj.distribution_in);
         end
         
-        function obj = setupBattery(obj, cap, r, soc)
+        function obj = setupBattery(obj, cap, r)
             obj.bCap = cap;
             obj.bR   = r;
-            obj.batt_distribution   = (ones(1, 7, obj.nSeries) .* soc) + 3.2;
+            %obj.batt_distribution   = (ones(1, 7, obj.nSeries) .* soc) + 3.2;
+            %disp(obj.batt_distribution);
+        end
+        
+        function obj = setupCap(obj, cap, r)
+            obj.farads = mean(cap);
+            obj.cCap = cap;
+            obj.cR   = r;
+            %obj.my_distribution   = (ones(1, 7, obj.nSeries) .* soc) + 3.2;
+            %disp(obj.batt_distribution);
         end
         
         function h = buildModel(obj)
@@ -109,6 +121,10 @@ classdef Sc
             obj.distribution_in = distribution_out;
             obj.my_distribution = Sc.appendDistribution(...
                 obj.my_distribution, obj.distribution_in, obj.nSeries);
+            %disp("Old");
+            %disp(obj.batt_distribution(end, :, 1));
+            %disp("New");
+            %disp(bDistribution_out(1, :, 1));
             obj.batt_distribution = Sc.appendDistribution(...
                 obj.batt_distribution, bDistribution_out, obj.nSeries);
             obj                 = obj.updateVcc(v_end);
@@ -124,6 +140,8 @@ classdef Sc
         
         function obj = runCycle(obj, t, ampsIn, tStep)
             f = waitbar(0, 'Starting...');
+            %ft = get(get(f, 'CurrentAxis'), 'title');
+            %set(ft, 'Interpreter', 'none');
             
             %% Initial conditions
             waitbar(0, f, '...Setting initial conditions...');
@@ -137,8 +155,9 @@ classdef Sc
             %% Drive
             waitbar(0, f, '...Starting drive...');
             
+            
             i         = 1;
-            while i < length(t)
+            while i < (length(t) / 100) % TODO remove the limit
                 %try
                 
                 % Optimisation: If next time step current is the same then bulk
@@ -172,10 +191,23 @@ classdef Sc
                 
                 % Update the loop and skip ahead if required
                 i    = i + counter;
-                waitbar( i / length(t), f, sprintf('...Driving...%s', obj.model));
+                waitbar( i / length(t), f, strrep(sprintf('...Driving...%s', obj.model), '_', '\_'));
                 %catch
                 %    break;
                 %end
+                
+                disp("Batt:");
+                battSoc = [obj.getBattSoc(obj.batt_distribution, 1);
+                    obj.getBattSoc(obj.batt_distribution, 2);...
+                    obj.getBattSoc(obj.batt_distribution, 3)];
+                disp(battSoc(end,:));
+                
+                disp("Cap:");
+                capSoc = [obj.getCapSoc(obj.my_distribution, 1);
+                    obj.getCapSoc(obj.my_distribution, 2);
+                    obj.getCapSoc(obj.my_distribution, 3)];
+                disp(capSoc(end,:));
+                
             end
             
             waitbar(1, f, 'done');
@@ -264,7 +296,8 @@ classdef Sc
             sim_time            = double(t);
             distribution_in     = double(distribution_in);
             amps_in             = double(amps_in);
-            capacitance         = double(obj.farads); % F
+            cCap                = double(obj.cCap); % F
+            cR                  = double(obj.cR); % F
             
             batt_c              = double(obj.bCap);
             batt_r              = double(obj.bR);
@@ -285,6 +318,9 @@ classdef Sc
             
             v_init = distribution_in(end, :, :);
             bv_init= obj.batt_distribution(end, :, :);
+            
+            %disp("Model in");
+            %disp(obj.batt_distribution(:, :, 1));
             
             %disp(v_init);
             
@@ -316,10 +352,9 @@ classdef Sc
             soc                 = mean(distribution_out)./obj.vPeak;
             bDistribution_out_temp   = obj.simOut.get('bSoc');
             bDistribution_out = ones(size(bDistribution_out_temp,1), 7, obj.nSeries);
-            bDistribution_out(:,:,1) = bDistribution_out_temp(:,1:7);
-            bDistribution_out(:,:,2) = bDistribution_out_temp(:,8:14);
-            bDistribution_out(:,:,3) = bDistribution_out_temp(:,15:21);
-            
+            bDistribution_out(:,:,3) = flip(bDistribution_out_temp(:,1:7), 2);
+            bDistribution_out(:,:,2) = flip(bDistribution_out_temp(:,8:14), 2);
+            bDistribution_out(:,:,1) = flip(bDistribution_out_temp(:,15:21), 2);
             
             %disp(bSoc);
         end
@@ -396,8 +431,8 @@ classdef Sc
         function handle = plotSoc(obj, idCap)
             disp('...Plotting State of Charge (SoC)...');
             
-            socCap = mean(obj.my_distribution(:, :, idCap), 2) / 8.0 * 100.0;
-            socBat = obj.bSoc(:,idCap);
+            socCap = obj.getCapSoc(obj.my_distribution, idCap);
+            socBat = obj.getBattSoc(obj.batt_distribution, idCap);
             
             v      = obj.v(:, idCap);
             
@@ -469,6 +504,14 @@ classdef Sc
     end
     
     methods (Static)
+        
+        function soc = getBattSoc(dist, id)
+            soc = mean(dist(:, 4:7, id) - 3.2 , 2) .* 100.0;
+        end
+        
+        function soc = getCapSoc(dist, id)
+            soc = mean(dist(:, :, id), 2) ./ 8.0 .* 100.0;
+        end
         
         function distribution   = appendDistribution(distributionSrc, distributionNew, nSeries)
             distribution = zeros( size(distributionSrc, 1)+size(distributionNew, 1), size(distributionSrc, 2), nSeries );
