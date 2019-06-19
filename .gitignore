@@ -10,6 +10,15 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+# MATLAB ignore
+slprj/
+*.slxc
+*.htmx
+*.asv
+
+# Python ignore
+__pycache__/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
