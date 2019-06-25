@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{536be80e-3cdf-4acd-87db-e25b99033a20}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>main.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
+    <InterpreterVersion>3.5</InterpreterVersion>
+    <IsWindowsApplication>False</IsWindowsApplication>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="AerodynamicsClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="AxleClass.py" />
+    <Compile Include="SupercapacitorManagementClass.py" />
+    <Compile Include="SupercapacitorStackClass.py" />
+    <Compile Include="BatteryClass.py" />
+    <Compile Include="BatteryManagementClass.py" />
+    <Compile Include="BrakesClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CarClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Cars.py" />
+    <Compile Include="ControlBusClass.py" />
+    <Compile Include="ControllerClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataInputClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ElectricalDeviceClass.py" />
+    <Compile Include="ElectricalManagementClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ElectricityClass.py" />
+    <Compile Include="elevate_includes.py" />
+    <Compile Include="EscClass.py" />
+    <Compile Include="Filters.py" />
+    <Compile Include="main.py" />
+    <Compile Include="MotorClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PowertrainClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="RotatingThingClass.py" />
+    <Compile Include="TdiLoadbankClass.py" />
+    <Compile Include="test.py" />
+    <Compile Include="TractionControlClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WheelClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="{9a7a9026-48c1-4688-9d5d-e5699d47d074}\3.5" />
+  </ItemGroup>
+  <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
+</Project>

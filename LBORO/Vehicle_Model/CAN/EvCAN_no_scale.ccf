@@ -1,0 +1,16 @@
+Fuel inj 1 PW on {measured time 1} VAR_2500|Fuel inj 2 PW on {measured time 2} VAR_2501|Fuel inj 3 PW on {measured time 3} VAR_2502|Fuel inj 4 PW on {measured time 4} VAR_2503|Fuel inj 5 PW on {measured time 5} VAR_2504|Fuel inj 6 PW on {measured time 6} VAR_2505|Fuel inj 7 PW on {measured time 7} VAR_2506|Fuel inj 8 PW on {measured time 8} VAR_2507|Battery voltage {misc 3} VAR_4002|Coil 1 PW {measured time 9} VAR_2508|Coil 2 PW {measured time 10} VAR_2509|Coil 3 PW {measured time 11} VAR_2510|Coil 4 PW {measured time 12} VAR_2511|**Do not use**|**Do not use**|
+11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|
+0x54f|0x54f|0x55b|0x1d4|0x1da|0x1da|0x1da|0x1db|0x1db|0x1dc|0x284|0x284|0x284|0x00|0x00|
+No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|
+0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
+40|32|54|36|56|32|16|53|38|56|48|32|16|16|32|
+8|6|10|12|8|12|16|11|10|8|16|16|16|9|24|
+Unsigned|Unsigned|Unsigned|Signed|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Signed|Signed|Signed|Unsigned|Unsigned|
+Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|
+1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|
+0|0|0|0|0|0|0|0|Disabled|0|0|0|0|0|0|
+0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
+500 kbit
+2|5|5|7|5|7|4|3|1|OFF|2|4|OFF|1|3|3|OFF|OFF|
+ 0 
+10Hz|10Hz|10Hz|100Hz|100Hz|100Hz|100Hz|100Hz|100Hz|100Hz|50Hz|50Hz|50Hz|Disabled|Disabled|

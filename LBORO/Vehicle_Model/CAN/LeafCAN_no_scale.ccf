@@ -1,0 +1,16 @@
+temperature 1 {temperature 1} VAR_1000|Inlet pre turbo 1 {temperature 2} VAR_1001|Inlet pre turbo 2 {temperature 3} VAR_1002|Inlet post turbo 1 {temperature 4} VAR_1003|Inlet post turbo 2 {temperature 5} VAR_1004|Inlet post intercooler 1 {temperature 6} VAR_1005|Inlet post intercooler 2 {temperature 7} VAR_1006|Water temp {temperature 8} VAR_1007|Oil temp {temperature 9} VAR_1008|Gearbox temp {temperature 10} VAR_1009|Gearbox post cooler {temperature 11} VAR_1010|Tyre 1 temp {temperature 12} VAR_1011|Tyre 2 temp {temperature 13} VAR_1012|Tyre 3 temp {temperature 14} VAR_1013|Tyre 4 temp {temperature 15} VAR_1014|
+11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|
+0x176|0x176|0x180|0x180|0x280|0x284|0x284|0x284|0x292|0x292|0x510|0x55b|0x5b3|0x5b3|0x5c5|
+No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|
+0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
+48|32|36|16|16|48|32|16|32|8|33|54|49|16|32|
+16|16|12|8|16|16|16|16|8|8|6|10|7|9|24|
+Unsigned|Unsigned|Signed|Unsigned|Signed|Signed|Signed|Signed|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|
+Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|Motorola backward|
+1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|
+0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
+0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
+500 kbit
+2|5|5|7|5|7|4|3|1|OFF|2|4|OFF|1|3|3|OFF|OFF|
+ 0 
+100Hz|100Hz|100Hz|100Hz|50Hz|50Hz|50Hz|50Hz|50Hz|50Hz|10Hz|10Hz|2Hz|2Hz|100Hz|

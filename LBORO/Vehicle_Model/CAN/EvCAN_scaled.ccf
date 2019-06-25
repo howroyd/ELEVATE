@@ -1,0 +1,16 @@
+0x176VehSpd1 {aux 6} VAR_2005|Fuel inj 2 PW {aux 7} VAR_2006|Fuel inj 3 PW {aux 8} VAR_2007|Fuel inj 4 PW {aux 9} VAR_2008|Fuel inj 5 PW {aux 10} VAR_2009|Fuel inj 6 PW {aux 11} VAR_2010|Fuel inj 7 PW {aux 12} VAR_2011|Fuel inj 8 PW {aux 13} VAR_2012|PASSTHROUGH16bit {aux 26} VAR_2025|Auxiliary 2 {aux 27} VAR_2026|Auxiliary 3 {aux 28} VAR_2027|Auxiliary 4 {aux 29} VAR_2028|Fuel inj 1 cut {aux 14} VAR_2013|Passthru14 {pressure 2} VAR_3501|Passthru15 {pressure 3} VAR_3502|
+11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|11 bit|
+0x54f|0x54f|0x55b|0x1d4|0x1da|0x1da|0x1da|0x1db|0x1db|0x1dc|0x284|0x284|0x284|0x00|0x00|
+No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|No Filter|
+0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
+16|42|0|17|0|21|33|1|16|0|0|16|32|16|32|
+8|6|10|11|8|11|15|10|10|8|16|16|16|9|24|
+Unsigned|Unsigned|Unsigned|Signed|Unsigned|Signed|Signed|Signed|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|Unsigned|
+Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|Motorola seq|
+0.2|0.03333|10|0.4|0.5|2|20|0.1|2|0.1|20|20|20|1|1|
+0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
+0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|
+500 kbit
+2|5|5|7|5|7|4|3|1|OFF|2|4|OFF|1|3|3|OFF|OFF|
+ 0 
+10Hz|10Hz|10Hz|100Hz|100Hz|100Hz|100Hz|100Hz|100Hz|100Hz|50Hz|50Hz|50Hz|Disabled|100Hz|
