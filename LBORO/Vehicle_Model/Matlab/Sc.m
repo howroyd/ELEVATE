@@ -2,7 +2,7 @@ classdef Sc
     %UNTITLED Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties ( Access = private)
+    properties% ( Access = private)
         distribution_in;
         res;
         t = [0];
@@ -157,7 +157,7 @@ classdef Sc
             
             
             i         = 1;
-            while i < (length(t) / 5) % TODO remove the limit
+            while i < (length(t)) % TODO remove the limit
                 %try
                 
                 % Optimisation: If next time step current is the same then bulk
@@ -441,7 +441,7 @@ classdef Sc
             
             v      = obj.v(:, idCap);
             
-            t      = obj.t ./ 10.0;
+            t      = obj.t;%$ ./ 10.0;
             
             if t(end) > 3*60*60
                 t = t ./ 3600.0;
@@ -454,10 +454,10 @@ classdef Sc
             end
             
             obj.hSoc(idCap) = figure(obj.hSurface(idCap));
-            plot(t, socCap);
+            plot(t(1:(1/obj.res):end-1), socCap);
             hold all;
-            plot(t, socBat);
-            plot(t, v*10.0);
+            plot(t(1:(1/obj.res):end-1), socBat);
+            plot(t(1:(1/obj.res):end-1), v*10.0);
             
             grid on;
             
