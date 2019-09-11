@@ -25,7 +25,7 @@ feed_forward = False
 ###############################
 ###   TEST DATAFILE NAME    ###
 ###############################
-filename     = "DriveCycles\WLTP_kph"
+filename     = "DriveCycles/WLTP_kph"
 #filename     = "realcycle_kph"
 
 
